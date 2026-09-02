@@ -50,6 +50,7 @@ import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.ime.composition.CandidatesView
 import com.osfans.trime.ime.keyboard.InputFeedbackManager
 import com.osfans.trime.receiver.RimeIntentReceiver
+import com.osfans.trime.util.isLandscape
 import com.osfans.trime.util.any
 import com.osfans.trime.util.findSectionFrom
 import com.osfans.trime.util.forceShowSelf
@@ -76,6 +77,37 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private lateinit var decorView: View
     private lateinit var contentView: FrameLayout
     private lateinit var lastKnownConfig: Configuration
+
+    /** Schema that was active before switching to the landscape schema, to restore in portrait. */
+    private var portraitSchemaId: String? = null
+
+    /**
+     * Switch to the schema configured for landscape when the device is rotated,
+     * and restore the previous schema when it is rotated back to portrait.
+     */
+    private fun applyLandscapeSchema() {
+        val target = prefs.keyboard.landscapeSchema.getValue()
+        if (target.isEmpty()) {
+            portraitSchemaId = null
+            return
+        }
+        val landscape = resources.configuration.isLandscape()
+        postRimeJob {
+            val current = selectedSchemaId()
+            if (landscape) {
+                if (current != target) {
+                    portraitSchemaId = current
+                    selectSchema(target)
+                }
+            } else {
+                val previous = portraitSchemaId ?: return@postRimeJob
+                portraitSchemaId = null
+                if (current == target && previous != target) {
+                    selectSchema(previous)
+                }
+            }
+        }
+    }
     private var inputView: InputView? = null
     private var candidatesView: CandidatesView? = null
     private val navBarManager = NavigationBarManager()
@@ -350,6 +382,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             super.onConfigurationChanged(newConfig)
         }
         lastKnownConfig.setTo(newConfig)
+        if (diff and ActivityInfo.CONFIG_ORIENTATION != 0) {
+            applyLandscapeSchema()
+        }
     }
 
     private val contentSize = floatArrayOf(0f, 0f)
@@ -523,6 +558,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             }
             setNullInputType(isNullType)
         }
+        applyLandscapeSchema()
     }
 
     private val inlineSuggestions by prefs.general.inlineSuggestions

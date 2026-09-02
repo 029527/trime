@@ -15,6 +15,7 @@ import com.osfans.trime.ime.candidates.popup.PopupCandidatesLayout
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
 import com.osfans.trime.ime.composition.PopupPosition
 import com.osfans.trime.ime.core.InlinePreeditMode
+import com.osfans.trime.core.Rime
 import com.osfans.trime.util.InputMethodUtils
 import com.osfans.trime.util.appContext
 import java.lang.ref.WeakReference
@@ -121,6 +122,7 @@ class AppPrefs(
         companion object {
             const val LANDSCAPE_MODE = "keyboard_landscape_mode"
             const val SPLIT_SPACE_PERCENT = "keyboard_split_space"
+            const val LANDSCAPE_SCHEMA = "keyboard_landscape_schema"
 
             const val USE_SOFT_CURSOR = "use_soft_cursor"
             const val HIDE_INPUT_BAR = "hide_input_bar"
@@ -177,6 +179,17 @@ class AppPrefs(
             200,
             "%",
         )
+
+        /** Schema to switch to in landscape; empty means "same as portrait". */
+        val landscapeSchema = list(
+            R.string.landscape_schema,
+            LANDSCAPE_SCHEMA,
+            "",
+            { listOf("") + enabledSchemaList().map { it.id } },
+            { ctx -> listOf(ctx.getString(R.string.landscape_schema_same_as_portrait)) + enabledSchemaList().map { it.name.ifEmpty { it.id } } },
+        )
+
+        private fun enabledSchemaList() = runCatching { Rime.getSelectedRimeSchemaList().toList() }.getOrDefault(emptyList())
 
         val useSoftCursor = switch(R.string.use_soft_cursor, USE_SOFT_CURSOR, true)
 

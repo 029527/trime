@@ -147,6 +147,8 @@
     <string name="a_regular_expression_per_line">A regular expression per line</string>
     <string name="custom_sound_effect_enabled">Use custom key sound</string>
     <string name="enable_landscape_mode">Enable Landscape Mode</string>
+    <string name="landscape_schema">Schema in landscape</string>
+    <string name="landscape_schema_same_as_portrait">Same as portrait</string>
     <string name="split_space_percent">Auto Split Keyboard Space Ratio</string>
     <string name="setup__step_three">Setup 3</string>
     <string name="setup__select_data_path_hint">Choose how <b>Trime</b> stores Rime data</string>
