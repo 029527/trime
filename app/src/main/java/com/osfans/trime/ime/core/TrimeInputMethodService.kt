@@ -98,6 +98,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
 
     private val recreateInputViewPrefs: Array<PreferenceDelegate<*>> = arrayOf(
         prefs.keyboard.expandKeypressArea,
+        prefs.keyboard.layoutInDisplayCutout,
         prefs.keyboard.hideKeySymbol,
         prefs.keyboard.hideKeyHint,
         prefs.keyboard.hideInputBar,
@@ -107,8 +108,33 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     @Keep
     private val recreateInputViewListener =
         PreferenceDelegate.OnChangeListener<Any> { _, _ ->
+            applyDisplayCutoutMode()
             replaceInputView(ThemeManager.activeTheme)
         }
+
+    /**
+     * Let the IME window extend into the display cutout area (e.g. the camera hole on the
+     * short edge in landscape), so the keyboard is not pushed away from that side.
+     */
+    private fun applyDisplayCutoutMode() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return
+        val w = window.window ?: return
+        val mode =
+            if (prefs.keyboard.layoutInDisplayCutout.getValue()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                } else {
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                }
+            } else {
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT
+            }
+        val attrs = w.attributes
+        if (attrs.layoutInDisplayCutoutMode != mode) {
+            attrs.layoutInDisplayCutoutMode = mode
+            w.attributes = attrs
+        }
+    }
 
     @Keep
     private val recreateCandidatesViewListener =
@@ -198,6 +224,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         Timber.d("onCreate")
         decorView = window.window!!.decorView
         contentView = decorView.findViewById(android.R.id.content)
+        applyDisplayCutoutMode()
         lastKnownConfig = Configuration(resources.configuration)
     }
 
