@@ -407,6 +407,13 @@ class AppPrefs(
             const val LAST_BACKGROUND_SYNC_STATUS = "last_background_sync_status"
             const val LAST_BACKGROUND_SYNC_TIME = "last_background_sync_time"
             const val USER_DB_MIGRATED = "profile_user_db_migrated"
+            const val GIT_SYNC_ENABLED = "profile_git_sync_enabled"
+            const val GIT_REPO_URL = "profile_git_repo_url"
+            const val GIT_BRANCH = "profile_git_branch"
+            const val GIT_USERNAME = "profile_git_username"
+            const val GIT_TOKEN = "profile_git_token"
+            const val GIT_LAST_COMMIT = "profile_git_last_commit"
+            const val GIT_LAST_SYNC_TIME = "profile_git_last_sync_time"
         }
 
         val dataStorageMode = enum(R.string.data_storage_mode, DATA_STORAGE_MODE, DataStorageMode.EXTERNAL_SYNC)
@@ -417,6 +424,15 @@ class AppPrefs(
         val periodicBackgroundSyncInterval = int(PERIODIC_BACKGROUND_SYNC_INTERVAL, 30)
         val lastBackgroundSyncStatus = bool(LAST_BACKGROUND_SYNC_STATUS, false)
         val lastBackgroundSyncTime = long(LAST_BACKGROUND_SYNC_TIME, 0L)
+
+        // git config repository sync
+        val gitSyncEnabled = bool(GIT_SYNC_ENABLED, false)
+        val gitRepoUrl = string(GIT_REPO_URL, "")
+        val gitBranch = string(GIT_BRANCH, "")
+        val gitUsername = string(GIT_USERNAME, "")
+        val gitToken = string(GIT_TOKEN, "")
+        val gitLastCommit = string(GIT_LAST_COMMIT, "")
+        val gitLastSyncTime = long(GIT_LAST_SYNC_TIME, 0L)
     }
 
     class Clipboard(

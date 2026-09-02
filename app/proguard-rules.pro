@@ -10,6 +10,13 @@
 
 # Keep JNI interface
 -keep class com.osfans.trime.core.* { *; }
+# JGit (git config sync) uses reflection and service loaders
+-keep class org.eclipse.jgit.** { *; }
+-dontwarn org.eclipse.jgit.**
+-dontwarn org.slf4j.**
+-dontwarn javax.**
+-dontwarn java.lang.management.**
+-dontwarn org.ietf.jgss.**
 
 # remove kotlin null checks
 -assumenosideeffects class kotlin.jvm.internal.Intrinsics {

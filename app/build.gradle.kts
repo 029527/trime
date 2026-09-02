@@ -158,6 +158,8 @@ dependencies {
     implementation(libs.xxpermissions)
     implementation(libs.kodein.di)
     implementation(libs.snakeyaml)
+    implementation(libs.jgit)
+    implementation(libs.slf4j.nop)
     implementation(libs.splitties.bitflags)
     implementation(libs.splitties.systemservices)
     implementation(libs.splitties.views.dsl)

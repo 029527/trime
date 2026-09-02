@@ -11,6 +11,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import android.text.InputType
+import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.SwitchPreferenceCompat
@@ -19,6 +21,7 @@ import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.prefs.PreferenceDelegate
 import com.osfans.trime.data.sync.DataStorageMode
+import com.osfans.trime.data.sync.GitConfigSync
 import com.osfans.trime.data.sync.RimeDataSync
 import com.osfans.trime.data.sync.SafDisplayPath
 import com.osfans.trime.data.sync.UserDbMigration
@@ -43,6 +46,19 @@ class ProfileSettingsFragment : PaddingPreferenceFragment() {
     private val lastSyncStatus by prefs.lastBackgroundSyncStatus
 
     private var pendingPickerCancelToAppStorage = false
+    private var gitSyncNowPreference: Preference? = null
+
+    private fun gitSyncSummary(): String {
+        val commit = prefs.gitLastCommit.getValue()
+        val time = prefs.gitLastSyncTime.getValue()
+        val text =
+            if (commit.isEmpty() || time == 0L) {
+                "N/A"
+            } else {
+                "$commit @ ${customFormatTimeInDefault("yyyy-MM-dd HH:mm", time)}"
+            }
+        return getString(R.string.git_sync_last, text)
+    }
     private var pendingResetDataPath = false
 
     private val onBackgroundSyncEnable = PreferenceDelegate.OnChangeListener<Boolean> { _, v ->
@@ -325,6 +341,72 @@ class ProfileSettingsFragment : PaddingPreferenceFragment() {
                         isEnabled = backgroundSyncEnable.getValue()
                     },
                 )
+            }
+            if (GitConfigSync.isSupported) {
+                addCategory(R.string.git_config_sync) {
+                    isIconSpaceReserved = false
+                    addPreference(
+                        SwitchPreferenceCompat(ctx).apply {
+                            key = AppPrefs.Profile.GIT_SYNC_ENABLED
+                            isIconSpaceReserved = false
+                            setTitle(R.string.git_sync_enabled)
+                            setSummary(R.string.git_sync_enabled_summary)
+                            setDefaultValue(false)
+                        },
+                    )
+                    fun textPreference(
+                        prefKey: String,
+                        title: Int,
+                        secret: Boolean = false,
+                    ) = EditTextPreference(ctx).apply {
+                        key = prefKey
+                        isIconSpaceReserved = false
+                        setTitle(title)
+                        dialogTitle = getString(title)
+                        setDefaultValue("")
+                        if (secret) {
+                            setOnBindEditTextListener {
+                                it.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                            }
+                            summaryProvider =
+                                Preference.SummaryProvider<EditTextPreference> {
+                                    if (it.text.isNullOrEmpty()) "N/A" else getString(R.string.git_token_set)
+                                }
+                        } else {
+                            summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
+                        }
+                    }
+                    addPreference(textPreference(AppPrefs.Profile.GIT_REPO_URL, R.string.git_repo_url))
+                    addPreference(textPreference(AppPrefs.Profile.GIT_BRANCH, R.string.git_branch))
+                    addPreference(textPreference(AppPrefs.Profile.GIT_USERNAME, R.string.git_username))
+                    addPreference(textPreference(AppPrefs.Profile.GIT_TOKEN, R.string.git_token, secret = true))
+                    addPreference(
+                        Preference(ctx).apply {
+                            gitSyncNowPreference = this
+                            isIconSpaceReserved = false
+                            setTitle(R.string.git_sync_now)
+                            summary = gitSyncSummary()
+                            setOnPreferenceClickListener {
+                                lifecycleScope.launch {
+                                    withLoadingDialog(ctx) {
+                                        GitConfigSync
+                                            .pullAndImport()
+                                            .mapCatching { head ->
+                                                viewModel.rime.runOnReady { deploy(skipImport = true) }
+                                                head
+                                            }.onSuccess { head ->
+                                                ctx.toast(getString(R.string.git_sync_success, head.take(12)))
+                                            }.onFailure {
+                                                ctx.toast(getString(R.string.git_sync_failure, it.message ?: it.javaClass.simpleName))
+                                            }
+                                        gitSyncNowPreference?.summary = gitSyncSummary()
+                                    }
+                                }
+                                true
+                            }
+                        },
+                    )
+                }
             }
             addCategory(R.string.maintenance) {
                 isIconSpaceReserved = false

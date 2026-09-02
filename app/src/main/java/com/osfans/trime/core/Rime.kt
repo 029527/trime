@@ -10,6 +10,7 @@ import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.data.opencc.OpenCCDictManager
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.sync.ExternalSyncFallback
+import com.osfans.trime.data.sync.GitConfigSync
 import com.osfans.trime.data.sync.RimeDataSync
 import com.osfans.trime.ime.core.InlinePreeditMode
 import com.osfans.trime.util.appContext
@@ -95,6 +96,14 @@ class Rime :
     }
 
     override suspend fun deploy(skipImport: Boolean) = RimeMaintenanceMutex.withLock {
+        if (!skipImport && GitConfigSync.isEnabled()) {
+            // the git repository is the source of truth; a failed pull keeps the
+            // files from the previous pull so the deploy can still go on
+            GitConfigSync
+                .pullAndImport()
+                .onSuccess { Timber.i("Git config sync finished at $it") }
+                .onFailure { Timber.e(it, "Git config sync failed, deploying existing files") }
+        }
         if (RimeDataSync.usesExternalSync()) {
             if (!RimeDataSync.hasExternalAccess(appContext)) {
                 ExternalSyncFallback.fallbackToAppStorage(appContext)
