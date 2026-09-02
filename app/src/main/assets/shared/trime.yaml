@@ -136,6 +136,12 @@ fallback_colors:
 #  liquid_keyboard_background: keyboard_back_color # liquidKeyboard的背景图/色
 #  text_back_color: back_color #编码区背景，即悬浮窗背景
 #  long_text_back_color: key_back_color #长文本按键的背景(剪贴板）
+#
+# 以下三项没有内置回退值：配色方案里定义了才生效。当输入框要求「前往/搜索/发送/完成」时，
+# 回车键（label 为 enter_labels 的键）改用这些颜色，效果类似 iOS 的蓝色回车键。
+#  enter_key_action_back_color: 0x007AFF
+#  hilited_enter_key_action_back_color: 0x0A84FF
+#  enter_key_action_text_color: 0xFFFFFF
 
 preset_color_schemes:
   default:

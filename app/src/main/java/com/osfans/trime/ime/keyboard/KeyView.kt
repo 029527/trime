@@ -12,12 +12,14 @@ import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.graphics.Rect
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.view.KeyEvent
 import com.mikepenz.iconics.IconicsDrawable
 import com.mikepenz.iconics.utils.sizeDp
 import com.osfans.trime.daemon.RimeDaemon
 import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.popup.PopupAction
@@ -57,6 +59,23 @@ class KeyView(
 
     private var cachedIcon: IconicsDrawable? = null
     private var cachedIconName: String? = null
+
+    // Optional colors for the enter key when the editor asks for a primary action
+    // (go / search / send / done), like the blue return key on iOS. Only used when the
+    // color scheme defines them.
+    private val isEnterKey: Boolean by lazy { key.getLabel() == ENTER_LABELS }
+    private val actionKeyBackground: Drawable? by lazy {
+        runCatching { ColorManager.getDrawable("enter_key_action_back_color") }.getOrNull()
+    }
+    private val hlActionKeyBackground: Drawable? by lazy {
+        runCatching { ColorManager.getDrawable("hilited_enter_key_action_back_color") }.getOrNull()
+            ?: actionKeyBackground
+    }
+    private val actionKeyTextColor: Int? by lazy {
+        runCatching { ColorManager.getColor("enter_key_action_text_color") }.getOrNull()
+    }
+    private val showsPrimaryAction: Boolean
+        get() = isEnterKey && keyboardView.isEnterPrimaryAction
 
     private val cachedLocation = intArrayOf(0, 0)
     private val cachedBounds = Rect()
@@ -273,7 +292,7 @@ class KeyView(
         drawBackground(canvas, key)
 
         val label = key.getLabel().let {
-            if (it == "enter_labels") keyboardView.labelEnter else it
+            if (it == ENTER_LABELS) keyboardView.labelEnter else it
         }
 
         if (label.isNotEmpty()) {
@@ -292,7 +311,8 @@ class KeyView(
     }
 
     private fun drawBackground(canvas: Canvas, k: Key) {
-        val bg = k.getBackgroundDrawable() ?: return
+        val actionBg = if (showsPrimaryAction) (if (k.isPressed) hlActionKeyBackground else actionKeyBackground) else null
+        val bg = actionBg ?: k.getBackgroundDrawable() ?: return
 
         if (bg is GradientDrawable) {
             (k.roundCorner ?: keyboard.roundCorner).takeIf { it > 0f }?.let { bg.cornerRadius = dp(it) }
@@ -309,7 +329,7 @@ class KeyView(
     }
 
     private fun drawLabel(canvas: Canvas, label: String) {
-        val textColor = key.getTextColor()
+        val textColor = (if (showsPrimaryAction) actionKeyTextColor else null) ?: key.getTextColor()
         val textSize = sp(key.keyTextSize.takeIf { it > 0 } ?: if (label.length > 1 && !label.isIconFont) keyboardView.keyLongTextSize else keyboardView.keyTextSize)
 
         if (label.isIconFont) {
@@ -410,3 +430,5 @@ class KeyView(
         }
     }
 }
+
+private const val ENTER_LABELS = "enter_labels"

@@ -31,6 +31,22 @@ class EnterKeyDisplayDelegate {
     var keyLabel: String = DEFAULT_LABEL
         private set
 
+    /** Whether the current editor asks for a "primary" action (go / search / send / done). */
+    var isPrimaryAction: Boolean = false
+        private set
+
+    private fun primaryActionFromEditorInfo(info: EditorInfo): Boolean {
+        if (info.imeOptions.hasFlag(EditorInfo.IME_FLAG_NO_ENTER_ACTION)) return false
+        return when (info.imeOptions and EditorInfo.IME_MASK_ACTION) {
+            EditorInfo.IME_ACTION_GO,
+            EditorInfo.IME_ACTION_SEARCH,
+            EditorInfo.IME_ACTION_SEND,
+            EditorInfo.IME_ACTION_DONE,
+            -> true
+            else -> false
+        }
+    }
+
     private var actionLabel: String = DEFAULT_LABEL
 
     private fun labelFromEditorInfo(info: EditorInfo): String {
@@ -79,8 +95,10 @@ class EnterKeyDisplayDelegate {
 
     fun updateLabelOnEditorInfo(info: EditorInfo) {
         actionLabel = labelFromEditorInfo(info)
-        if (keyLabel == actionLabel) return
+        val primary = primaryActionFromEditorInfo(info)
+        if (keyLabel == actionLabel && isPrimaryAction == primary) return
         keyLabel = actionLabel
+        isPrimaryAction = primary
         broadcaster.onEnterKeyLabelUpdate(keyLabel)
     }
 }
