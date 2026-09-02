@@ -123,6 +123,9 @@ class AppPrefs(
             const val SPLIT_SPACE_PERCENT = "keyboard_split_space"
 
             const val USE_SOFT_CURSOR = "use_soft_cursor"
+            const val LANDSCAPE_FLOATING = "keyboard_landscape_floating"
+            const val LANDSCAPE_FLOATING_WIDTH = "keyboard_landscape_floating_width"
+            const val LANDSCAPE_FLOATING_MARGIN = "keyboard_landscape_floating_margin"
             const val HIDE_INPUT_BAR = "hide_input_bar"
             const val HIDE_KEY_SYMBOL = "hide_key_symbol"
             const val HIDE_KEY_HINT = "hide_key_hint"
@@ -176,6 +179,25 @@ class AppPrefs(
             0,
             200,
             "%",
+        )
+
+        /** In landscape, show the keyboard as a small window at the bottom end instead of full width. */
+        val landscapeFloating = switch(R.string.landscape_floating, LANDSCAPE_FLOATING, false)
+        val landscapeFloatingWidth = int(
+            R.string.landscape_floating_width,
+            LANDSCAPE_FLOATING_WIDTH,
+            45,
+            25,
+            80,
+            "%",
+        )
+        val landscapeFloatingMargin = int(
+            R.string.landscape_floating_margin,
+            LANDSCAPE_FLOATING_MARGIN,
+            8,
+            0,
+            64,
+            "dp",
         )
 
         val useSoftCursor = switch(R.string.use_soft_cursor, USE_SOFT_CURSOR, true)

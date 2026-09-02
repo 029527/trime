@@ -101,6 +101,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         prefs.keyboard.hideKeySymbol,
         prefs.keyboard.hideKeyHint,
         prefs.keyboard.hideInputBar,
+        prefs.keyboard.landscapeFloating,
+        prefs.keyboard.landscapeFloatingWidth,
+        prefs.keyboard.landscapeFloatingMargin,
         prefs.advanced.ignoreSystemGestureInsets,
     )
 
@@ -459,7 +462,23 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private val inputViewLocation = intArrayOf(0, 0)
 
     override fun onComputeInsets(outInsets: Insets) {
-        if (inputDeviceManager.useVirtualKeyboard) {
+        val floatingView = inputView?.takeIf { it.isFloating }?.keyboardView
+        if (floatingView != null) {
+            // floating keyboard: do not push the app content, and only the keyboard
+            // window itself takes touches; the rest of the IME window is transparent
+            floatingView.getLocationInWindow(inputViewLocation)
+            outInsets.apply {
+                contentTopInsets = decorView.height
+                visibleTopInsets = decorView.height
+                touchableInsets = Insets.TOUCHABLE_INSETS_REGION
+                touchableRegion.set(
+                    inputViewLocation[0],
+                    inputViewLocation[1],
+                    inputViewLocation[0] + floatingView.width,
+                    inputViewLocation[1] + floatingView.height,
+                )
+            }
+        } else if (inputDeviceManager.useVirtualKeyboard) {
             inputView?.keyboardView?.getLocationInWindow(inputViewLocation)
             outInsets.apply {
                 contentTopInsets = inputViewLocation[1]

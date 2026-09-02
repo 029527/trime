@@ -242,6 +242,9 @@
     <string name="dark">Dark</string>
     <string name="never">Never</string>
     <string name="landscape_only">Landscape only</string>
+    <string name="landscape_floating">Floating keyboard in landscape</string>
+    <string name="landscape_floating_width">Floating keyboard width (of screen)</string>
+    <string name="landscape_floating_margin">Floating keyboard margin</string>
     <string name="wide_or_landscape">Wide or landscape</string>
     <string name="always">Always</string>
     <string name="preferred_voice_input">Preferred voice input</string>
