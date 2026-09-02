@@ -9,6 +9,8 @@ env:
   CI_NAME: Commit CI
 jobs:
   build:
+    # fork 里关闭上游的 4 系统矩阵构建，用 fork-ci.yml 代替
+    if: ${{ github.repository == 'osfans/trime' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
