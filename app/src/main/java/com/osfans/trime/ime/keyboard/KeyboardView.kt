@@ -32,6 +32,8 @@ class KeyboardView(
 
     internal val labelEnter: String
         get() = enterKeyDisplay.keyLabel
+    internal val isEnterPrimaryAction: Boolean
+        get() = enterKeyDisplay.isPrimaryAction
     internal val keyTextSize = theme.generalStyle.keyTextSize
     internal val keyLongTextSize = theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: keyTextSize
     internal val symbolTextSize = theme.generalStyle.symbolTextSize.takeIf { it > 0 } ?: keyTextSize
