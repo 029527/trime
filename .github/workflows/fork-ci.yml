@@ -61,7 +61,10 @@ jobs:
           EOF
 
       - name: Build Trime (release)
-        run: make release
+        run: |
+          export BUILD_VERSION_NAME=$(git describe --tags --long --always --exclude=nightly --exclude=custom-latest)
+          echo "version: $BUILD_VERSION_NAME"
+          make release
 
       - name: Add JNI cache
         if: ${{ !steps.jni-cache.outputs.cache-hit }}
@@ -73,6 +76,14 @@ jobs:
           name: trime-fork-arm64-v8a
           path: app/build/outputs/apk/release/*.apk
           retention-days: 90
+
+      - name: Remove old APKs from custom-latest
+        if: ${{ github.ref == 'refs/heads/custom' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view custom-latest --json assets --jq '.assets[].name' 2>/dev/null \
+            | xargs -r -I{} gh release delete-asset custom-latest "{}" -y || true
 
       - name: Update custom-latest pre-release
         if: ${{ github.ref == 'refs/heads/custom' }}
