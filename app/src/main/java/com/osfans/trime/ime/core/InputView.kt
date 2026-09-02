@@ -23,6 +23,7 @@ import com.osfans.trime.core.CompositionProto
 import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.util.isLandscape
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.bar.InputBarDelegate
@@ -49,6 +50,7 @@ import splitties.views.dsl.constraintlayout.constraintLayout
 import splitties.views.dsl.constraintlayout.endOfParent
 import splitties.views.dsl.constraintlayout.endToStartOf
 import splitties.views.dsl.constraintlayout.lParams
+import splitties.views.dsl.constraintlayout.matchConstraints
 import splitties.views.dsl.constraintlayout.startOfParent
 import splitties.views.dsl.constraintlayout.startToEndOf
 import splitties.views.dsl.constraintlayout.topOfParent
@@ -106,6 +108,14 @@ class InputView(
     private val liquidWindow: LiquidWindow by di.instance()
 
     private val candidatesMode by AppPrefs.defaultInstance().candidates.mode
+
+    private val landscapeFloating by AppPrefs.defaultInstance().keyboard.landscapeFloating
+    private val landscapeFloatingWidth by AppPrefs.defaultInstance().keyboard.landscapeFloatingWidth
+    private val landscapeFloatingMargin by AppPrefs.defaultInstance().keyboard.landscapeFloatingMargin
+
+    /** Floating mode: a small keyboard window at the bottom end of the screen, landscape only. */
+    val isFloating: Boolean
+        get() = landscapeFloating && resources.configuration.isLandscape()
 
     private val keyboardSidePadding = theme.generalStyle.keyboardPadding
     private val keyboardSidePaddingLandscape = theme.generalStyle.keyboardPaddingLand
@@ -202,16 +212,19 @@ class InputView(
             }
 
         // round the top corners of the whole keyboard area (candidate bar + keyboard),
-        // like iOS; the bottom edge is extended so only the top corners are clipped
+        // like iOS; the bottom edge is extended so only the top corners are clipped.
+        // A floating keyboard is rounded on all four corners.
         val cornerRadius = dp(theme.generalStyle.keyboardCornerRadius)
         if (cornerRadius > 0f) {
+            val roundAll = isFloating
             keyboardView.outlineProvider =
                 object : ViewOutlineProvider() {
                     override fun getOutline(
                         view: View,
                         outline: Outline,
                     ) {
-                        outline.setRoundRect(0, 0, view.width, view.height + cornerRadius.toInt(), cornerRadius)
+                        val bottom = if (roundAll) view.height else view.height + cornerRadius.toInt()
+                        outline.setRoundRect(0, 0, view.width, bottom, cornerRadius)
                     }
                 }
             keyboardView.clipToOutline = true
@@ -236,13 +249,27 @@ class InputView(
             },
         )
 
-        add(
-            keyboardView,
-            lParams(matchParent, wrapContent) {
-                centerHorizontally()
-                bottomOfParent()
-            },
-        )
+        if (isFloating) {
+            val margin = dp(landscapeFloatingMargin)
+            add(
+                keyboardView,
+                lParams(matchConstraints, wrapContent) {
+                    endOfParent()
+                    bottomOfParent()
+                    matchConstraintPercentWidth = landscapeFloatingWidth / 100f
+                    marginEnd = margin
+                    bottomMargin = margin
+                },
+            )
+        } else {
+            add(
+                keyboardView,
+                lParams(matchParent, wrapContent) {
+                    centerHorizontally()
+                    bottomOfParent()
+                },
+            )
+        }
 
         add(
             popup.root,

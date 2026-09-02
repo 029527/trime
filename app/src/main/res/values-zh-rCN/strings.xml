@@ -243,6 +243,9 @@
     <string name="dark">暗色</string>
     <string name="never">从不</string>
     <string name="landscape_only">仅限横屏</string>
+    <string name="landscape_floating">横屏时使用小窗键盘（靠右下角）</string>
+    <string name="landscape_floating_width">小窗键盘宽度（占屏幕）</string>
+    <string name="landscape_floating_margin">小窗键盘边距</string>
     <string name="wide_or_landscape">宽屏或横屏</string>
     <string name="always">始终</string>
     <string name="preferred_voice_input">首选语音输入法</string>
