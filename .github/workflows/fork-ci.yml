@@ -1,0 +1,85 @@
+# 029527/trime fork 专用打包流程：只编 arm64，用自己的签名，推送后自动更新预发布版 custom-latest。
+# 上游的 commit-ci（4 个系统矩阵）在本 fork 里已关闭，见 commit-ci.yml 的 if 条件。
+
+name: Fork Build
+on:
+  push:
+    branches:
+      - custom
+      - 'feature/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CI_NAME: Fork CI
+  BUILD_ABI: arm64-v8a
+
+jobs:
+  build:
+    if: ${{ github.repository != 'osfans/trime' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 25
+          cache: 'gradle'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install CMake
+        run: sdkmanager --install "cmake;3.31.6"
+
+      - name: Calculate JNI cache hash
+        id: cache-hash
+        run: ./gradlew :app:calculateNativeCacheHash
+
+      - name: Fetch JNI cache
+        uses: actions/cache@v4
+        id: jni-cache
+        with:
+          path: "app/prebuilt"
+          key: ${{ runner.os }}-trime-jni-release-arm64-${{ steps.cache-hash.outputs.native-cache-hash }}
+
+      - name: Setup Keystore
+        run: |
+          cat << EOF > keystore.properties
+          keyBase64=${{ secrets.SIGNING_KEY }}
+          storePassword=${{ secrets.KEY_STORE_PASSWORD }}
+          keyAlias=${{ secrets.ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+
+      - name: Build Trime (release)
+        run: make release
+
+      - name: Add JNI cache
+        if: ${{ !steps.jni-cache.outputs.cache-hit }}
+        run: cp -R app/build/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib app/prebuilt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trime-fork-arm64-v8a
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 90
+
+      - name: Update custom-latest pre-release
+        if: ${{ github.ref == 'refs/heads/custom' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: custom-latest
+          name: "Custom build (${{ github.sha }})"
+          prerelease: true
+          body: "自动构建自 custom 分支 ${{ github.sha }}。只含 arm64-v8a。"
+          files: app/build/outputs/apk/release/*.apk
