@@ -7,7 +7,9 @@ package com.osfans.trime.ime.core
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.graphics.Outline
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.view.WindowInsets
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InlineSuggestionsResponse
@@ -198,6 +200,22 @@ class InputView(
                     },
                 )
             }
+
+        // round the top corners of the whole keyboard area (candidate bar + keyboard),
+        // like iOS; the bottom edge is extended so only the top corners are clipped
+        val cornerRadius = dp(theme.generalStyle.keyboardCornerRadius)
+        if (cornerRadius > 0f) {
+            keyboardView.outlineProvider =
+                object : ViewOutlineProvider() {
+                    override fun getOutline(
+                        view: View,
+                        outline: Outline,
+                    ) {
+                        outline.setRoundRect(0, 0, view.width, view.height + cornerRadius.toInt(), cornerRadius)
+                    }
+                }
+            keyboardView.clipToOutline = true
+        }
 
         updateWindowViewHeightJob =
             service.lifecycleScope.launch {
