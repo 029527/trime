@@ -41,6 +41,18 @@
     <string name="use_soft_cursor">Use soft cursor (^) in preedit</string>
     <string name="deploy">Deploy</string>
     <string name="sync_user_data_immediately">Sync user data immediately</string>
+    <string name="git_config_sync">Git config repository</string>
+    <string name="git_sync_enabled">Pull config from Git repository before deploy</string>
+    <string name="git_sync_enabled_summary">Clone/pull the repository into app storage and copy its files into the user data directory, then deploy. Prefer app storage mode when using this.</string>
+    <string name="git_repo_url">Repository URL</string>
+    <string name="git_branch">Branch (empty = remote default)</string>
+    <string name="git_username">Username (private repository)</string>
+    <string name="git_token">Access token or password</string>
+    <string name="git_token_set">Set</string>
+    <string name="git_sync_now">Pull now and deploy</string>
+    <string name="git_sync_last">Last pull: %1$s</string>
+    <string name="git_sync_success">Config updated to %1$s</string>
+    <string name="git_sync_failure">Pull failed: %1$s</string>
     <string name="reset_success">Reset Succeeded!</string>
     <string name="reset_failure">Reset Failed!</string>
     <string name="deploy_progress">Deploying…</string>
