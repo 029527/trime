@@ -41,6 +41,7 @@ style:
   latin_font: latin.ttf #西文字型
   keyboard_height: 250 #锁定键盘高度，避免切换时键盘高度变化而造成闪烁
   keyboard_height_land: 200 #锁定横屏下键盘高度，避免切换时键盘高度变化而造成闪烁
+  keyboard_corner_radius: 0 #键盘整体（含候选栏）顶部两角的圆角半径，0 为直角
   preview_font: latin.ttf #按鍵提示字型
   preview_height: 60 #按鍵提示高度
   preview_offset: -12 #按鍵提示縱向偏移
