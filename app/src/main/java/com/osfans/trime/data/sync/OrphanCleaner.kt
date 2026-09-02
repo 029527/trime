@@ -10,7 +10,10 @@ import timber.log.Timber
 import java.io.File
 
 object OrphanCleaner {
-    private val preservedFiles = setOf(DataManager.INSTALLATION_FILE_NAME)
+    // Files that only exist in the app's own user data dir and must survive an import
+    // from the external tree: installation.yaml (installation id) and user.yaml
+    // (previously selected schema, option states, last build time).
+    private val preservedFiles = setOf(DataManager.INSTALLATION_FILE_NAME, DataManager.USER_CONFIG_FILE_NAME)
 
     data class Result(
         val deleted: Int = 0,
