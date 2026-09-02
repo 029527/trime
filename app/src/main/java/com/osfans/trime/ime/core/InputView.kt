@@ -124,6 +124,7 @@ class InputView(
 
     private val keyboardSidePaddingPx: Int
         get() {
+            if (isFloating) return 0 // the floating window is already small; no side padding
             val value =
                 if (context.isLandscapeMode()) keyboardSidePaddingLandscape else keyboardSidePadding
             return dp(value)

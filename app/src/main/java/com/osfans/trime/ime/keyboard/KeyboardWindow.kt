@@ -27,6 +27,7 @@ import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
 import com.osfans.trime.ime.popup.PopupDelegate
 import com.osfans.trime.ime.window.BoardWindow
 import com.osfans.trime.ime.window.ResidentWindow
+import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.util.isLandscape
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -95,7 +96,8 @@ class KeyboardWindow :
     private val onKeyboardViewLayoutChangeListener =
         View.OnLayoutChangeListener { v, left, _, right, _, _, _, _, _ ->
             val width = right - left
-            if (width > 0 && allowedWidth != width) {
+            // rebuild whenever the measured container differs from what the keys were laid out for
+            if (width > 0 && (allowedWidth != width || containerWidth != width)) {
                 val isPortrait = !context.resources.configuration.isLandscape()
                 lastIsPortrait = isPortrait
                 containerWidth = width
@@ -127,9 +129,16 @@ class KeyboardWindow :
             return containerWidth
         }
 
-        val padding = theme.generalStyle.run {
-            if (context.isLandscapeMode()) keyboardPaddingLand else keyboardPadding
-        }
+        val keyboardPrefs = AppPrefs.defaultInstance().keyboard
+        val floating = keyboardPrefs.landscapeFloating.getValue() && !isPortrait
+        val padding =
+            if (floating) {
+                0 // the floating window has no side padding spaces
+            } else {
+                theme.generalStyle.run {
+                    if (context.isLandscapeMode()) keyboardPaddingLand else keyboardPadding
+                }
+            }
 
         val safeWidth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = context.windowManager.maximumWindowMetrics
@@ -147,7 +156,10 @@ class KeyboardWindow :
             size.x
         }
 
-        val width = safeWidth - 2 * context.dp(padding)
+        // floating keyboard: the container is only a percentage of the screen width
+        val base = if (floating) (safeWidth * keyboardPrefs.landscapeFloatingWidth.getValue() / 100f).toInt() else safeWidth
+        val width = base - 2 * context.dp(padding)
+        Timber.d("computeAllowedWidth: safe=$safeWidth floating=$floating padding=$padding -> $width")
         allowedWidth = width
         return width
     }
