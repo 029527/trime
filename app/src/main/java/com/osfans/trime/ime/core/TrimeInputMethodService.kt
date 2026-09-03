@@ -100,11 +100,19 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                     selectSchema(target)
                 }
             } else {
-                val previous = portraitSchemaId ?: return@postRimeJob
-                portraitSchemaId = null
-                if (current == target && previous != target) {
-                    selectSchema(previous)
+                if (current != target) {
+                    portraitSchemaId = null
+                    return@postRimeJob
                 }
+                // Rime persists the last selected schema, so after a restart in landscape the
+                // schema active before rotating is unknown: fall back to the first enabled
+                // schema that is not the landscape one.
+                val previous =
+                    portraitSchemaId?.takeIf { it != target }
+                        ?: enabledSchemata().map { it.id }.firstOrNull { it != target }
+                        ?: return@postRimeJob
+                portraitSchemaId = null
+                selectSchema(previous)
             }
         }
     }
