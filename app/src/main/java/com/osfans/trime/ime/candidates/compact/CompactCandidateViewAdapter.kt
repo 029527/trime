@@ -11,6 +11,7 @@ import androidx.core.view.updateLayoutParams
 import com.chad.library.adapter4.BaseQuickAdapter
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.osfans.trime.core.CandidateProto
+import com.osfans.trime.ime.keyboard.T9Assist
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.candidates.CandidateItemUi
 import com.osfans.trime.ime.candidates.CandidateViewHolder
@@ -74,7 +75,8 @@ open class CompactCandidateViewAdapter(
     ) {
         item ?: return
         val isHighlighted = position == highlightedIdx
-        holder.ui.update(item, isHighlighted)
+        // nine-key: the pinyin is shown above the keyboard instead of beside every candidate
+        holder.ui.update(if (T9Assist.composing) item.copy(comment = "") else item, isHighlighted)
         holder.text = item.text
         holder.comment = item.comment
         holder.idx = position // unused

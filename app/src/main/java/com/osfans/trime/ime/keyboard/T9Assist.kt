@@ -17,6 +17,10 @@ package com.osfans.trime.ime.keyboard
  * n letters always replaces n digits.
  */
 object T9Assist {
+    /** Whether the current composition is a nine-key input; updated with every composition. */
+    @Volatile
+    var composing: Boolean = false
+
     /** Raw input of a nine-key schema: letters (already chosen syllables) followed by digits. */
     fun isT9Input(raw: String): Boolean =
         raw.isNotEmpty() && raw.any { it.isDigit() } && raw.all { it.isLetterOrDigit() || it == '\'' }

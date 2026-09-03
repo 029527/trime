@@ -81,12 +81,16 @@ class PreeditDelegate : InputBroadcastReceiver {
     private fun render() {
         val data = lastComposition
         val preedit = data.preedit
+        val isT9 = preedit != null && T9Assist.isT9Input(preedit.replace(" ", ""))
+        T9Assist.composing = isT9
         val shown =
-            if (preedit != null && firstComment.isNotEmpty() && T9Assist.isT9Input(preedit.replace(" ", ""))) {
-                CompositionProto(T9Assist.displayPreedit(preedit, firstComment))
+            if (isT9 && firstComment.isNotEmpty()) {
+                CompositionProto(T9Assist.displayPreedit(preedit!!, firstComment))
             } else {
                 data
             }
+        // nine-key: the pinyin above the keyboard is a hint, show it smaller than a normal preedit
+        ui.preedit.textSize = theme.preedit.foreground.fontSize * (if (isT9) 0.72f else 1f)
         ui.update(shown)
         ui.root.visibility = if (ui.visible) View.VISIBLE else View.INVISIBLE
         if (data.length > 0) {
