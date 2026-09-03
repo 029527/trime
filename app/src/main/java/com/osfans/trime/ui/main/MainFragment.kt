@@ -56,6 +56,11 @@ class MainFragment : PaddingPreferenceFragment() {
                 NavigationRoute.UserDict,
             )
             addDestinationPreference(
+                R.string.hot_words,
+                R.drawable.ic_baseline_star_24,
+                NavigationRoute.HotWords,
+            )
+            addDestinationPreference(
                 R.string.profile,
                 R.drawable.ic_baseline_snippet_folder_24,
                 NavigationRoute.Profile,

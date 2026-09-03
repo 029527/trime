@@ -278,4 +278,19 @@
     <string name="word_segment">Word segment</string>
     <string name="star_success">Star success</string>
     <string name="ignore_system_gesture_insets">Ignore system gesture insets</string>
+    <string name="hot_words">Hot words</string>
+    <string name="hot_words_empty">No hot words yet. Tap + to add a word that should come first, e.g. okok.</string>
+    <string name="hot_word_add">Add hot word</string>
+    <string name="hot_word_edit">Edit</string>
+    <string name="hot_word_delete">Delete</string>
+    <string name="hot_word_dialog_message">The word is placed before every dictionary candidate on both the 26-key and the nine-key layout. Leave the code empty to use the letters of the word.</string>
+    <string name="hot_word_text_hint">Word, e.g. okok</string>
+    <string name="hot_word_code_hint">Code (optional, letters/digits)</string>
+    <string name="hot_word_weight_hint">Weight (higher comes first)</string>
+    <string name="hot_word_text_empty">Word must not be empty</string>
+    <string name="hot_word_code_empty">Enter a code: the word has no letters</string>
+    <string name="hot_word_entry_summary">Code %1$s · Nine-key %2$s · Weight %3$d</string>
+    <string name="hot_word_deploying">Deploying hot words…</string>
+    <string name="hot_word_deployed">Hot words deployed</string>
+    <string name="hot_word_deploy_failed">Deploy failed: %1$s</string>
 </resources>

@@ -276,4 +276,19 @@
     <string name="word_segment">分词</string>
     <string name="star_success">收藏成功</string>
     <string name="ignore_system_gesture_insets">忽略系统手势边衬区</string>
+    <string name="hot_words">热词</string>
+    <string name="hot_words_empty">还没有热词。点右下角 + 加一个要排在最前面的词，比如 okok。</string>
+    <string name="hot_word_add">添加热词</string>
+    <string name="hot_word_edit">编辑</string>
+    <string name="hot_word_delete">删除</string>
+    <string name="hot_word_dialog_message">热词在 26 键和九宫格上都排在词库候选之前。编码留空则取词里的字母（如 okok → okok，九宫格 6565）。</string>
+    <string name="hot_word_text_hint">词，例如 okok</string>
+    <string name="hot_word_code_hint">编码（可选，字母或数字）</string>
+    <string name="hot_word_weight_hint">权重（越大越靠前）</string>
+    <string name="hot_word_text_empty">词不能为空</string>
+    <string name="hot_word_code_empty">词里没有字母，请填写编码</string>
+    <string name="hot_word_entry_summary">编码 %1$s · 九宫格 %2$s · 权重 %3$d</string>
+    <string name="hot_word_deploying">正在部署热词…</string>
+    <string name="hot_word_deployed">热词已生效</string>
+    <string name="hot_word_deploy_failed">部署失败：%1$s</string>
 </resources>
