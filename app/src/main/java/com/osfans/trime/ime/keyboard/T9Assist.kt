@@ -25,6 +25,12 @@ object T9Assist {
     fun isT9Input(raw: String): Boolean =
         raw.isNotEmpty() && raw.any { it.isDigit() } && raw.all { it.isLetterOrDigit() || it == '\'' }
 
+    /**
+     * The preedit Rime shows is the raw input plus syllable spaces and, with the
+     * soft_cursor option, a caret symbol (‸). Reduce it to the raw input characters.
+     */
+    fun stripPreedit(preedit: String): String = preedit.filter { it.isLetterOrDigit() || it == '\'' }
+
     /** Letters at the start of the input, i.e. syllables already chosen. */
     fun fixedPrefix(raw: String): String = raw.takeWhile { !it.isDigit() }
 
@@ -98,6 +104,7 @@ object T9Assist {
     ): String {
         val syls = syllables(comment)
         if (syls.isEmpty()) return preedit
+        val preedit = stripPreedit(preedit)
         val letters = syls.sumOf { it.length }
         val sb = StringBuilder()
         var covered = 0
