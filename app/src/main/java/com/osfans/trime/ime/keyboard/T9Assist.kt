@@ -24,8 +24,23 @@ object T9Assist {
     /** Letters at the start of the input, i.e. syllables already chosen. */
     fun fixedPrefix(raw: String): String = raw.takeWhile { !it.isDigit() }
 
+    private const val TONED = "āáǎàōóǒòēéěèīíǐìūúǔùǖǘǚǜüńňǹḿ"
+    private const val PLAIN = "aaaaooooeeeeiiiiuuuuvvvvvnnnm"
+
+    /** Strip tone marks so a syllable can be typed back into the speller (ü becomes v). */
+    fun normalize(syllable: String): String =
+        buildString(syllable.length) {
+            for (c in syllable.lowercase()) {
+                val i = TONED.indexOf(c)
+                append(if (i >= 0) PLAIN[i] else c)
+            }
+        }
+
     private fun syllables(comment: String): List<String> =
-        comment.split(' ', '\'', ',', '/').map { it.trim() }.filter { s -> s.isNotEmpty() && s.all { it.isLetter() } }
+        comment
+            .split(' ', '\'', ',', '/')
+            .map { normalize(it.trim()) }
+            .filter { s -> s.isNotEmpty() && s.all { it in 'a'..'z' } }
 
     /**
      * Distinct syllables the next unresolved digits could be, in candidate order.
