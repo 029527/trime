@@ -11,6 +11,7 @@ import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Build
 import android.os.VibrationEffect
+import android.os.Vibrator
 import android.speech.tts.TextToSpeech
 import android.util.SparseIntArray
 import android.view.HapticFeedbackConstants
@@ -18,6 +19,7 @@ import android.view.KeyEvent
 import android.view.View
 import androidx.core.util.containsValue
 import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.data.prefs.AppPrefs.Keyboard.VibrationEffectType
 import com.osfans.trime.data.soundeffect.SoundEffectManager
 import splitties.systemservices.audioManager
 import splitties.systemservices.vibrator
@@ -94,6 +96,7 @@ object InputFeedbackManager {
             vibrator.hasAmplitudeControl()
 
     private val vibrateOnKeyPress by keyboardPrefs.vibrateOnKeyPress
+    private val vibrationEffect by keyboardPrefs.vibrationEffect
     private val vibrationDuration by keyboardPrefs.vibrationDuration
     private val vibrationAmplitude by keyboardPrefs.vibrationAmplitude
 
@@ -105,30 +108,92 @@ object InputFeedbackManager {
         longPress: Boolean = false,
     ) {
         if (!vibrateOnKeyPress) return
-        val duration: Long = vibrationDuration.toLong()
-        val hfc =
-            if (longPress) {
-                HapticFeedbackConstants.LONG_PRESS
-            } else {
-                HapticFeedbackConstants.KEYBOARD_TAP
+        when (vibrationEffect) {
+            VibrationEffectType.SYSTEM -> systemHaptic(view, longPress)
+            VibrationEffectType.CUSTOM -> {
+                val duration = vibrationDuration.toLong()
+                if (duration == 0L) systemHaptic(view, longPress) else oneShotVibrate(duration)
             }
+            VibrationEffectType.CLICK -> predefinedVibrate(view, longPress, VibrationEffect.EFFECT_CLICK)
+            VibrationEffectType.TICK -> predefinedVibrate(view, longPress, VibrationEffect.EFFECT_TICK)
+            VibrationEffectType.HEAVY_CLICK -> predefinedVibrate(view, longPress, VibrationEffect.EFFECT_HEAVY_CLICK)
+            VibrationEffectType.PRIMITIVE_CLICK ->
+                primitiveVibrate(view, longPress, VibrationEffect.Composition.PRIMITIVE_CLICK)
+            VibrationEffectType.PRIMITIVE_TICK ->
+                primitiveVibrate(view, longPress, VibrationEffect.Composition.PRIMITIVE_TICK)
+        }
+    }
 
-        if (duration != 0L) { // use vibrator
-            if (hasAmplitudeControl && vibrationAmplitude != 0) {
-                vibrator.vibrate(VibrationEffect.createOneShot(duration, vibrationAmplitude))
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val ve = VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE)
-                vibrator.vibrate(ve)
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(duration)
-            }
+    /** The haptic effect the system attaches to soft keyboard keys; what vendors tune for their own keyboard. */
+    private fun systemHaptic(
+        view: View,
+        longPress: Boolean,
+    ) {
+        val hfc = if (longPress) HapticFeedbackConstants.LONG_PRESS else HapticFeedbackConstants.KEYBOARD_TAP
+
+        @Suppress("DEPRECATION")
+        val flags =
+            HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING or HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+        view.performHapticFeedback(hfc, flags)
+    }
+
+    /** A flat vibration of the configured duration and amplitude. */
+    private fun oneShotVibrate(duration: Long) {
+        if (hasAmplitudeControl && vibrationAmplitude != 0) {
+            vibrator.vibrate(VibrationEffect.createOneShot(duration, vibrationAmplitude))
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
         } else {
             @Suppress("DEPRECATION")
-            val flags =
-                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING or HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
-            view.performHapticFeedback(hfc, flags)
+            vibrator.vibrate(duration)
         }
+    }
+
+    /**
+     * Vendor-tuned predefined effect (API 29+). Long presses use the heavy click.
+     * Falls back to the system haptic when the device reports no support.
+     */
+    private fun predefinedVibrate(
+        view: View,
+        longPress: Boolean,
+        effectId: Int,
+    ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            systemHaptic(view, longPress)
+            return
+        }
+        val id = if (longPress) VibrationEffect.EFFECT_HEAVY_CLICK else effectId
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+            vibrator.areAllEffectsSupported(id) == Vibrator.VIBRATION_EFFECT_SUPPORT_NO
+        ) {
+            systemHaptic(view, longPress)
+            return
+        }
+        vibrator.vibrate(VibrationEffect.createPredefined(id))
+    }
+
+    /**
+     * Composed primitive (API 30+) whose intensity follows the amplitude preference
+     * (0 = full). Falls back to the predefined click when primitives are unsupported.
+     */
+    private fun primitiveVibrate(
+        view: View,
+        longPress: Boolean,
+        primitiveId: Int,
+    ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || !vibrator.areAllPrimitivesSupported(primitiveId)) {
+            predefinedVibrate(view, longPress, VibrationEffect.EFFECT_CLICK)
+            return
+        }
+        val scale = if (vibrationAmplitude in 1..255) vibrationAmplitude / 255f else 1f
+        val effect =
+            VibrationEffect
+                .startComposition()
+                .apply {
+                    addPrimitive(primitiveId, scale)
+                    if (longPress) addPrimitive(primitiveId, scale, 40)
+                }.compose()
+        vibrator.vibrate(effect)
     }
 
     private fun querySoundIndex(keyCode: Int): Int {

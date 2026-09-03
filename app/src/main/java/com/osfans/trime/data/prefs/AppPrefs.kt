@@ -132,6 +132,7 @@ class AppPrefs(
             const val USE_CUSTOM_SOUND_EFFECT = "custom_sound_effect_enabled"
             const val CUSTOM_SOUND_EFFECT = "custom_sound_effect_name"
             const val VIBRATE_ON_KEY_PRESS = "vibrate_on_key_press"
+            const val VIBRATION_EFFECT = "vibration_effect"
             const val VIBRATE_ON_KEY_RELEASE = "vibrate_on_key_release"
             const val VIBRATE_ON_KEY_REPEAT = "vibrate_on_key_repeat"
             const val VIBRATION_DURATION = "vibration_duration"
@@ -219,6 +220,25 @@ class AppPrefs(
             false,
         ) { vibrateOnKeyPress.getValue() }
 
+        /**
+         * How a key press vibration is produced. The predefined effects and the composition
+         * primitives use waveforms tuned by the device vendor for its motor, which give the
+         * crisp "click" of a linear motor; a plain one-shot of N ms feels like a buzz on those.
+         */
+        enum class VibrationEffectType(override val stringRes: Int) : PreferenceDelegateEnum {
+            SYSTEM(R.string.vibration_effect_system),
+            CLICK(R.string.vibration_effect_click),
+            TICK(R.string.vibration_effect_tick),
+            HEAVY_CLICK(R.string.vibration_effect_heavy_click),
+            PRIMITIVE_CLICK(R.string.vibration_effect_primitive_click),
+            PRIMITIVE_TICK(R.string.vibration_effect_primitive_tick),
+            CUSTOM(R.string.vibration_effect_custom),
+        }
+
+        val vibrationEffect = enum(R.string.vibration_effect, VIBRATION_EFFECT, VibrationEffectType.CLICK) {
+            vibrateOnKeyPress.getValue()
+        }
+
         val vibrationDuration = int(
             R.string.vibration_duration,
             VIBRATION_DURATION,
@@ -227,7 +247,7 @@ class AppPrefs(
             100,
             "ms",
             defaultLabel = R.string.system_default,
-        ) { vibrateOnKeyPress.getValue() }
+        ) { vibrateOnKeyPress.getValue() && vibrationEffect.getValue() == VibrationEffectType.CUSTOM }
 
         val vibrationAmplitude = int(
             R.string.vibration_amplitude,
@@ -236,7 +256,11 @@ class AppPrefs(
             0,
             255,
             defaultLabel = R.string.system_default,
-        ) { vibrateOnKeyPress.getValue() }
+        ) {
+            vibrateOnKeyPress.getValue() &&
+                vibrationEffect.getValue() in
+                setOf(VibrationEffectType.CUSTOM, VibrationEffectType.PRIMITIVE_CLICK, VibrationEffectType.PRIMITIVE_TICK)
+        }
 
         val speakOnKeyPress = switch(R.string.speak_on_keypress, SPEAK_ON_KEYPRESS, false)
         val speakOnCommit = switch(R.string.speak_on_commit, SPEAK_ON_COMMIT, false)
