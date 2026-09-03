@@ -9,6 +9,7 @@ import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.view.ViewOutlineProvider
+import com.osfans.trime.core.Candidates
 import com.osfans.trime.core.CompositionProto
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
@@ -17,6 +18,7 @@ import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.core.TouchEventReceiverWindow
 import com.osfans.trime.ime.dependency.InputDependencyManager
+import com.osfans.trime.ime.keyboard.T9Assist
 import org.kodein.di.instance
 import splitties.dimensions.dp
 import splitties.views.horizontalPadding
@@ -56,8 +58,36 @@ class PreeditDelegate : InputBroadcastReceiver {
 
     private val touchEventReceiverWindow = TouchEventReceiverWindow(ui.root)
 
+    private var lastComposition = CompositionProto()
+    private var firstComment = ""
+
+    override fun onCandidateListUpdate(data: Candidates.Bulk) {
+        val comment = data.candidates.firstOrNull()?.comment.orEmpty()
+        if (comment != firstComment) {
+            firstComment = comment
+            render()
+        }
+    }
+
     override fun onCompositionUpdate(data: CompositionProto) {
-        ui.update(data)
+        lastComposition = data
+        render()
+    }
+
+    /**
+     * For nine-key schemas the raw preedit is a digit string; show the pinyin of the
+     * first candidate for the digits it covers instead, like iOS does.
+     */
+    private fun render() {
+        val data = lastComposition
+        val preedit = data.preedit
+        val shown =
+            if (preedit != null && firstComment.isNotEmpty() && T9Assist.isT9Input(preedit.replace(" ", ""))) {
+                CompositionProto(T9Assist.displayPreedit(preedit, firstComment))
+            } else {
+                data
+            }
+        ui.update(shown)
         ui.root.visibility = if (ui.visible) View.VISIBLE else View.INVISIBLE
         if (data.length > 0) {
             touchEventReceiverWindow.show()

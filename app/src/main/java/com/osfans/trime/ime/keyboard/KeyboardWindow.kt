@@ -13,7 +13,12 @@ import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import com.osfans.trime.R
+import android.view.Gravity
+import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.lifecycleScope
+import com.osfans.trime.core.Candidates
 import com.osfans.trime.core.CompositionProto
+import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.core.SchemaItem
 import com.osfans.trime.daemon.RimeSession
@@ -29,9 +34,11 @@ import com.osfans.trime.ime.window.BoardWindow
 import com.osfans.trime.ime.window.ResidentWindow
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.util.isLandscape
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.kodein.di.instance
 import splitties.dimensions.dp
@@ -211,6 +218,7 @@ class KeyboardWindow :
                 add(it, lParams(matchParent, matchParent))
             }
         }
+        t9Column?.bringToFront()
     }
 
     private fun smartMatchKeyboard(): String {
@@ -392,5 +400,61 @@ class KeyboardWindow :
 
     override fun onDetached() {
         currentKeyboardView?.onDetach()
+    }
+
+    // ---- nine-key (T9) assist: a "choose pinyin" column over the leftmost keys ----
+
+    private var t9Column: T9PinyinColumn? = null
+    private var t9Job: Job? = null
+
+    override fun onCandidateListUpdate(data: Candidates.Bulk) {
+        refreshT9Column()
+    }
+
+    override fun onCompositionUpdate(data: CompositionProto) {
+        if (data.length == 0) hideT9Column()
+    }
+
+    private fun refreshT9Column() {
+        t9Job?.cancel()
+        t9Job =
+            service.lifecycleScope.launch {
+                val choices =
+                    rime.runOnReady {
+                        val raw = getRawInput()
+                        if (!T9Assist.isT9Input(raw)) return@runOnReady emptyList<String>()
+                        T9Assist.syllableChoices(raw, getCandidates(0, 60).map { it.comment })
+                    }
+                if (choices.isEmpty()) hideT9Column() else showT9Column(choices)
+            }
+    }
+
+    private fun showT9Column(choices: List<String>) {
+        val firstKey = currentKeyboard?.keys?.firstOrNull() ?: return
+        val column =
+            t9Column ?: T9PinyinColumn(context, theme) { syllable ->
+                rime.launchOnReady { api ->
+                    val raw = api.getRawInput()
+                    if (!T9Assist.isT9Input(raw)) return@launchOnReady
+                    val next = T9Assist.applySyllable(raw, syllable)
+                    api.clearComposition()
+                    api.simulateKeySequence(next)
+                }
+            }.also { t9Column = it }
+        column.update(choices)
+        if (column.parent == null) {
+            keyboardView.addView(
+                column,
+                FrameLayout.LayoutParams(firstKey.width, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.START),
+            )
+        } else {
+            column.updateLayoutParams<FrameLayout.LayoutParams> { width = firstKey.width }
+        }
+        column.bringToFront()
+        column.visibility = View.VISIBLE
+    }
+
+    private fun hideT9Column() {
+        t9Column?.visibility = View.GONE
     }
 }

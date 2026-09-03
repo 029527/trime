@@ -53,6 +53,7 @@ import splitties.views.dsl.constraintlayout.lParams
 import splitties.views.dsl.constraintlayout.matchConstraints
 import splitties.views.dsl.constraintlayout.startOfParent
 import splitties.views.dsl.constraintlayout.startToEndOf
+import splitties.views.dsl.constraintlayout.startToStartOf
 import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.core.add
 import splitties.views.dsl.core.imageView
@@ -246,7 +247,8 @@ class InputView(
             preedit.ui.root,
             lParams(wrapContent, wrapContent) {
                 above(keyboardView)
-                startOfParent()
+                // keep the preedit next to a floating keyboard instead of the screen corner
+                if (isFloating) startToStartOf(keyboardView) else startOfParent()
             },
         )
 
