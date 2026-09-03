@@ -430,7 +430,19 @@ class KeyboardWindow :
     }
 
     private fun showT9Column(choices: List<String>) {
-        val firstKey = currentKeyboard?.keys?.firstOrNull() ?: return
+        val keyboard = currentKeyboard ?: return
+        val firstKey = keyboard.keys.firstOrNull() ?: return
+        // key cells include half a gap on each side; the visible key starts gap/2 in
+        val gapH = keyboard.horizontalGap
+        val gapV = keyboard.verticalGap
+        val visibleKeyWidth = firstKey.width - gapH
+        val chipWidth = visibleKeyWidth * 3 / 4
+        val top = firstKey.y + gapV / 2
+        val lp =
+            FrameLayout.LayoutParams(firstKey.width, keyboard.height - top - gapV / 2, Gravity.START or Gravity.TOP).apply {
+                leftMargin = firstKey.x
+                topMargin = top
+            }
         val column =
             t9Column ?: T9PinyinColumn(context, theme) { syllable ->
                 rime.launchOnReady { api ->
@@ -441,14 +453,11 @@ class KeyboardWindow :
                     api.simulateKeySequence(next)
                 }
             }.also { t9Column = it }
-        column.update(choices)
+        column.update(choices, chipWidth)
         if (column.parent == null) {
-            keyboardView.addView(
-                column,
-                FrameLayout.LayoutParams(firstKey.width, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.START),
-            )
+            keyboardView.addView(column, lp)
         } else {
-            column.updateLayoutParams<FrameLayout.LayoutParams> { width = firstKey.width }
+            column.layoutParams = lp
         }
         column.bringToFront()
         column.visibility = View.VISIBLE

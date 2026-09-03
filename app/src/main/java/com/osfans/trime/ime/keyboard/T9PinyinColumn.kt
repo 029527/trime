@@ -46,16 +46,22 @@ class T9PinyinColumn(
         addView(list)
     }
 
-    fun update(syllables: List<String>) {
+    /**
+     * [chipWidth] is the width of each syllable chip in px; the column itself covers the
+     * whole key cell and centers the chips, so the keys underneath stay hidden.
+     */
+    fun update(
+        syllables: List<String>,
+        chipWidth: Int,
+    ) {
         list.removeAllViews()
-        val gapV = dp(theme.generalStyle.verticalGap)
-        val gapH = dp(theme.generalStyle.horizontalGap)
+        val gapV = dp(4)
         val radius = dp(theme.generalStyle.roundCorner)
         val keyColor = color("key_back_color", Color.WHITE)
         val pressedColor = color("hilited_key_back_color", Color.LTGRAY)
         val textColor = color("key_text_color", Color.BLACK)
-        // roughly half a key tall: the column lists several syllables in the space of four keys
-        val height = (dp(theme.generalStyle.keyHeight).takeIf { it > 0 } ?: dp(44)).let { maxOf(it * 11 / 20, dp(26)) }
+        // about half a key tall: the column lists several syllables in the space of four keys
+        val height = (dp(theme.generalStyle.keyHeight).takeIf { it > 0 } ?: dp(44)).let { maxOf(it / 2, dp(24)) }
         syllables.forEach { syllable ->
             val chip =
                 TextView(context).apply {
@@ -79,8 +85,10 @@ class T9PinyinColumn(
                 }
             list.addView(
                 chip,
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height).apply {
-                    setMargins(gapH / 2, gapV / 3, gapH / 2, gapV / 3)
+                LinearLayout.LayoutParams(chipWidth, height).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    // no top margin on the first chip: its top edge lines up with the first key row
+                    setMargins(0, if (list.childCount == 0) 0 else gapV, 0, 0)
                 },
             )
         }
