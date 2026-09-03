@@ -11,6 +11,7 @@ import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.model.TextKeyboard
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
+import com.osfans.trime.util.isLandscape
 import splitties.bitflags.hasFlag
 import splitties.dimensions.dp
 import kotlin.math.abs
@@ -136,7 +137,12 @@ class Keyboard(
 
             val maxColumns = if (selfConfig.columns == -1) Int.MAX_VALUE else selfConfig.columns
 
-            val isSplit = context.isLandscapeMode() && landscapePercent > 0
+            // the split layout (gap in the middle) is meant for a full-width landscape keyboard;
+            // a floating keyboard is already narrow, never split it
+            val floating =
+                AppPrefs.defaultInstance().keyboard.landscapeFloating.getValue() &&
+                    context.resources.configuration.isLandscape()
+            val isSplit = context.isLandscapeMode() && landscapePercent > 0 && !floating
             val splitRatio = if (isSplit) landscapePercent / 100f else 0f
 
             val oneWeightWidthPx =
