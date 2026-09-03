@@ -81,17 +81,25 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     /** Schema that was active before switching to the landscape schema, to restore in portrait. */
     private var portraitSchemaId: String? = null
 
+    /** Orientation the landscape schema rule was last applied for; null until first applied. */
+    private var landscapeSchemaAppliedFor: Boolean? = null
+
     /**
      * Switch to the schema configured for landscape when the device is rotated,
      * and restore the previous schema when it is rotated back to portrait.
+     * The rule runs once per orientation change, so a schema the user picks by hand
+     * afterwards (e.g. with a schema-switch key) stays until the next rotation.
      */
     private fun applyLandscapeSchema() {
         val target = prefs.keyboard.landscapeSchema.getValue()
         if (target.isEmpty()) {
             portraitSchemaId = null
+            landscapeSchemaAppliedFor = null
             return
         }
         val landscape = resources.configuration.isLandscape()
+        if (landscapeSchemaAppliedFor == landscape) return
+        landscapeSchemaAppliedFor = landscape
         postRimeJob {
             val current = selectedSchemaId()
             if (landscape) {
