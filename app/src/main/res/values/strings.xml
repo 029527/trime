@@ -30,6 +30,14 @@
     <string name="vibrate_on_key_press">Vibrate on key press</string>
     <string name="vibrate_on_key_release">Vibrate on key release</string>
     <string name="vibrate_on_key_repeat">Vibrate on key repeat</string>
+    <string name="vibration_effect">Vibration effect</string>
+    <string name="vibration_effect_system">System keyboard haptic</string>
+    <string name="vibration_effect_click">Click (crisp)</string>
+    <string name="vibration_effect_tick">Tick (light)</string>
+    <string name="vibration_effect_heavy_click">Heavy click</string>
+    <string name="vibration_effect_primitive_click">Composed click (amplitude adjustable)</string>
+    <string name="vibration_effect_primitive_tick">Composed tick (amplitude adjustable)</string>
+    <string name="vibration_effect_custom">Custom duration</string>
     <string name="vibration_duration">Vibration duration on key press</string>
     <string name="vibration_amplitude">Vibration amplitude on key press</string>
     <string name="speak_on_keypress">Voice on key press</string>

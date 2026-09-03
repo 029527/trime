@@ -30,6 +30,14 @@
     <string name="vibrate_on_key_press">按鍵時振動</string>
     <string name="vibrate_on_key_release">按鍵鬆開時振動</string>
     <string name="vibrate_on_key_repeat">重複按鍵時振動</string>
+    <string name="vibration_effect">振動效果</string>
+    <string name="vibration_effect_system">系統按鍵觸感</string>
+    <string name="vibration_effect_click">點擊（清脆）</string>
+    <string name="vibration_effect_tick">輕點</string>
+    <string name="vibration_effect_heavy_click">重擊</string>
+    <string name="vibration_effect_primitive_click">組合原語點擊（可調強度）</string>
+    <string name="vibration_effect_primitive_tick">組合原語輕點（可調強度）</string>
+    <string name="vibration_effect_custom">自訂時長</string>
     <string name="vibration_duration">按鍵振動時長</string>
     <string name="vibration_amplitude">按鍵振動強度</string>
     <string name="speak_on_keypress">按鍵時朗讀字符</string>
