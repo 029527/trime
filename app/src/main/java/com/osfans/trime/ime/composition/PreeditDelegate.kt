@@ -81,7 +81,7 @@ class PreeditDelegate : InputBroadcastReceiver {
     private fun render() {
         val data = lastComposition
         val preedit = data.preedit
-        val isT9 = preedit != null && T9Assist.isT9Input(preedit.replace(" ", ""))
+        val isT9 = preedit != null && T9Assist.isT9Input(T9Assist.stripPreedit(preedit))
         T9Assist.composing = isT9
         val shown =
             if (isT9 && firstComment.isNotEmpty()) {
