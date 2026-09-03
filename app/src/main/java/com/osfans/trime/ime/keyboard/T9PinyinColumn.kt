@@ -54,14 +54,15 @@ class T9PinyinColumn(
         val keyColor = color("key_back_color", Color.WHITE)
         val pressedColor = color("hilited_key_back_color", Color.LTGRAY)
         val textColor = color("key_text_color", Color.BLACK)
-        val height = dp(theme.generalStyle.keyHeight).takeIf { it > 0 } ?: dp(44)
+        // roughly half a key tall: the column lists several syllables in the space of four keys
+        val height = (dp(theme.generalStyle.keyHeight).takeIf { it > 0 } ?: dp(44)).let { maxOf(it * 11 / 20, dp(26)) }
         syllables.forEach { syllable ->
             val chip =
                 TextView(context).apply {
                     text = syllable
                     gravity = Gravity.CENTER
                     setTextColor(textColor)
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: 16f)
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, (theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: 16f) * 0.85f)
                     typeface = FontManager.getTypeface("key_font")
                     background =
                         GradientDrawable().apply {
@@ -79,7 +80,7 @@ class T9PinyinColumn(
             list.addView(
                 chip,
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height).apply {
-                    setMargins(gapH / 2, gapV / 2, gapH / 2, gapV / 2)
+                    setMargins(gapH / 2, gapV / 3, gapH / 2, gapV / 3)
                 },
             )
         }
