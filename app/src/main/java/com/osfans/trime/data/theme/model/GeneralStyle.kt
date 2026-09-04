@@ -30,6 +30,8 @@ data class GeneralStyle(
     /** Candidate bar height in landscape mode; 0 keeps [candidateViewHeight] + [commentHeight]. */
     val candidateViewHeightLand: Int,
     val candidateCornerRadius: Float,
+    /** Padding (dp) of the highlighted candidate's background around its text; < 0 fills the whole item. */
+    val hilitedCandidatePadding: Float,
     val commentFont: List<String>,
     val commentHeight: Int,
     val commentPosition: CommentPosition,
@@ -122,6 +124,7 @@ data class GeneralStyle(
             candidateViewHeight = node["candidate_view_height"]?.int ?: 28,
             candidateViewHeightLand = node["candidate_view_height_land"]?.int ?: 0,
             candidateCornerRadius = node["candidate_corner_radius"]?.float ?: 5f,
+            hilitedCandidatePadding = node["hilited_candidate_padding"]?.float ?: -1f,
             commentFont = node["comment_font"]?.sequence
                 ?.mapNotNull(Node::string) ?: emptyList(),
             commentHeight = node["comment_height"]?.int ?: 12,

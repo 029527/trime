@@ -9,6 +9,7 @@ import com.osfans.trime.ime.keyboard.KeyboardPrefs.candidateViewHeight
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.graphics.drawable.InsetDrawable
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
@@ -169,7 +170,21 @@ class CandidateItemUi(
         val cornerRadius = ctx.dp(theme.generalStyle.candidateCornerRadius)
         val contentColor = if (highlighted) hlBackColor else Color.TRANSPARENT
 
-        content.background = roundedRippleDrawable(hlBackColor, cornerRadius, contentColor)
+        val drawable = roundedRippleDrawable(hlBackColor, cornerRadius, contentColor)
+        val hlPadding = theme.generalStyle.hilitedCandidatePadding
+        content.background =
+            if (hlPadding < 0f) {
+                drawable
+            } else {
+                // a block that hugs the text (plus hlPadding on every side) instead of the whole item
+                val pad = ctx.dp(hlPadding)
+                val fm = text.paint.fontMetrics
+                val textHeight = fm.descent - fm.ascent
+                val itemHeight = ctx.dp(ctx.candidateViewHeight(theme)).toFloat()
+                val vInset = ((itemHeight - textHeight) / 2f - pad).coerceAtLeast(0f).toInt()
+                val hInset = (ctx.dp(theme.generalStyle.candidatePadding) - pad).coerceAtLeast(0f).toInt()
+                InsetDrawable(drawable, hInset, vInset, hInset, vInset)
+            }
         text.text = item.text
         text.setTextColor(tColor)
 
