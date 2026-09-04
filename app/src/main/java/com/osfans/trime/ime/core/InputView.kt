@@ -165,8 +165,9 @@ class InputView(
         // MUST call before any operation
         inputDepMgr.start()
 
-        // a floating keyboard shows the preedit inside the candidate bar (see InputBarDelegate)
-        preedit.embedded = isFloating
+        // a floating keyboard shows the preedit inside the candidate bar (see InputBarDelegate),
+        // unless the preedit already goes inline into the app's text field
+        preedit.embedded = isFloating && AppPrefs.defaultInstance().general.inlinePreeditMode.getValue() == InlinePreeditMode.DISABLE
 
         windowManager.cacheResidentWindow(keyboardWindow, createView = true)
         windowManager.cacheResidentWindow(liquidWindow)

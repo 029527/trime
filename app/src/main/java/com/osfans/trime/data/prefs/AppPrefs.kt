@@ -98,7 +98,8 @@ class AppPrefs(
             const val PREFERRED_VOICE_INPUT = "preferred_voice_input"
         }
 
-        val inlinePreeditMode = enum(R.string.inline_preedit_mode, INLINE_PREEDIT_MODE, InlinePreeditMode.DISABLE)
+        // the pinyin being typed goes into the app's text field, like iOS; the keyboard shows candidates only
+        val inlinePreeditMode = enum(R.string.inline_preedit_mode, INLINE_PREEDIT_MODE, InlinePreeditMode.COMPOSING_TEXT)
         val asciiSwitchTips = switch(R.string.ascii_switch_tips, ASCII_SWITCH_TIPS, true)
         val inlineSuggestions = switch(R.string.inline_suggestions, INLINE_SUGGESTIONS, true)
 

@@ -8,6 +8,7 @@ package com.osfans.trime.ime.keyboard
 import android.content.Context
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.ime.core.InlinePreeditMode
 import com.osfans.trime.util.isLandscape
 
 object KeyboardPrefs {
@@ -40,7 +41,10 @@ object KeyboardPrefs {
      */
     fun Context.inputBarHeight(theme: Theme): Int {
         val land = theme.generalStyle.candidateViewHeightLand
-        return if (isLandscapeMode() && land > 0) land + LANDSCAPE_PREEDIT_LINE_DP else theme.generalStyle.run { candidateViewHeight + commentHeight }
+        if (!isLandscapeMode() || land <= 0) return theme.generalStyle.run { candidateViewHeight + commentHeight }
+        // the preedit line is only needed when the preedit is not shown inline in the app
+        val inlinePreedit = prefs.general.inlinePreeditMode.getValue() != InlinePreeditMode.DISABLE
+        return if (inlinePreedit) land else land + LANDSCAPE_PREEDIT_LINE_DP
     }
 
     /** Scale applied to keyboard height and key text while floating (1 otherwise). */

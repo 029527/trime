@@ -137,7 +137,6 @@ class PreeditDelegate : InputBroadcastReceiver {
         val data = lastComposition
         val preedit = data.preedit
         val isT9 = preedit != null && T9Assist.isT9Input(T9Assist.stripPreedit(preedit))
-        T9Assist.composing = isT9
         val shown =
             if (isT9 && firstComment.isNotEmpty()) {
                 CompositionProto(T9Assist.displayPreedit(preedit!!, firstComment))

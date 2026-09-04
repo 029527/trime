@@ -14,6 +14,7 @@ import com.osfans.trime.data.hotwords.HotWordManager
 import com.osfans.trime.data.sync.GitConfigSync
 import com.osfans.trime.data.sync.RimeDataSync
 import com.osfans.trime.ime.core.InlinePreeditMode
+import com.osfans.trime.ime.keyboard.T9Assist
 import com.osfans.trime.util.appContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -350,7 +351,7 @@ class Rime :
     private fun emitResponse(commit: CommitProto? = null) {
         val response = getRimeResponse(pagingMode)
         handleRimeMessage(4, arrayOf(commit ?: response.commit))
-        handlePreedit(response.composition)
+        handlePreedit(response.composition, response.candidates.candidates)
         if (response.composition.length <= 0 && lastAsciiTipsText != asciiTipsText(response.status)) {
             showAsciiSwitchTips(response.status)
         }
@@ -361,15 +362,29 @@ class Rime :
         handleRimeMessage(8, arrayOf(response.status))
     }
 
-    private fun handlePreedit(composition: CompositionProto) {
+    private fun handlePreedit(
+        composition: CompositionProto,
+        candidates: Array<CandidateProto>,
+    ) {
         val mode = if (isNullInputType) {
             InlinePreeditMode.DISABLE
         } else {
             inlinePreeditMode
         }
+        // nine-key: the raw preedit is a digit string; what goes into the app is the pinyin
+        // of the first candidate that carries one (hot words and English have none)
+        val rawPreedit = composition.preedit.orEmpty()
+        val isT9 = T9Assist.isT9Input(T9Assist.stripPreedit(rawPreedit))
+        T9Assist.composing = isT9
         val inlinePreedit = when (mode) {
             InlinePreeditMode.DISABLE -> ""
-            InlinePreeditMode.COMPOSING_TEXT -> composition.preedit ?: ""
+            InlinePreeditMode.COMPOSING_TEXT ->
+                if (isT9) {
+                    val comment = candidates.firstOrNull { it.comment.isNotEmpty() }?.comment.orEmpty()
+                    if (comment.isEmpty()) T9Assist.stripPreedit(rawPreedit) else T9Assist.displayPreedit(rawPreedit, comment)
+                } else {
+                    rawPreedit
+                }
             InlinePreeditMode.COMMIT_TEXT_PREVIEW -> composition.commitTextPreview ?: ""
         }
         val composition = if (mode == InlinePreeditMode.COMPOSING_TEXT) {
