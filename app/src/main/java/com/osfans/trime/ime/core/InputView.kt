@@ -22,6 +22,10 @@ import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.core.CompositionProto
 import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeSession
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
+import android.view.ViewConfiguration
+import androidx.core.view.doOnLayout
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.util.isLandscape
 import com.osfans.trime.data.theme.ColorManager
@@ -37,6 +41,8 @@ import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.popup.PopupDelegate
 import com.osfans.trime.ime.symbol.LiquidWindow
 import com.osfans.trime.ime.window.BoardWindowManager
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.kodein.di.instance
@@ -113,10 +119,14 @@ class InputView(
     private val landscapeFloating by AppPrefs.defaultInstance().keyboard.landscapeFloating
     private val landscapeFloatingWidth by AppPrefs.defaultInstance().keyboard.landscapeFloatingWidth
     private val landscapeFloatingMargin by AppPrefs.defaultInstance().keyboard.landscapeFloatingMargin
+    private val floatingOffsetX = AppPrefs.defaultInstance().keyboard.landscapeFloatingOffsetX
+    private val floatingOffsetY = AppPrefs.defaultInstance().keyboard.landscapeFloatingOffsetY
 
     /** Floating mode: a small keyboard window at the bottom end of the screen, landscape only. */
     val isFloating: Boolean
         get() = landscapeFloating && resources.configuration.isLandscape()
+
+    private val floatingDrag: FloatingDragHelper? = if (isFloating) FloatingDragHelper() else null
 
     private val keyboardSidePadding = theme.generalStyle.keyboardPadding
     private val keyboardSidePaddingLandscape = theme.generalStyle.keyboardPaddingLand
@@ -264,6 +274,10 @@ class InputView(
                     bottomMargin = margin
                 },
             )
+            // restore the spot the user dragged the window to last time
+            keyboardView.doOnLayout {
+                floatingDrag?.moveTo(dp(floatingOffsetX.getValue()).toFloat(), dp(floatingOffsetY.getValue()).toFloat())
+            }
         } else {
             add(
                 keyboardView,
@@ -316,6 +330,113 @@ class InputView(
         }
         preedit.ui.root.setPadding(sidePadding, 0, sidePadding, 0)
         inputBar.view.setPadding(sidePadding, 0, sidePadding, 0)
+    }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean = floatingDrag?.onIntercept(ev) ?: false || super.onInterceptTouchEvent(ev)
+
+    override fun onTouchEvent(event: MotionEvent): Boolean = floatingDrag?.onTouch(event) ?: false || super.onTouchEvent(event)
+
+    /**
+     * Long-pressing an empty part of the candidate bar (nothing being composed) and
+     * dragging moves the floating keyboard; the spot is remembered across sessions.
+     */
+    private inner class FloatingDragHelper {
+        private val slop = ViewConfiguration.get(context).scaledTouchSlop
+        private val longPressTimeout = ViewConfiguration.getLongPressTimeout().toLong()
+        private var downX = 0f
+        private var downY = 0f
+        private var startTx = 0f
+        private var startTy = 0f
+        private var pending = false
+        private var dragging = false
+        private val startDrag =
+            Runnable {
+                pending = false
+                dragging = true
+                keyboardView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            }
+
+        private fun isOnIdleBar(ev: MotionEvent): Boolean {
+            if (rime.run { statusCached.isComposing }) return false
+            val bar = inputBar.view
+            val left = bar.left + keyboardView.left + keyboardView.translationX
+            val top = bar.top + keyboardView.top + keyboardView.translationY
+            return ev.x >= left && ev.x < left + bar.width && ev.y >= top && ev.y < top + bar.height
+        }
+
+        private fun cancelPending() {
+            pending = false
+            removeCallbacks(startDrag)
+        }
+
+        private fun movedBeyondSlop(ev: MotionEvent) = abs(ev.x - downX) > slop || abs(ev.y - downY) > slop
+
+        fun onIntercept(ev: MotionEvent): Boolean {
+            when (ev.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    dragging = false
+                    cancelPending()
+                    if (isOnIdleBar(ev)) {
+                        downX = ev.x
+                        downY = ev.y
+                        startTx = keyboardView.translationX
+                        startTy = keyboardView.translationY
+                        pending = true
+                        postDelayed(startDrag, longPressTimeout)
+                    }
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    if (dragging) return true
+                    if (pending && movedBeyondSlop(ev)) cancelPending()
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> cancelPending()
+            }
+            return false
+        }
+
+        fun onTouch(ev: MotionEvent): Boolean {
+            when (ev.actionMasked) {
+                MotionEvent.ACTION_DOWN -> return pending
+                MotionEvent.ACTION_MOVE -> {
+                    if (dragging) {
+                        moveTo(startTx + ev.x - downX, startTy + ev.y - downY)
+                        return true
+                    }
+                    if (pending && movedBeyondSlop(ev)) cancelPending()
+                    return pending
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    cancelPending()
+                    if (dragging) {
+                        dragging = false
+                        persist()
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+
+        /** Translate the window, keeping it inside the IME window. */
+        fun moveTo(
+            tx: Float,
+            ty: Float,
+        ) {
+            val v = keyboardView
+            if (v.width == 0 || width == 0) return
+            val minTx = -v.left.toFloat()
+            val maxTx = (width - v.right).toFloat()
+            val minTy = -v.top.toFloat()
+            val maxTy = (height - v.bottom).toFloat()
+            v.translationX = tx.coerceIn(minOf(minTx, maxTx), maxOf(minTx, maxTx))
+            v.translationY = ty.coerceIn(minOf(minTy, maxTy), maxOf(minTy, maxTy))
+        }
+
+        private fun persist() {
+            val density = resources.displayMetrics.density
+            floatingOffsetX.setValue((keyboardView.translationX / density).roundToInt())
+            floatingOffsetY.setValue((keyboardView.translationY / density).roundToInt())
+        }
     }
 
     override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {

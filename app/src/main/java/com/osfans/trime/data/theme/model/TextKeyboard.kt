@@ -83,6 +83,8 @@ data class TextKeyboard(
         val hlKeyBorderColor: String,
         val hlKeySymbolColor: String,
         val popup: List<String> = emptyList(),
+        /** Drop this key (and its row, if every key in the row is dropped) when the device is in landscape. */
+        val hideInLandscape: Boolean,
         val behaviors: Map<KeyBehavior, KeyActionToken?>,
         val hasClickAction: Boolean = behaviors[KeyBehavior.CLICK] != null,
     ) : Parcelable {
@@ -115,6 +117,7 @@ data class TextKeyboard(
                 hlKeyBorderColor = node["hilited_key_border_color"]?.string ?: "",
                 hlKeySymbolColor = node["hilited_key_symbol_color"]?.string ?: "",
                 popup = node["popup"]?.sequence?.mapNotNull(Node::string) ?: emptyList(),
+                hideInLandscape = node["hide_in_landscape"]?.boolean ?: false,
                 behaviors = KeyBehavior.entries
                     .associateWith { KeyActionToken.decode(node[it.name.lowercase()]) }
                     .filter { (behavior, token) ->

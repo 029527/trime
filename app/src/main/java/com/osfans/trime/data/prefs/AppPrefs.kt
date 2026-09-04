@@ -128,6 +128,8 @@ class AppPrefs(
             const val LANDSCAPE_FLOATING = "keyboard_landscape_floating"
             const val LANDSCAPE_FLOATING_WIDTH = "keyboard_landscape_floating_width"
             const val LANDSCAPE_FLOATING_MARGIN = "keyboard_landscape_floating_margin"
+            const val LANDSCAPE_FLOATING_OFFSET_X = "keyboard_landscape_floating_offset_x"
+            const val LANDSCAPE_FLOATING_OFFSET_Y = "keyboard_landscape_floating_offset_y"
             const val HIDE_INPUT_BAR = "hide_input_bar"
             const val HIDE_KEY_SYMBOL = "hide_key_symbol"
             const val HIDE_KEY_HINT = "hide_key_hint"
@@ -201,7 +203,7 @@ class AppPrefs(
         val landscapeFloatingWidth = int(
             R.string.landscape_floating_width,
             LANDSCAPE_FLOATING_WIDTH,
-            45,
+            40,
             25,
             80,
             "%",
@@ -214,6 +216,10 @@ class AppPrefs(
             64,
             "dp",
         )
+
+        /** Where the user dragged the floating keyboard to, in dp from its default bottom-end spot (≤ 0). */
+        val landscapeFloatingOffsetX = int(LANDSCAPE_FLOATING_OFFSET_X, 0)
+        val landscapeFloatingOffsetY = int(LANDSCAPE_FLOATING_OFFSET_Y, 0)
 
         val useSoftCursor = switch(R.string.use_soft_cursor, USE_SOFT_CURSOR, true)
 

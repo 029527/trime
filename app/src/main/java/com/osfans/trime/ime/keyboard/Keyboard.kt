@@ -132,7 +132,14 @@ class Keyboard(
                 c
             }
 
-            val keys = selfConfig.keys
+            // keys marked hide_in_landscape (e.g. a globe/mic row) disappear in landscape;
+            // a row whose keys are all hidden is not laid out at all
+            val keys =
+                if (context.resources.configuration.isLandscape()) {
+                    selfConfig.keys.filter { !it.hideInLandscape }
+                } else {
+                    selfConfig.keys
+                }
             val keyboardKeyWidth = selfConfig.width
 
             val maxColumns = if (selfConfig.columns == -1) Int.MAX_VALUE else selfConfig.columns
