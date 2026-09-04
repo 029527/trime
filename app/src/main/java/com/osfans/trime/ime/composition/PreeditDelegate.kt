@@ -115,7 +115,9 @@ class PreeditDelegate : InputBroadcastReceiver {
     private var firstComment = ""
 
     override fun onCandidateListUpdate(data: Candidates.Bulk) {
-        val comment = data.candidates.firstOrNull()?.comment.orEmpty()
+        // the first candidate may be a hot word or an English word without pinyin;
+        // take the first candidate that carries one
+        val comment = data.candidates.firstOrNull { it.comment.isNotEmpty() }?.comment.orEmpty()
         if (comment != firstComment) {
             firstComment = comment
             render()

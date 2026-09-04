@@ -8,6 +8,7 @@ import android.content.Context
 import android.view.View
 import com.osfans.trime.R
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.candidateViewHeight
 import splitties.dimensions.dp
 import splitties.views.dsl.constraintlayout.before
 import splitties.views.dsl.constraintlayout.topOfParent
@@ -55,10 +56,19 @@ class CandidateUi(
             }
             add(
                 compatView,
-                lParams {
-                    if (leading != null) bottomOfParent() else centerVertically()
-                    startOfParent(padding)
-                    before(unrollButton)
+                if (leading != null) {
+                    // one candidate row, pinned to the bottom under the preedit line
+                    lParams(wrapContent, dp(ctx.candidateViewHeight(theme))) {
+                        bottomOfParent()
+                        startOfParent(padding)
+                        before(unrollButton)
+                    }
+                } else {
+                    lParams {
+                        centerVertically()
+                        startOfParent(padding)
+                        before(unrollButton)
+                    }
                 },
             )
         }
