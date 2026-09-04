@@ -21,6 +21,12 @@ object KeyboardPrefs {
         else -> false
     }
 
+    /** The floating window is landscape only; this is independent of the landscape-mode setting. */
+    fun Context.isFloatingKeyboard(): Boolean = prefs.keyboard.landscapeFloating.getValue() && resources.configuration.isLandscape()
+
+    /** Scale applied to keyboard height and key text while floating (1 otherwise). */
+    fun Context.floatingScale(): Float = if (isFloatingKeyboard()) prefs.keyboard.floatingScale() else 1f
+
     private fun Context.isWideScreen(): Boolean {
         val metrics = resources.displayMetrics
         return metrics.widthPixels / metrics.density > WIDE_SCREEN_WIDTH_DP

@@ -330,7 +330,7 @@ class KeyView(
 
     private fun drawLabel(canvas: Canvas, label: String) {
         val textColor = (if (showsPrimaryAction) actionKeyTextColor else null) ?: key.getTextColor()
-        val textSize = sp(key.keyTextSize.takeIf { it > 0 } ?: if (label.length > 1 && !label.isIconFont) keyboardView.keyLongTextSize else keyboardView.keyTextSize)
+        val textSize = sp(key.keyTextSize.takeIf { it > 0 }?.let { it * keyboardView.textScale } ?: if (label.length > 1 && !label.isIconFont) keyboardView.keyLongTextSize else keyboardView.keyTextSize)
 
         if (label.isIconFont) {
             drawIcon(canvas, label, textSize.toInt(), textColor, key.keyTextOffsetX, key.keyTextOffsetY)
@@ -398,7 +398,7 @@ class KeyView(
         if (!isTop && keyboardView.hideKeyHint) return
 
         val textColor = key.getSymbolColor()
-        val textSize = sp(key.symbolTextSize.takeIf { it > 0f } ?: keyboardView.symbolTextSize)
+        val textSize = sp(key.symbolTextSize.takeIf { it > 0f }?.let { it * keyboardView.textScale } ?: keyboardView.symbolTextSize)
         val offsetX = if (isTop) key.keySymbolOffsetX else key.keyHintOffsetX
         val offsetY = if (isTop) key.keySymbolOffsetY else key.keyHintOffsetY
 

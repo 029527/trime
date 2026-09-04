@@ -10,6 +10,7 @@ import android.view.KeyEvent
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.model.TextKeyboard
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.floatingScale
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
 import com.osfans.trime.util.isLandscape
 import splitties.bitflags.hasFlag
@@ -347,7 +348,7 @@ class Keyboard(
             val keyboardHeightLand = theme.generalStyle.keyboardHeightLand
             if (keyboardHeightLand > 0) keyboardHeight = keyboardHeightLand
         }
-        return context.dp(keyboardHeight)
+        return (context.dp(keyboardHeight) * context.floatingScale()).toInt()
     }
 
     private fun getKeyboardHeightFromKeyboardConfig(textKeyboard: TextKeyboard): Int {
@@ -356,7 +357,7 @@ class Keyboard(
             val keyboardHeightLand = textKeyboard.keyboardHeightLand
             if (keyboardHeightLand > 0) keyboardHeight = keyboardHeightLand
         }
-        return context.dp(keyboardHeight)
+        return (context.dp(keyboardHeight) * context.floatingScale()).toInt()
     }
 
     fun setModifierKey(

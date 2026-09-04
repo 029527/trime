@@ -126,7 +126,9 @@ class AppPrefs(
 
             const val USE_SOFT_CURSOR = "use_soft_cursor"
             const val LANDSCAPE_FLOATING = "keyboard_landscape_floating"
+            const val LANDSCAPE_FLOATING_SIZE = "keyboard_landscape_floating_size"
             const val LANDSCAPE_FLOATING_WIDTH = "keyboard_landscape_floating_width"
+            const val LANDSCAPE_FLOATING_HEIGHT = "keyboard_landscape_floating_height"
             const val LANDSCAPE_FLOATING_MARGIN = "keyboard_landscape_floating_margin"
             const val LANDSCAPE_FLOATING_OFFSET_X = "keyboard_landscape_floating_offset_x"
             const val LANDSCAPE_FLOATING_OFFSET_Y = "keyboard_landscape_floating_offset_y"
@@ -200,6 +202,25 @@ class AppPrefs(
 
         /** In landscape, show the keyboard as a small window at the bottom end instead of full width. */
         val landscapeFloating = switch(R.string.landscape_floating, LANDSCAPE_FLOATING, false)
+
+        /**
+         * Size presets for the floating keyboard: width (percent of the screen) and a
+         * scale applied to the keyboard height and key text together, so the keys keep
+         * their proportions. [CUSTOM] uses [landscapeFloatingWidth] and [landscapeFloatingHeight].
+         */
+        enum class LandscapeFloatingSize(
+            override val stringRes: Int,
+            val widthPercent: Int,
+            val scale: Float,
+        ) : PreferenceDelegateEnum {
+            SMALL(R.string.landscape_floating_size_small, 32, 0.8f),
+            MEDIUM(R.string.landscape_floating_size_medium, 40, 1f),
+            LARGE(R.string.landscape_floating_size_large, 50, 1.25f),
+            XLARGE(R.string.landscape_floating_size_xlarge, 60, 1.5f),
+            CUSTOM(R.string.landscape_floating_size_custom, 0, 0f),
+        }
+
+        val landscapeFloatingSize = enum(R.string.landscape_floating_size, LANDSCAPE_FLOATING_SIZE, LandscapeFloatingSize.MEDIUM)
         val landscapeFloatingWidth = int(
             R.string.landscape_floating_width,
             LANDSCAPE_FLOATING_WIDTH,
@@ -207,7 +228,27 @@ class AppPrefs(
             25,
             80,
             "%",
-        )
+        ) { landscapeFloatingSize.getValue() == LandscapeFloatingSize.CUSTOM }
+        val landscapeFloatingHeight = int(
+            R.string.landscape_floating_height,
+            LANDSCAPE_FLOATING_HEIGHT,
+            100,
+            50,
+            200,
+            "%",
+        ) { landscapeFloatingSize.getValue() == LandscapeFloatingSize.CUSTOM }
+
+        /** Width of the floating keyboard as a percent of the screen, per preset. */
+        fun floatingWidthPercent(): Int {
+            val size = landscapeFloatingSize.getValue()
+            return if (size == LandscapeFloatingSize.CUSTOM) landscapeFloatingWidth.getValue() else size.widthPercent
+        }
+
+        /** Scale for the floating keyboard's height and key text, per preset. */
+        fun floatingScale(): Float {
+            val size = landscapeFloatingSize.getValue()
+            return if (size == LandscapeFloatingSize.CUSTOM) landscapeFloatingHeight.getValue() / 100f else size.scale
+        }
         val landscapeFloatingMargin = int(
             R.string.landscape_floating_margin,
             LANDSCAPE_FLOATING_MARGIN,

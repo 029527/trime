@@ -117,7 +117,6 @@ class InputView(
     private val candidatesMode by AppPrefs.defaultInstance().candidates.mode
 
     private val landscapeFloating by AppPrefs.defaultInstance().keyboard.landscapeFloating
-    private val landscapeFloatingWidth by AppPrefs.defaultInstance().keyboard.landscapeFloatingWidth
     private val landscapeFloatingMargin by AppPrefs.defaultInstance().keyboard.landscapeFloatingMargin
     private val floatingOffsetX = AppPrefs.defaultInstance().keyboard.landscapeFloatingOffsetX
     private val floatingOffsetY = AppPrefs.defaultInstance().keyboard.landscapeFloatingOffsetY
@@ -269,7 +268,7 @@ class InputView(
                 lParams(matchConstraints, wrapContent) {
                     endOfParent()
                     bottomOfParent()
-                    matchConstraintPercentWidth = landscapeFloatingWidth / 100f
+                    matchConstraintPercentWidth = AppPrefs.defaultInstance().keyboard.floatingWidthPercent() / 100f
                     marginEnd = margin
                     bottomMargin = margin
                 },

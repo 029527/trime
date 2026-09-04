@@ -164,7 +164,7 @@ class KeyboardWindow :
         }
 
         // floating keyboard: the container is only a percentage of the screen width
-        val base = if (floating) (safeWidth * keyboardPrefs.landscapeFloatingWidth.getValue() / 100f).toInt() else safeWidth
+        val base = if (floating) (safeWidth * keyboardPrefs.floatingWidthPercent() / 100f).toInt() else safeWidth
         val width = base - 2 * context.dp(padding)
         Timber.d("computeAllowedWidth: safe=$safeWidth floating=$floating padding=$padding -> $width")
         allowedWidth = width

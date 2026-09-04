@@ -151,7 +151,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         prefs.keyboard.hideKeyHint,
         prefs.keyboard.hideInputBar,
         prefs.keyboard.landscapeFloating,
+        prefs.keyboard.landscapeFloatingSize,
         prefs.keyboard.landscapeFloatingWidth,
+        prefs.keyboard.landscapeFloatingHeight,
         prefs.keyboard.landscapeFloatingMargin,
         prefs.advanced.ignoreSystemGestureInsets,
     )

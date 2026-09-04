@@ -264,7 +264,7 @@
     <string name="never">从不</string>
     <string name="landscape_only">仅限横屏</string>
     <string name="landscape_floating">横屏时使用小窗键盘（靠右下角）</string>
-    <string name="landscape_floating_width">小窗键盘宽度（占屏幕）</string>
+    <string name="landscape_floating_width">小窗键盘宽度（自定义时）</string>
     <string name="landscape_floating_margin">小窗键盘边距</string>
     <string name="wide_or_landscape">宽屏或横屏</string>
     <string name="always">始终</string>
@@ -291,4 +291,11 @@
     <string name="hot_word_deploying">正在部署热词…</string>
     <string name="hot_word_deployed">热词已生效</string>
     <string name="hot_word_deploy_failed">部署失败：%1$s</string>
+    <string name="landscape_floating_size">小窗键盘大小</string>
+    <string name="landscape_floating_size_small">小</string>
+    <string name="landscape_floating_size_medium">中</string>
+    <string name="landscape_floating_size_large">大</string>
+    <string name="landscape_floating_size_xlarge">特大</string>
+    <string name="landscape_floating_size_custom">自定义</string>
+    <string name="landscape_floating_height">小窗键盘高度（自定义时）</string>
 </resources>

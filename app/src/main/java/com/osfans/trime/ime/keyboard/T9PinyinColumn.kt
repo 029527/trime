@@ -5,6 +5,7 @@
 
 package com.osfans.trime.ime.keyboard
 
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.floatingScale
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -68,7 +69,7 @@ class T9PinyinColumn(
                     text = syllable
                     gravity = Gravity.CENTER
                     setTextColor(textColor)
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, (theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: 16f) * 0.85f)
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, (theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: 16f) * 0.85f * context.floatingScale())
                     typeface = FontManager.getTypeface("key_font")
                     background =
                         GradientDrawable().apply {

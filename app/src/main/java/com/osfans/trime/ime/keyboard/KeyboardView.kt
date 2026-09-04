@@ -12,6 +12,7 @@ import android.widget.FrameLayout
 import androidx.core.view.children
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.floatingScale
 import com.osfans.trime.ime.broadcast.EnterKeyDisplayDelegate
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.popup.PopupDelegate
@@ -34,9 +35,11 @@ class KeyboardView(
         get() = enterKeyDisplay.keyLabel
     internal val isEnterPrimaryAction: Boolean
         get() = enterKeyDisplay.isPrimaryAction
-    internal val keyTextSize = theme.generalStyle.keyTextSize
-    internal val keyLongTextSize = theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: keyTextSize
-    internal val symbolTextSize = theme.generalStyle.symbolTextSize.takeIf { it > 0 } ?: keyTextSize
+    /** Key text scales with the floating keyboard size preset; 1 when not floating. */
+    internal val textScale = context.floatingScale()
+    internal val keyTextSize = theme.generalStyle.keyTextSize * textScale
+    internal val keyLongTextSize = (theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: theme.generalStyle.keyTextSize) * textScale
+    internal val symbolTextSize = (theme.generalStyle.symbolTextSize.takeIf { it > 0 } ?: theme.generalStyle.keyTextSize) * textScale
     internal val popupOnKeyPress by AppPrefs.defaultInstance().keyboard.popupOnKeyPress
     internal val hookShiftArrow: Boolean by AppPrefs.defaultInstance().keyboard.hookShiftArrow
     internal val hideKeySymbol: Boolean by AppPrefs.defaultInstance().keyboard.hideKeySymbol
