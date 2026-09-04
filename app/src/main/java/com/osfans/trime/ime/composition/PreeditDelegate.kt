@@ -78,39 +78,6 @@ class PreeditDelegate : InputBroadcastReceiver {
             }
         }
 
-    /** Character offsets of the pinyin groups shown for a nine-key input and the raw input length before each. */
-    private var t9Groups: List<Pair<IntRange, Int>> = emptyList()
-
-    /**
-     * Nine-key: tapping a pinyin group drops that group and everything after it from the
-     * input, so the user can type those digits again.
-     */
-    private fun retypeT9Group(offset: Int) {
-        val group = t9Groups.firstOrNull { offset <= it.first.last + 1 } ?: t9Groups.lastOrNull() ?: return
-        val keep = group.second
-        rime.launchOnReady { api ->
-            val raw = api.getRawInput()
-            if (!T9Assist.isT9Input(raw)) return@launchOnReady
-            api.clearComposition()
-            if (keep > 0) api.simulateKeySequence(raw.take(keep))
-        }
-    }
-
-    private fun t9GroupsOf(shown: String): List<Pair<IntRange, Int>> {
-        val out = mutableListOf<Pair<IntRange, Int>>()
-        var rawBefore = 0
-        var start = 0
-        while (start < shown.length) {
-            val end = shown.indexOf(' ', start).let { if (it < 0) shown.length else it }
-            if (end > start) {
-                out += (start until end) to rawBefore
-                rawBefore += shown.substring(start, end).count { it.isLetterOrDigit() }
-            }
-            start = end + 1
-        }
-        return out
-    }
-
     private var lastComposition = CompositionProto()
     private var firstComment = ""
 
@@ -143,13 +110,6 @@ class PreeditDelegate : InputBroadcastReceiver {
             } else {
                 data
             }
-        if (isT9) {
-            t9Groups = t9GroupsOf(shown.preedit.orEmpty())
-            ui.preedit.onTapOffset = { retypeT9Group(it) }
-        } else {
-            t9Groups = emptyList()
-            ui.preedit.onTapOffset = null
-        }
         // nine-key: the pinyin above the keyboard is a hint, show it smaller than a normal preedit
         if (!embedded) ui.preedit.textSize = theme.preedit.foreground.fontSize * (if (isT9) 0.72f else 1f)
         ui.update(shown)
