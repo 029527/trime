@@ -34,6 +34,8 @@ import com.osfans.trime.ime.bar.ui.CandidateUi
 import com.osfans.trime.ime.bar.ui.TabUi
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.candidates.compact.CompactCandidateDelegate
+import com.osfans.trime.ime.composition.PreeditDelegate
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.inputBarHeight
 import com.osfans.trime.ime.candidates.unrolled.window.FlexboxUnrolledCandidateWindow
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.dependency.InputDependencyManager
@@ -68,8 +70,9 @@ class InputBarDelegate : InputBroadcastReceiver {
     private val commonKeyboardActionListener: CommonKeyboardActionListener by di.instance()
     private val candidate: CompactCandidateDelegate by di.instance()
     private val rime: RimeSession by di.instance()
+    private val preedit: PreeditDelegate by di.instance()
 
-    val themedHeight = theme.generalStyle.run { candidateViewHeight + commentHeight }
+    val themedHeight = context.inputBarHeight(theme)
 
     private val prefs = AppPrefs.defaultInstance()
 
@@ -167,7 +170,8 @@ class InputBarDelegate : InputBroadcastReceiver {
     }
 
     private val candidateUi by lazy {
-        CandidateUi(context, theme, candidate.view).apply {
+        // a floating keyboard keeps its preedit inside the bar instead of above the window
+        CandidateUi(context, theme, candidate.view, leading = preedit.ui.root.takeIf { preedit.embedded }).apply {
             unrollButton.apply {
                 onSwipe = swipeDownHideKeyboardCallback
             }

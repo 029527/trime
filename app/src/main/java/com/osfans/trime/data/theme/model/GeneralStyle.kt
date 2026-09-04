@@ -27,6 +27,8 @@ data class GeneralStyle(
     val candidateTextSize: Float,
     val candidateTextVerticalBias: Float,
     val candidateViewHeight: Int,
+    /** Candidate bar height in landscape mode; 0 keeps [candidateViewHeight] + [commentHeight]. */
+    val candidateViewHeightLand: Int,
     val candidateCornerRadius: Float,
     val commentFont: List<String>,
     val commentHeight: Int,
@@ -118,6 +120,7 @@ data class GeneralStyle(
             candidateTextSize = node["candidate_text_size"]?.float ?: 15f,
             candidateTextVerticalBias = node["candidate_text_vertical_bias"]?.float ?: 1f,
             candidateViewHeight = node["candidate_view_height"]?.int ?: 28,
+            candidateViewHeightLand = node["candidate_view_height_land"]?.int ?: 0,
             candidateCornerRadius = node["candidate_corner_radius"]?.float ?: 5f,
             commentFont = node["comment_font"]?.sequence
                 ?.mapNotNull(Node::string) ?: emptyList(),

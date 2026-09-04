@@ -59,7 +59,6 @@ import splitties.views.dsl.constraintlayout.lParams
 import splitties.views.dsl.constraintlayout.matchConstraints
 import splitties.views.dsl.constraintlayout.startOfParent
 import splitties.views.dsl.constraintlayout.startToEndOf
-import splitties.views.dsl.constraintlayout.startToStartOf
 import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.core.add
 import splitties.views.dsl.core.imageView
@@ -166,6 +165,9 @@ class InputView(
         // MUST call before any operation
         inputDepMgr.start()
 
+        // a floating keyboard shows the preedit inside the candidate bar (see InputBarDelegate)
+        preedit.embedded = isFloating
+
         windowManager.cacheResidentWindow(keyboardWindow, createView = true)
         windowManager.cacheResidentWindow(liquidWindow)
         // show KeyboardWindow by default
@@ -252,14 +254,15 @@ class InputView(
 
         updateKeyboardSize()
 
-        add(
-            preedit.ui.root,
-            lParams(wrapContent, wrapContent) {
-                above(keyboardView)
-                // keep the preedit next to a floating keyboard instead of the screen corner
-                if (isFloating) startToStartOf(keyboardView) else startOfParent()
-            },
-        )
+        if (!isFloating) {
+            add(
+                preedit.ui.root,
+                lParams(wrapContent, wrapContent) {
+                    above(keyboardView)
+                    startOfParent()
+                },
+            )
+        }
 
         if (isFloating) {
             val margin = dp(landscapeFloatingMargin)

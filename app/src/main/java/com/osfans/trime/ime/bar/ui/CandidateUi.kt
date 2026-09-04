@@ -15,13 +15,17 @@ import splitties.views.dsl.constraintlayout.constraintLayout
 import splitties.views.dsl.constraintlayout.endOfParent
 import splitties.views.dsl.constraintlayout.lParams
 import splitties.views.dsl.constraintlayout.startOfParent
+import splitties.views.dsl.constraintlayout.startToEndOf
 import splitties.views.dsl.core.Ui
 import splitties.views.dsl.core.add
+import splitties.views.dsl.core.wrapContent
 
 class CandidateUi(
     override val ctx: Context,
     theme: Theme,
     private val compatView: View,
+    /** Optional view shown before the candidates, e.g. the preedit of a floating keyboard. */
+    private val leading: View? = null,
 ) : Ui {
     val unrollButton =
         ToolButton(ctx, R.drawable.ic_baseline_expand_more_24).apply {
@@ -37,11 +41,21 @@ class CandidateUi(
                     endOfParent()
                 },
             )
+            val padding = dp(theme.generalStyle.candidatePadding / 2)
+            if (leading != null) {
+                add(
+                    leading,
+                    lParams(wrapContent, wrapContent) {
+                        centerVertically()
+                        startOfParent(padding)
+                    },
+                )
+            }
             add(
                 compatView,
                 lParams {
                     centerVertically()
-                    startOfParent(dp(theme.generalStyle.candidatePadding / 2))
+                    if (leading != null) startToEndOf(leading, dp(4)) else startOfParent(padding)
                     before(unrollButton)
                 },
             )

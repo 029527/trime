@@ -5,6 +5,7 @@
 
 package com.osfans.trime.ime.candidates
 
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.candidateViewHeight
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
@@ -152,7 +153,7 @@ class CandidateItemUi(
          */
         add(
             content,
-            lParams(wrapContent, dp(theme.generalStyle.candidateViewHeight)) {
+            lParams(wrapContent, dp(ctx.candidateViewHeight(theme))) {
                 gravity = gravityCenter
             },
         )

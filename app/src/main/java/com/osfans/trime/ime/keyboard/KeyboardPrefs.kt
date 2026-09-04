@@ -7,6 +7,7 @@ package com.osfans.trime.ime.keyboard
 
 import android.content.Context
 import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.util.isLandscape
 
 object KeyboardPrefs {
@@ -23,6 +24,18 @@ object KeyboardPrefs {
 
     /** The floating window is landscape only; this is independent of the landscape-mode setting. */
     fun Context.isFloatingKeyboard(): Boolean = prefs.keyboard.landscapeFloating.getValue() && resources.configuration.isLandscape()
+
+    /** Height of one candidate item (dp): the landscape value of the theme when set. */
+    fun Context.candidateViewHeight(theme: Theme): Int {
+        val land = theme.generalStyle.candidateViewHeightLand
+        return if (isLandscapeMode() && land > 0) land else theme.generalStyle.candidateViewHeight
+    }
+
+    /** Height of the candidate bar (dp); in landscape the theme's land value replaces height + comment height. */
+    fun Context.inputBarHeight(theme: Theme): Int {
+        val land = theme.generalStyle.candidateViewHeightLand
+        return if (isLandscapeMode() && land > 0) land else theme.generalStyle.run { candidateViewHeight + commentHeight }
+    }
 
     /** Scale applied to keyboard height and key text while floating (1 otherwise). */
     fun Context.floatingScale(): Float = if (isFloatingKeyboard()) prefs.keyboard.floatingScale() else 1f

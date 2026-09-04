@@ -22,6 +22,7 @@ import com.osfans.trime.ime.keyboard.T9Assist
 import org.kodein.di.instance
 import splitties.dimensions.dp
 import splitties.views.horizontalPadding
+import splitties.views.verticalPadding
 
 class PreeditDelegate : InputBroadcastReceiver {
 
@@ -58,6 +59,58 @@ class PreeditDelegate : InputBroadcastReceiver {
 
     private val touchEventReceiverWindow = TouchEventReceiverWindow(ui.root)
 
+    /**
+     * Embedded: the preedit lives inside the candidate bar (floating keyboard) instead of
+     * popping up above the keyboard, so it is a small chip that takes no space when empty.
+     */
+    var embedded = false
+        set(value) {
+            field = value
+            if (value) {
+                ui.root.visibility = View.GONE
+                ui.preedit.background =
+                    GradientDrawable().apply {
+                        setColor(ColorManager.getColor("text_back_color"))
+                        shape = GradientDrawable.RECTANGLE
+                        cornerRadius = ui.preedit.dp(6f)
+                    }
+                ui.preedit.verticalPadding = ui.preedit.dp(2)
+            }
+        }
+
+    /** Character offsets of the pinyin groups shown for a nine-key input and the raw input length before each. */
+    private var t9Groups: List<Pair<IntRange, Int>> = emptyList()
+
+    /**
+     * Nine-key: tapping a pinyin group drops that group and everything after it from the
+     * input, so the user can type those digits again.
+     */
+    private fun retypeT9Group(offset: Int) {
+        val group = t9Groups.firstOrNull { offset <= it.first.last + 1 } ?: t9Groups.lastOrNull() ?: return
+        val keep = group.second
+        rime.launchOnReady { api ->
+            val raw = api.getRawInput()
+            if (!T9Assist.isT9Input(raw)) return@launchOnReady
+            api.clearComposition()
+            if (keep > 0) api.simulateKeySequence(raw.take(keep))
+        }
+    }
+
+    private fun t9GroupsOf(shown: String): List<Pair<IntRange, Int>> {
+        val out = mutableListOf<Pair<IntRange, Int>>()
+        var rawBefore = 0
+        var start = 0
+        while (start < shown.length) {
+            val end = shown.indexOf(' ', start).let { if (it < 0) shown.length else it }
+            if (end > start) {
+                out += (start until end) to rawBefore
+                rawBefore += shown.substring(start, end).count { it.isLetterOrDigit() }
+            }
+            start = end + 1
+        }
+        return out
+    }
+
     private var lastComposition = CompositionProto()
     private var firstComment = ""
 
@@ -89,9 +142,20 @@ class PreeditDelegate : InputBroadcastReceiver {
             } else {
                 data
             }
+        if (isT9) {
+            t9Groups = t9GroupsOf(shown.preedit.orEmpty())
+            ui.preedit.onTapOffset = { retypeT9Group(it) }
+        } else {
+            t9Groups = emptyList()
+            ui.preedit.onTapOffset = null
+        }
         // nine-key: the pinyin above the keyboard is a hint, show it smaller than a normal preedit
         ui.preedit.textSize = theme.preedit.foreground.fontSize * (if (isT9) 0.72f else 1f)
         ui.update(shown)
+        if (embedded) {
+            ui.root.visibility = if (ui.visible) View.VISIBLE else View.GONE
+            return
+        }
         ui.root.visibility = if (ui.visible) View.VISIBLE else View.INVISIBLE
         if (data.length > 0) {
             touchEventReceiverWindow.show()

@@ -20,6 +20,9 @@ constructor(
     attributeSet: AttributeSet? = null,
 ) : TextView(context, attributeSet) {
     var onMoveCursor: ((Int) -> Unit)? = null
+
+    /** When set, a tap reports the character offset here instead of moving Rime's cursor. */
+    var onTapOffset: ((Int) -> Unit)? = null
     private var lastTapOffset = -1
     private var newCursorPos = -1
 
@@ -40,7 +43,8 @@ constructor(
                 return true
             }
             MotionEvent.ACTION_UP -> {
-                onMoveCursor?.invoke(newCursorPos)
+                val tap = onTapOffset
+                if (tap != null) tap(lastTapOffset) else onMoveCursor?.invoke(newCursorPos)
                 lastTapOffset = -1
                 newCursorPos = -1
                 return true
