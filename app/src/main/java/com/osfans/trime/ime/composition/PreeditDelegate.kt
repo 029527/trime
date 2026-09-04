@@ -158,7 +158,8 @@ class PreeditDelegate : InputBroadcastReceiver {
             return
         }
         ui.root.visibility = if (ui.visible) View.VISIBLE else View.INVISIBLE
-        if (data.length > 0) {
+        // the popup needs a window token: never show it for a preedit view that is not attached
+        if (data.length > 0 && ui.root.isAttachedToWindow) {
             touchEventReceiverWindow.show()
         } else {
             touchEventReceiverWindow.dismiss()

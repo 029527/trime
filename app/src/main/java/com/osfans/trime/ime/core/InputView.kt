@@ -58,6 +58,7 @@ import splitties.views.dsl.constraintlayout.endToStartOf
 import splitties.views.dsl.constraintlayout.lParams
 import splitties.views.dsl.constraintlayout.matchConstraints
 import splitties.views.dsl.constraintlayout.startOfParent
+import splitties.views.dsl.constraintlayout.startToStartOf
 import splitties.views.dsl.constraintlayout.startToEndOf
 import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.core.add
@@ -255,12 +256,15 @@ class InputView(
 
         updateKeyboardSize()
 
-        if (!isFloating) {
+        // the preedit popup lives above the keyboard unless it is embedded in the bar;
+        // it must be attached even when inline preedit keeps it empty, because its
+        // touch window needs a window token
+        if (!preedit.embedded) {
             add(
                 preedit.ui.root,
                 lParams(wrapContent, wrapContent) {
                     above(keyboardView)
-                    startOfParent()
+                    if (isFloating) startToStartOf(keyboardView) else startOfParent()
                 },
             )
         }
