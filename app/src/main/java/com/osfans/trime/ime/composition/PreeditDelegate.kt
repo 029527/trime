@@ -67,14 +67,14 @@ class PreeditDelegate : InputBroadcastReceiver {
         set(value) {
             field = value
             if (value) {
+                // a small pinyin line above the candidates, like iOS: plain text, no pill
                 ui.root.visibility = View.GONE
-                ui.preedit.background =
-                    GradientDrawable().apply {
-                        setColor(ColorManager.getColor("text_back_color"))
-                        shape = GradientDrawable.RECTANGLE
-                        cornerRadius = ui.preedit.dp(6f)
-                    }
-                ui.preedit.verticalPadding = ui.preedit.dp(2)
+                ui.preedit.background = null
+                ui.preedit.setTextColor(ColorManager.getColor("comment_text_color"))
+                ui.preedit.textSize = theme.generalStyle.commentTextSize
+                ui.preedit.horizontalPadding = ui.preedit.dp(4)
+                ui.preedit.verticalPadding = 0
+                ui.preedit.includeFontPadding = false
             }
         }
 
@@ -150,7 +150,7 @@ class PreeditDelegate : InputBroadcastReceiver {
             ui.preedit.onTapOffset = null
         }
         // nine-key: the pinyin above the keyboard is a hint, show it smaller than a normal preedit
-        ui.preedit.textSize = theme.preedit.foreground.fontSize * (if (isT9) 0.72f else 1f)
+        if (!embedded) ui.preedit.textSize = theme.preedit.foreground.fontSize * (if (isT9) 0.72f else 1f)
         ui.update(shown)
         if (embedded) {
             ui.root.visibility = if (ui.visible) View.VISIBLE else View.GONE

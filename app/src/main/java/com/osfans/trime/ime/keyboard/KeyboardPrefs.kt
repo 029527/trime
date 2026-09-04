@@ -31,10 +31,16 @@ object KeyboardPrefs {
         return if (isLandscapeMode() && land > 0) land else theme.generalStyle.candidateViewHeight
     }
 
-    /** Height of the candidate bar (dp); in landscape the theme's land value replaces height + comment height. */
+    /** Space above the candidates in the landscape bar for the small preedit line (dp). */
+    const val LANDSCAPE_PREEDIT_LINE_DP = 14
+
+    /**
+     * Height of the candidate bar (dp). In landscape the theme's land value is the candidate
+     * height and a small line above it holds the preedit of a floating keyboard.
+     */
     fun Context.inputBarHeight(theme: Theme): Int {
         val land = theme.generalStyle.candidateViewHeightLand
-        return if (isLandscapeMode() && land > 0) land else theme.generalStyle.run { candidateViewHeight + commentHeight }
+        return if (isLandscapeMode() && land > 0) land + LANDSCAPE_PREEDIT_LINE_DP else theme.generalStyle.run { candidateViewHeight + commentHeight }
     }
 
     /** Scale applied to keyboard height and key text while floating (1 otherwise). */

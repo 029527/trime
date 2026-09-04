@@ -10,12 +10,13 @@ import com.osfans.trime.R
 import com.osfans.trime.data.theme.Theme
 import splitties.dimensions.dp
 import splitties.views.dsl.constraintlayout.before
+import splitties.views.dsl.constraintlayout.topOfParent
+import splitties.views.dsl.constraintlayout.bottomOfParent
 import splitties.views.dsl.constraintlayout.centerVertically
 import splitties.views.dsl.constraintlayout.constraintLayout
 import splitties.views.dsl.constraintlayout.endOfParent
 import splitties.views.dsl.constraintlayout.lParams
 import splitties.views.dsl.constraintlayout.startOfParent
-import splitties.views.dsl.constraintlayout.startToEndOf
 import splitties.views.dsl.core.Ui
 import splitties.views.dsl.core.add
 import splitties.views.dsl.core.wrapContent
@@ -43,10 +44,11 @@ class CandidateUi(
             )
             val padding = dp(theme.generalStyle.candidatePadding / 2)
             if (leading != null) {
+                // small preedit line at the top start; the candidates sit under it at the bottom
                 add(
                     leading,
                     lParams(wrapContent, wrapContent) {
-                        centerVertically()
+                        topOfParent()
                         startOfParent(padding)
                     },
                 )
@@ -54,8 +56,8 @@ class CandidateUi(
             add(
                 compatView,
                 lParams {
-                    centerVertically()
-                    if (leading != null) startToEndOf(leading, dp(4)) else startOfParent(padding)
+                    if (leading != null) bottomOfParent() else centerVertically()
+                    startOfParent(padding)
                     before(unrollButton)
                 },
             )
