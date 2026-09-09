@@ -48,6 +48,8 @@ fun PreferenceDelegateList(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
     clickHandlers: Map<String, () -> Unit> = emptyMap(),
+    header: (@Composable () -> Unit)? = null,
+    footer: (@Composable () -> Unit)? = null,
 ) {
     // Bumped whenever any preference of this provider changes, so that dependent rows
     // re-evaluate their `enableUiOn` predicate and re-read their value.
@@ -58,6 +60,7 @@ fun PreferenceDelegateList(
         onDispose { provider.unregisterOnChangeListener(listener) }
     }
     LazyColumn(modifier = modifier, contentPadding = contentPadding) {
+        if (header != null) item("__header__") { header() }
         items(provider.preferenceDelegatesUi, key = { it.key }) { ui ->
             PreferenceDelegateItem(
                 provider = provider,
@@ -66,6 +69,7 @@ fun PreferenceDelegateList(
                 onClickOverride = clickHandlers[ui.key],
             )
         }
+        if (footer != null) item("__footer__") { footer() }
     }
 }
 
@@ -281,6 +285,8 @@ fun PreferenceDelegateScreen(
     onNavigateUp: (() -> Unit)? = null,
     clickHandlers: Map<String, () -> Unit> = emptyMap(),
     actions: @Composable RowScope.() -> Unit = {},
+    header: (@Composable () -> Unit)? = null,
+    footer: (@Composable () -> Unit)? = null,
 ) {
     TrimeScreen(
         title = title,
@@ -291,6 +297,8 @@ fun PreferenceDelegateScreen(
             provider = provider,
             contentPadding = padding,
             clickHandlers = clickHandlers,
+            header = header,
+            footer = footer,
         )
     }
 }
@@ -309,6 +317,11 @@ abstract class PreferenceDelegateComposeFragment(
     @Composable
     protected open fun clickHandlers(): Map<String, () -> Unit> = emptyMap()
 
+    /** Extra rows appended after the model-driven ones (e.g. an "export" action). */
+    @Composable
+    protected open fun Footer() {
+    }
+
     @Composable
     final override fun Content() {
         PreferenceDelegateScreen(
@@ -316,6 +329,7 @@ abstract class PreferenceDelegateComposeFragment(
             provider = provider,
             onNavigateUp = if (showNavigateUp) ({ navigateUp() }) else null,
             clickHandlers = clickHandlers(),
+            footer = { Footer() },
         )
     }
 
