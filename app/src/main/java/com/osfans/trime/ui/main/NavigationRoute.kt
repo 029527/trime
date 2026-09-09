@@ -86,6 +86,7 @@ sealed class NavigationRoute : Parcelable {
             Theme::class,
             Clipboard::class,
             Advanced::class,
+            Developer::class,
         )
 
         fun NavDestination.isComposeDestination() = composeDestinations.any { hasRoute(it) }
