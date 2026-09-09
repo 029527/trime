@@ -5,7 +5,6 @@
 
 package com.osfans.trime.data.sync
 
-import android.os.Build
 import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.util.appContext
@@ -35,11 +34,8 @@ object GitConfigSync {
     val repoDir: File
         get() = File(appContext.filesDir, REPO_DIR_NAME)
 
-    /** JGit needs java.nio.file, available since API 26. */
-    val isSupported: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-
-    fun isEnabled(): Boolean = isSupported && prefs.gitSyncEnabled.getValue() && prefs.gitRepoUrl.getValue().isNotBlank()
+    /** JGit needs `java.nio.file` (API 26+), which minSdk already guarantees. */
+    fun isEnabled(): Boolean = prefs.gitSyncEnabled.getValue() && prefs.gitRepoUrl.getValue().isNotBlank()
 
     private fun credentials(): CredentialsProvider? {
         val token = prefs.gitToken.getValue()
@@ -54,7 +50,6 @@ object GitConfigSync {
      */
     suspend fun pull(): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
-            check(isSupported) { "Git sync requires Android 8.0+" }
             val url = prefs.gitRepoUrl.getValue().trim()
             check(url.isNotEmpty()) { "Repository URL is empty" }
             val branch = prefs.gitBranch.getValue().trim()

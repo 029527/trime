@@ -5,7 +5,6 @@
 package com.osfans.trime.data.base
 
 import android.content.res.AssetManager
-import android.os.Build
 import com.osfans.trime.util.FileUtils
 import com.osfans.trime.util.ResourceUtils
 import com.osfans.trime.util.appContext
@@ -41,15 +40,10 @@ object DataManager {
 
     private fun deserializeDataChecksums(raw: String): DataChecksums = json.decodeFromString<DataChecksums>(raw)
 
-    // If Android version supports direct boot, we put the hierarchy in device encrypted storage
-    // instead of credential encrypted storage so that data can be accessed before user unlock
-    private val dataDir: File =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Timber.d("Using device protected storage")
-            appContext.createDeviceProtectedStorageContext().dataDir
-        } else {
-            File(appContext.applicationInfo.dataDir)
-        }
+    // Direct boot is available on every supported Android version (minSdk 26), so the hierarchy
+    // always lives in device encrypted storage instead of credential encrypted storage,
+    // which makes the data accessible before user unlock
+    private val dataDir: File = appContext.createDeviceProtectedStorageContext().dataDir
 
     private fun AssetManager.dataChecksums(): DataChecksums = open(DATA_CHECKSUMS_NAME)
         .bufferedReader()
