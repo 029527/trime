@@ -5,6 +5,7 @@
 
 package com.osfans.trime.ui.main
 
+import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.DrawableRes
@@ -22,14 +23,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.osfans.trime.BuildConfig
@@ -40,6 +42,7 @@ import com.osfans.trime.ui.compose.preference.PreferenceRow
 import com.osfans.trime.util.Const
 import com.osfans.trime.util.formatDateTime
 import com.osfans.trime.util.toast
+import kotlinx.coroutines.launch
 
 private val DASH_G_PATTERN = Regex("^(.*-g)([0-9a-f]+)(.*)$")
 private val COMMON_PATTERN = Regex("^([^-]*)(-.*)$")
@@ -60,7 +63,9 @@ fun AboutScreen(
     onOpenLicenses: () -> Unit,
 ) {
     val context = LocalContext.current
-    val clipboard = LocalClipboardManager.current
+    // `LocalClipboardManager` is deprecated; the replacement writes asynchronously.
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
 
     // QQ and Telegram links resolve to apps that may not be installed; the old
     // preference screen let that throw, here it simply does nothing.
@@ -116,8 +121,12 @@ fun AboutScreen(
                         icon = R.drawable.ic_baseline_content_copy_24,
                         horizontalPadding = CardPadding,
                         onClick = {
-                            clipboard.setText(AnnotatedString(buildInfo))
-                            context.toast(R.string.copy_done)
+                            scope.launch {
+                                clipboard.setClipEntry(
+                                    ClipEntry(ClipData.newPlainText("build info", buildInfo)),
+                                )
+                                context.toast(R.string.copy_done)
+                            }
                         },
                     )
                 }

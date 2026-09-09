@@ -303,4 +303,6 @@
     <string name="n_selected">%1$d selected</string>
     <string name="schemata_empty">No schema is enabled. Tap + to pick from the deployed ones.</string>
     <string name="user_dictionary_empty">No user dictionary yet. Deploy a schema first, then it shows up here.</string>
+    <string name="exit_selection">Exit selection</string>
+    <string name="not_set">Not set</string>
 </resources>

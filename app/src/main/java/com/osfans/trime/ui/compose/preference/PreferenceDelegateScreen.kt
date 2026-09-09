@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +31,7 @@ import com.osfans.trime.data.prefs.PreferenceDelegateProvider
 import com.osfans.trime.data.prefs.PreferenceDelegateUi
 import com.osfans.trime.ui.compose.ComposeFragment
 import com.osfans.trime.ui.compose.TrimeScreen
+import kotlinx.coroutines.launch
 
 /**
  * Compose renderer for the code-defined preference model in `data/prefs`.
@@ -48,6 +50,7 @@ fun PreferenceDelegateList(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
     clickHandlers: Map<String, () -> Unit> = emptyMap(),
+    suspendClickHandlers: Map<String, suspend () -> Unit> = emptyMap(),
     header: (@Composable () -> Unit)? = null,
     footer: (@Composable () -> Unit)? = null,
 ) {
@@ -59,6 +62,17 @@ fun PreferenceDelegateList(
         provider.registerOnChangeListener(listener)
         onDispose { provider.unregisterOnChangeListener(listener) }
     }
+    // Suspending handlers run in the composition's own scope, so a page no longer has
+    // to wrap them in `lifecycleScope.launch { ... }; Unit` by hand.
+    val scope = rememberCoroutineScope()
+    val handlers = remember(clickHandlers, suspendClickHandlers, scope) {
+        buildMap<String, () -> Unit> {
+            putAll(clickHandlers)
+            suspendClickHandlers.forEach { (key, action) ->
+                put(key) { scope.launch { action() } }
+            }
+        }
+    }
     LazyColumn(modifier = modifier, contentPadding = contentPadding) {
         if (header != null) item("__header__") { header() }
         items(provider.preferenceDelegatesUi, key = { it.key }) { ui ->
@@ -66,7 +80,7 @@ fun PreferenceDelegateList(
                 provider = provider,
                 ui = ui,
                 revision = revision.intValue,
-                onClickOverride = clickHandlers[ui.key],
+                onClickOverride = handlers[ui.key],
             )
         }
         if (footer != null) item("__footer__") { footer() }
@@ -232,7 +246,15 @@ private fun PreferenceDelegateItem(
     }
 }
 
-/** A list-selection row plus its single-choice dialog. */
+/**
+ * A list-selection row plus its single-choice dialog.
+ *
+ * The stored value can fall outside the entries: a `UniversalStringList` enumerates
+ * what is installed *right now*, so uninstalling the picked voice input method (or
+ * deleting the picked schema) leaves a value with no label. The row then reads
+ * "not set" instead of going blank, which is what the old
+ * `ListPreference.SimpleSummaryProvider` did.
+ */
 @Composable
 private fun SelectionRow(
     title: String,
@@ -244,7 +266,7 @@ private fun SelectionRow(
     var showDialog by remember { mutableStateOf(false) }
     DialogPreferenceItem(
         title = title,
-        value = labels.getOrNull(selectedIndex),
+        value = labels.getOrNull(selectedIndex) ?: stringResource(R.string.not_set),
         enabled = enabled,
         onClick = { showDialog = true },
     )
@@ -284,6 +306,7 @@ fun PreferenceDelegateScreen(
     provider: PreferenceDelegateProvider,
     onNavigateUp: (() -> Unit)? = null,
     clickHandlers: Map<String, () -> Unit> = emptyMap(),
+    suspendClickHandlers: Map<String, suspend () -> Unit> = emptyMap(),
     actions: @Composable RowScope.() -> Unit = {},
     header: (@Composable () -> Unit)? = null,
     footer: (@Composable () -> Unit)? = null,
@@ -297,6 +320,7 @@ fun PreferenceDelegateScreen(
             provider = provider,
             contentPadding = padding,
             clickHandlers = clickHandlers,
+            suspendClickHandlers = suspendClickHandlers,
             header = header,
             footer = footer,
         )
@@ -308,7 +332,8 @@ fun PreferenceDelegateScreen(
  * provider and the page is done.
  *
  * Override [clickHandlers] to attach behaviour to a [PreferenceDelegateUi.StringLike]
- * row (the model has no click slot, so the key is matched by hand).
+ * row (the model has no click slot, so the key is matched by hand), or
+ * [suspendClickHandlers] when that behaviour has to suspend.
  */
 abstract class PreferenceDelegateComposeFragment(
     protected val provider: PreferenceDelegateProvider,
@@ -316,6 +341,13 @@ abstract class PreferenceDelegateComposeFragment(
 ) : ComposeFragment() {
     @Composable
     protected open fun clickHandlers(): Map<String, () -> Unit> = emptyMap()
+
+    /**
+     * Like [clickHandlers], but the handler may suspend; it is launched in the
+     * composition's coroutine scope, which is cancelled when the screen leaves.
+     */
+    @Composable
+    protected open fun suspendClickHandlers(): Map<String, suspend () -> Unit> = emptyMap()
 
     /** Extra rows appended after the model-driven ones (e.g. an "export" action). */
     @Composable
@@ -329,6 +361,7 @@ abstract class PreferenceDelegateComposeFragment(
             provider = provider,
             onNavigateUp = if (showNavigateUp) ({ navigateUp() }) else null,
             clickHandlers = clickHandlers(),
+            suspendClickHandlers = suspendClickHandlers(),
             footer = { Footer() },
         )
     }

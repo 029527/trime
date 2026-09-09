@@ -306,7 +306,7 @@ private fun TextPreferenceItem(
     val text = stringResource(title)
     DialogPreferenceItem(
         title = text,
-        value = value.ifEmpty { stringResource(androidx.preference.R.string.not_set) },
+        value = value.ifEmpty { stringResource(R.string.not_set) },
         onClick = { showDialog = true },
     )
     if (showDialog) {

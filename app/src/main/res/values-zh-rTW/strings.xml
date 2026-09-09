@@ -300,4 +300,6 @@
     <string name="n_selected">已選擇 %1$d 項</string>
     <string name="schemata_empty">還沒有啓用任何方案。點右下角 + 從已部署的方案裏挑。</string>
     <string name="user_dictionary_empty">還沒有使用者詞典。先部署一個方案，詞典就會出現在這裏。</string>
+    <string name="exit_selection">退出多選</string>
+    <string name="not_set">未設定</string>
 </resources>

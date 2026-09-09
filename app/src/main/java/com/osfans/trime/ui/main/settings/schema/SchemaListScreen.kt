@@ -86,6 +86,7 @@ fun SchemaListScreen(
         },
         snackbarHostState = snackbarHostState,
         onNavigateUp = if (selecting) ({ exitSelection() }) else onNavigateUp,
+        contextual = selecting,
         actions = {
             if (selecting) {
                 TopBarIconButton(

@@ -65,6 +65,7 @@ fun ListScreen(
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     onNavigateUp: (() -> Unit)? = null,
+    contextual: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
     fab: (@Composable () -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
@@ -73,6 +74,7 @@ fun ListScreen(
         title = title,
         modifier = modifier,
         onNavigateUp = onNavigateUp,
+        contextual = contextual,
         actions = actions,
     ) { padding ->
         val direction = LocalLayoutDirection.current
