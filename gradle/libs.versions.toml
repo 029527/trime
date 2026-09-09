@@ -1,9 +1,7 @@
 [versions]
 androidGradlePlugin = "9.3.0"
 kotlin = "2.3.21"
-# Compose BOM 2025.11.01 -> compose ui 1.9.5 / material3 1.4.0, the last line that still
-# supports minSdk 21 (compose ui 1.10+ requires minSdk 23).
-composeBom = "2025.11.01"
+composeBom = "2026.08.00"
 lifecycle = "2.9.4"
 ksp = "2.3.6"
 navigation = "2.9.8"

@@ -15,15 +15,19 @@ Compose 版 preference 渲染器，以及两个已迁移页面（首页、虚拟
 
 | 项 | 版本 | 说明 |
 | --- | --- | --- |
-| `composeBom` | `2025.11.01` | → compose ui 1.9.5 / material3 1.4.0 |
+| `composeBom` | `2026.08.00` | → compose ui / foundation **1.12.0**、material3 **1.4.0** |
 | `androidx-activity-compose` | 1.10.1 | 与既有 `activity-ktx` 1.10.1 对齐 |
 | `lifecycle`（`runtime-compose` / `viewmodel-compose`） | 2.9.4 | |
 | compose 编译器 | Kotlin 自带 `org.jetbrains.kotlin.plugin.compose` 2.3.21 | |
 
-**为什么不用最新的 BOM**：项目 `minSdk = 21`，而 `androidx.compose.ui` 从 **1.10.0 起要求
-minSdk 23**。2025.11.01 是最后一条 compose ui 还停在 1.9.x（minSdk 21）的 BOM。
-将来若产品上决定放弃 Android 5.0/5.1，把 `minSdk` 提到 23 就能直接升到最新 BOM ——
-**这是产品决策，本轮没有替产品做主，`minSdk` 保持 21。**
+**关于 minSdk**：`androidx.compose.ui` 从 1.10.0 起要求 minSdk 23，所以早先卡在
+2025.11.01（compose ui 1.9.5，还支持 minSdk 21）。产品已决定放弃 Android 5/6/7，
+`minSdk` 提到 **26**，BOM 随之升到 `2026.08.00`。
+
+注意 BOM 2026.08.00 里 **material3 仍是 1.4.0**（expressive 那一版），跟升级前一样；
+真正动的是 compose ui / foundation / runtime，1.9.5 → 1.12.0。所以这次升级没有
+M3 组件签名变更要适配，`LargeTopAppBar` / `TopAppBarDefaults` / `Slider` / `AlertDialog`
+的用法都保持原样。下次 material3 跳到 1.5 时才需要重新检查这些。
 
 `build.gradle.kts` 里给 spotless 加了 `editorConfigOverride`，让
 `ktlint_function_naming_ignore_when_annotated_with = Composable` 生效，否则每个
