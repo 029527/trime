@@ -34,13 +34,13 @@ import com.osfans.trime.ime.bar.ui.CandidateUi
 import com.osfans.trime.ime.bar.ui.TabUi
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.candidates.compact.CompactCandidateDelegate
-import com.osfans.trime.ime.composition.PreeditDelegate
-import com.osfans.trime.ime.keyboard.KeyboardPrefs.inputBarHeight
 import com.osfans.trime.ime.candidates.unrolled.window.FlexboxUnrolledCandidateWindow
+import com.osfans.trime.ime.composition.PreeditDelegate
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.dependency.InputDependencyManager
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.KeyBehavior
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.inputBarHeight
 import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.switches.SwitchOptionWindow
 import com.osfans.trime.ime.window.BoardWindow

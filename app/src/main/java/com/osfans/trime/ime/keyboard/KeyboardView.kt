@@ -12,9 +12,9 @@ import android.widget.FrameLayout
 import androidx.core.view.children
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.Theme
-import com.osfans.trime.ime.keyboard.KeyboardPrefs.floatingScale
 import com.osfans.trime.ime.broadcast.EnterKeyDisplayDelegate
 import com.osfans.trime.ime.core.TrimeInputMethodService
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.floatingScale
 import com.osfans.trime.ime.popup.PopupDelegate
 
 // TODO: move layout calculation responsibilities from Keyboard to KeyboardView using ConstraintLayout
@@ -35,6 +35,7 @@ class KeyboardView(
         get() = enterKeyDisplay.keyLabel
     internal val isEnterPrimaryAction: Boolean
         get() = enterKeyDisplay.isPrimaryAction
+
     /** Key text scales with the floating keyboard size preset; 1 when not floating. */
     internal val textScale = context.floatingScale()
     internal val keyTextSize = theme.generalStyle.keyTextSize * textScale

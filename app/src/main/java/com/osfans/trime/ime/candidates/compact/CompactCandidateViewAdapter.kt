@@ -11,10 +11,10 @@ import androidx.core.view.updateLayoutParams
 import com.chad.library.adapter4.BaseQuickAdapter
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.osfans.trime.core.CandidateProto
-import com.osfans.trime.ime.keyboard.T9Assist
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.candidates.CandidateItemUi
 import com.osfans.trime.ime.candidates.CandidateViewHolder
+import com.osfans.trime.ime.keyboard.T9Assist
 import splitties.dimensions.dp
 import splitties.views.dsl.core.matchParent
 import splitties.views.dsl.core.wrapContent

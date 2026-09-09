@@ -9,13 +9,13 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.Keep
 import com.osfans.trime.R
+import com.osfans.trime.core.Rime
 import com.osfans.trime.data.sync.DataStorageMode
 import com.osfans.trime.ime.candidates.compact.CompactCandidateMode
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesLayout
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
 import com.osfans.trime.ime.composition.PopupPosition
 import com.osfans.trime.ime.core.InlinePreeditMode
-import com.osfans.trime.core.Rime
 import com.osfans.trime.util.InputMethodUtils
 import com.osfans.trime.util.appContext
 import java.lang.ref.WeakReference

@@ -5,7 +5,6 @@
 
 package com.osfans.trime.ime.candidates
 
-import com.osfans.trime.ime.keyboard.KeyboardPrefs.candidateViewHeight
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
@@ -20,6 +19,7 @@ import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.model.GeneralStyle
 import com.osfans.trime.ime.core.AutoScaleTextView
 import com.osfans.trime.ime.keyboard.GestureFrame
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.candidateViewHeight
 import com.osfans.trime.util.roundedRippleDrawable
 import splitties.dimensions.dp
 import splitties.views.dsl.constraintlayout.baselineToBaselineOf

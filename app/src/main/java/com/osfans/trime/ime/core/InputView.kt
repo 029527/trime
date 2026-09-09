@@ -6,9 +6,12 @@
 package com.osfans.trime.ime.core
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.graphics.Outline
+import android.os.Build
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewOutlineProvider
 import android.view.WindowInsets
 import android.view.inputmethod.EditorInfo
@@ -17,17 +20,13 @@ import android.widget.ImageView
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.doOnLayout
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.core.CompositionProto
 import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeSession
-import android.view.HapticFeedbackConstants
-import android.view.MotionEvent
-import android.view.ViewConfiguration
-import androidx.core.view.doOnLayout
 import com.osfans.trime.data.prefs.AppPrefs
-import com.osfans.trime.util.isLandscape
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.bar.InputBarDelegate
@@ -41,8 +40,7 @@ import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.popup.PopupDelegate
 import com.osfans.trime.ime.symbol.LiquidWindow
 import com.osfans.trime.ime.window.BoardWindowManager
-import kotlin.math.abs
-import kotlin.math.roundToInt
+import com.osfans.trime.util.isLandscape
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.kodein.di.instance
@@ -58,8 +56,8 @@ import splitties.views.dsl.constraintlayout.endToStartOf
 import splitties.views.dsl.constraintlayout.lParams
 import splitties.views.dsl.constraintlayout.matchConstraints
 import splitties.views.dsl.constraintlayout.startOfParent
-import splitties.views.dsl.constraintlayout.startToStartOf
 import splitties.views.dsl.constraintlayout.startToEndOf
+import splitties.views.dsl.constraintlayout.startToStartOf
 import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.core.add
 import splitties.views.dsl.core.imageView
@@ -67,6 +65,8 @@ import splitties.views.dsl.core.matchParent
 import splitties.views.dsl.core.view
 import splitties.views.dsl.core.wrapContent
 import splitties.views.imageDrawable
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * Successor of the old InputRoot

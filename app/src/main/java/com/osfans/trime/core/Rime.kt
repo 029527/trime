@@ -7,10 +7,10 @@ package com.osfans.trime.core
 
 import com.osfans.trime.BuildConfig
 import com.osfans.trime.data.base.DataManager
+import com.osfans.trime.data.hotwords.HotWordManager
 import com.osfans.trime.data.opencc.OpenCCDictManager
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.sync.ExternalSyncFallback
-import com.osfans.trime.data.hotwords.HotWordManager
 import com.osfans.trime.data.sync.GitConfigSync
 import com.osfans.trime.data.sync.RimeDataSync
 import com.osfans.trime.ime.core.InlinePreeditMode

@@ -22,8 +22,7 @@ object T9Assist {
     var composing: Boolean = false
 
     /** Raw input of a nine-key schema: letters (already chosen syllables) followed by digits. */
-    fun isT9Input(raw: String): Boolean =
-        raw.isNotEmpty() && raw.any { it.isDigit() } && raw.all { it.isLetterOrDigit() || it == '\'' }
+    fun isT9Input(raw: String): Boolean = raw.isNotEmpty() && raw.any { it.isDigit() } && raw.all { it.isLetterOrDigit() || it == '\'' }
 
     /**
      * The preedit Rime shows is the raw input plus syllable spaces and, with the
@@ -38,19 +37,17 @@ object T9Assist {
     private const val PLAIN = "aaaaooooeeeeiiiiuuuuvvvvvnnnm"
 
     /** Strip tone marks so a syllable can be typed back into the speller (ü becomes v). */
-    fun normalize(syllable: String): String =
-        buildString(syllable.length) {
-            for (c in syllable.lowercase()) {
-                val i = TONED.indexOf(c)
-                append(if (i >= 0) PLAIN[i] else c)
-            }
+    fun normalize(syllable: String): String = buildString(syllable.length) {
+        for (c in syllable.lowercase()) {
+            val i = TONED.indexOf(c)
+            append(if (i >= 0) PLAIN[i] else c)
         }
+    }
 
-    private fun syllables(comment: String): List<String> =
-        comment
-            .split(' ', '\'', ',', '/')
-            .map { normalize(it.trim()) }
-            .filter { s -> s.isNotEmpty() && s.all { it in 'a'..'z' } }
+    private fun syllables(comment: String): List<String> = comment
+        .split(' ', '\'', ',', '/')
+        .map { normalize(it.trim()) }
+        .filter { s -> s.isNotEmpty() && s.all { it in 'a'..'z' } }
 
     /**
      * Distinct syllables the next unresolved digits could be, in candidate order.

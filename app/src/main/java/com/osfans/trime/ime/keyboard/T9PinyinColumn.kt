@@ -5,7 +5,6 @@
 
 package com.osfans.trime.ime.keyboard
 
-import com.osfans.trime.ime.keyboard.KeyboardPrefs.floatingScale
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -18,6 +17,7 @@ import android.widget.TextView
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.floatingScale
 import splitties.dimensions.dp
 
 /**

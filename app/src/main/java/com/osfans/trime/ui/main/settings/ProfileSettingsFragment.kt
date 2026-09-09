@@ -7,11 +7,11 @@ package com.osfans.trime.ui.main.settings
 
 import android.net.Uri
 import android.os.Bundle
+import android.text.InputType
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import android.text.InputType
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference

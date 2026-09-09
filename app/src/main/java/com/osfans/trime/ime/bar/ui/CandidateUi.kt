@@ -11,13 +11,13 @@ import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.candidateViewHeight
 import splitties.dimensions.dp
 import splitties.views.dsl.constraintlayout.before
-import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.constraintlayout.bottomOfParent
 import splitties.views.dsl.constraintlayout.centerVertically
 import splitties.views.dsl.constraintlayout.constraintLayout
 import splitties.views.dsl.constraintlayout.endOfParent
 import splitties.views.dsl.constraintlayout.lParams
 import splitties.views.dsl.constraintlayout.startOfParent
+import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.core.Ui
 import splitties.views.dsl.core.add
 import splitties.views.dsl.core.wrapContent
