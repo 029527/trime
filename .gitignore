@@ -481,3 +481,4 @@ app/src/main/jni/boost/
 # kotlin
 .kotlin
 
+app/prebuilt/

@@ -418,3 +418,38 @@ getSharedPreferences("${packageName}_preferences", Context.MODE_PRIVATE)
 - 首页顶栏两处有意的行为变化（第一波就有）：不再显示「返回」箭头（旧实现按下去是
   `moveTaskToBack`，即最小化），不再显示副标题 slogan（M3 `LargeTopAppBar` 没有
   subtitle 槽位）。系统返回键行为不变，slogan 挪到了关于页。
+
+## 10. 本机怎么跑起来（不用 NDK）
+
+本项目要用 NDK 编 librime，本机没装，但**不编 native 也能出 APK**：
+`build-logic` 的 `NativeBaseConventionPlugin` 会在 `app/prebuilt` 存在时改用预编译的 JNI 库，
+完全不配置 CMake。所以：
+
+```bash
+# 1. 从 CI 出的 APK 里取 .so（也可以用任何一个已有的 fork 版 APK）
+gh release download custom-latest -R 029527/trime -D /tmp/apk
+unzip -o /tmp/apk/*.apk 'lib/*' -d /tmp/apkx
+mkdir -p app/prebuilt && cp -R /tmp/apkx/lib/arm64-v8a app/prebuilt/
+rm -f app/prebuilt/arm64-v8a/libandroidx.graphics.path.so   # 这个来自依赖的 aar，别重复打进去
+
+# 2. 子模块（assets 和 OpenCC 数据要用）
+git submodule update --init --depth 1
+
+# 3. 编译并装到模拟器
+export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
+BUILD_ABI=arm64-v8a ./gradlew :app:assembleDebug     # 约 30 秒
+adb install -r app/build/outputs/apk/debug/*.apk
+```
+
+`app/prebuilt/` 已在 `.gitignore` 里。模拟器用 `system-images;android-36;default;arm64-v8a`
+建 AVD，`emulator -avd <name> -no-window -gpu swiftshader_indirect` 起无头实例即可。
+**改 UI 必须实际跑一遍**：2026-09-09 的 `ComposeFragment` 递归崩溃（见下）编译完全正常，
+只有真跑起来才会暴露。
+
+### 已经踩过的坑：`AbstractComposeView.Content()` 同名陷阱
+
+`ComposeFragment` 原来写成 `ComposeView(ctx).apply { setContent { TrimeTheme { Content() } } }`。
+`apply` 的 receiver 是 ComposeView，而 `AbstractComposeView` 自己就有一个 `@Composable Content()`，
+于是 `Content()` 绑到了**视图的**那个而不是 fragment 的抽象方法 —— 视图不断重新组合自己，
+每个 Compose 页面第一帧就 `StackOverflowError`。编译器不会警告（两个签名都合法）。
+现在写成局部变量 + `this@ComposeFragment.Content()`，别再改回 `apply`。

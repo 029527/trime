@@ -55,12 +55,19 @@ abstract class ComposeFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View = ComposeView(requireContext()).apply {
-        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent {
+    ): View {
+        val view = ComposeView(requireContext())
+        view.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        view.setContent {
             TrimeTheme {
-                Content()
+                // Qualified on purpose: AbstractComposeView also declares a composable
+                // Content(), so with the ComposeView in scope (an `apply` block, or any
+                // receiver on it) a bare Content() binds to the *view's* one — the view
+                // then composes itself again, forever, and the app dies with a
+                // StackOverflowError on the first frame of every screen.
+                this@ComposeFragment.Content()
             }
         }
+        return view
     }
 }
