@@ -65,14 +65,16 @@ class ThemePrefs(
         )
 
     // ---- 配色微调：给主题里的每个颜色叠一层滤镜，改完立刻生效，见 [ColorTint] ----
+    // 区间刻意给得宽：100% 只是「基准强度」而不是上限，亮度可以超过 100% 提亮
+    // （通道相乘后 coerceIn(0, 255) 兜底，过曝也只是压成白色，不会出错）。
     // 默认值 26 / 92 / 90 就是 ios.trime.yaml 现在已经烘焙进颜色里的那套，
     // 换成「未烘焙」的主题时观感不变；三个都拨到中性（0 / 100 / 100）就等于不加滤镜。
 
-    val tintWarm = int(R.string.theme_tint_warm, THEME_TINT_WARM, 26, 0, 200, "%")
+    val tintWarm = int(R.string.theme_tint_warm, THEME_TINT_WARM, 26, 0, 300, "%")
 
-    val tintDim = int(R.string.theme_tint_dim, THEME_TINT_DIM, 92, 80, 100, "%")
+    val tintDim = int(R.string.theme_tint_dim, THEME_TINT_DIM, 92, 50, 150, "%")
 
-    val tintAlpha = int(R.string.theme_tint_alpha, THEME_TINT_ALPHA, 90, 60, 100, "%")
+    val tintAlpha = int(R.string.theme_tint_alpha, THEME_TINT_ALPHA, 90, 20, 100, "%")
 
     /** 把三个滑块拨回默认值。 */
     fun resetTint() {
