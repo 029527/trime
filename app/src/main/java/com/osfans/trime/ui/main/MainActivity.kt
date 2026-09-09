@@ -24,6 +24,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.forEach
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.fragment.NavHostFragment
@@ -35,12 +38,14 @@ import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.soundeffect.SoundEffectManager
 import com.osfans.trime.databinding.ActivityMainBinding
+import com.osfans.trime.ui.main.NavigationRoute.Companion.isComposeDestination
 import com.osfans.trime.ui.setup.SetupActivity
 import com.osfans.trime.util.isStorageAvailable
 import com.osfans.trime.util.item
 import com.osfans.trime.util.parcelable
 import com.osfans.trime.util.startActivity
 import com.osfans.trime.worker.BackgroundSyncWork
+import kotlinx.coroutines.launch
 import splitties.views.topPadding
 
 class MainActivity : AppCompatActivity() {
@@ -50,6 +55,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
     private var testInputPanel: TestInputPanel? = null
+
+    /** True while the current destination renders its own Compose chrome. */
+    private var composeDestination = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val uiMode =
@@ -67,15 +75,27 @@ class MainActivity : AppCompatActivity() {
         }
         enableEdgeToEdge()
         val binding = ActivityMainBinding.inflate(layoutInflater)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+
+        // Compose destinations draw their own chrome edge to edge and consume the
+        // window insets themselves, so the activity only insets the legacy pages.
+        fun applyInsets(windowInsets: WindowInsetsCompat) {
             val systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+            val bottom = maxOf(systemBars.bottom, ime.bottom)
             binding.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = systemBars.left
-                rightMargin = systemBars.right
-                bottomMargin = maxOf(systemBars.bottom, ime.bottom)
+                leftMargin = if (composeDestination) 0 else systemBars.left
+                rightMargin = if (composeDestination) 0 else systemBars.right
+                bottomMargin = if (composeDestination) 0 else bottom
+            }
+            binding.testInputPanel.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                leftMargin = if (composeDestination) systemBars.left else 0
+                rightMargin = if (composeDestination) systemBars.right else 0
+                bottomMargin = if (composeDestination) bottom else 0
             }
             binding.mainToolbar.root.topPadding = systemBars.top
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+            applyInsets(windowInsets)
             windowInsets
         }
         ViewCompat.setWindowInsetsAnimationCallback(
@@ -85,19 +105,11 @@ class MainActivity : AppCompatActivity() {
                     insets: WindowInsetsCompat,
                     runningAnimations: List<WindowInsetsAnimationCompat?>,
                 ): WindowInsetsCompat {
-                    val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                    val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-                    binding.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                        bottomMargin = maxOf(systemBars.bottom, ime.bottom)
-                    }
+                    applyInsets(insets)
                     return insets
                 }
             },
         )
-        WindowCompat
-            .getInsetsController(window, window.decorView)
-            .isAppearanceLightStatusBars = false
-
         setContentView(binding.root)
         // always show toolbar back arrow icon
         binding.mainToolbar.toolbar.navigationIcon =
@@ -140,6 +152,22 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     ""
                 }
+            composeDestination = dest.isComposeDestination()
+            binding.mainToolbar.root.isVisible = !composeDestination
+            if (!composeDestination) {
+                // The legacy toolbar is dark, so it wants light system bar icons;
+                // Compose screens set this themselves from `TrimeTheme`.
+                WindowCompat
+                    .getInsetsController(window, window.decorView)
+                    .isAppearanceLightStatusBars = false
+            }
+            binding.root.requestApplyInsets()
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.testInputRequests.collect { testInputPanel?.show(window) }
+            }
         }
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

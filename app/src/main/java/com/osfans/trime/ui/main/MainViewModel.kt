@@ -8,9 +8,23 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.osfans.trime.daemon.RimeDaemon
 import com.osfans.trime.daemon.RimeSession
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 class MainViewModel : ViewModel() {
     val toolbarTitle = MutableLiveData<String>()
+
+    private val _testInputRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    /**
+     * The test input panel lives in the activity layout, so a Compose screen asks for
+     * it through here instead of reaching for the activity.
+     */
+    val testInputRequests = _testInputRequests.asSharedFlow()
+
+    fun requestTestInput() {
+        _testInputRequests.tryEmit(Unit)
+    }
 
     val topOptionsMenu = MutableLiveData<Boolean>()
 

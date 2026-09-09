@@ -7,6 +7,8 @@ package com.osfans.trime.ui.main
 
 import android.os.Parcelable
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.createGraph
 import androidx.navigation.fragment.fragment
 import com.osfans.trime.R
@@ -69,6 +71,20 @@ sealed class NavigationRoute : Parcelable {
     data object License : NavigationRoute()
 
     companion object {
+        /**
+         * Destinations whose fragment is a `ComposeFragment` and therefore draws its own
+         * Material 3 top app bar edge to edge. `MainActivity` hides its legacy toolbar
+         * and stops insetting the content for these.
+         *
+         * **When you migrate a page to Compose, add its route here.**
+         */
+        private val composeDestinations = listOf(
+            Main::class,
+            VirtualKeyboard::class,
+        )
+
+        fun NavDestination.isComposeDestination() = composeDestinations.any { hasRoute(it) }
+
         fun createGraph(controller: NavController) = controller.createGraph(Main) {
             val ctx = controller.context
 
