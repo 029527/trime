@@ -9,88 +9,83 @@ import android.content.ContentResolver
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.PopupMenu
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.R
 import com.osfans.trime.data.userdict.UserDictManager
+import com.osfans.trime.ui.compose.ComposeFragment
 import com.osfans.trime.util.importErrorDialog
-import com.osfans.trime.util.item
 import com.osfans.trime.util.toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class UserDictionaryFragment : Fragment() {
+class UserDictionaryFragment : ComposeFragment() {
     private lateinit var restoreLauncher: ActivityResultLauncher<String>
 
     private lateinit var importLauncher: ActivityResultLauncher<String>
 
     private lateinit var exportLauncher: ActivityResultLauncher<String>
 
-    private var popupMenu: PopupMenu? = null
-
     private var beingImported: String? = null
 
     private var beingExported: String? = null
 
-    private val ui: UserDictListUi by lazy {
-        UserDictListUi(
-            requireContext(),
-            UserDictManager.getUserDictList(),
-        ) { dictName ->
-            setOnClickListener {
-                val popup = PopupMenu(requireContext(), this)
-                val menu = popup.menu
-                menu.item(R.string.backup) {
-                    lifecycleScope.launch {
-                        val success = withContext(Dispatchers.IO) {
-                            UserDictManager.backupUserDict(dictName)
-                        }
-                        if (success) {
-                            ui.showSnackBar(
-                                requireContext().getString(
-                                    R.string.backed_up_x_to_sync_dir,
-                                    dictName,
-                                ),
-                            )
-                        }
-                    }
-                }
-                menu.item(R.string.import_) {
-                    beingImported = dictName
-                    importLauncher.launch("text/plain")
-                }
-                menu.item(R.string.export) {
-                    beingExported = dictName
-                    exportLauncher.launch("$dictName.txt")
-                }
-                popup.setOnDismissListener {
-                    if (it === popupMenu) popupMenu = null
-                }
-                popupMenu?.dismiss()
-                popupMenu = popup
-                popup.show()
-            }
-        }.apply {
-            fab.setOnClickListener {
-                restoreLauncher.launch("text/plain")
-            }
+    private val entries = mutableStateListOf<String>()
+
+    private val snackbarHostState = SnackbarHostState()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        registerLauncher()
+        refreshEntries()
+    }
+
+    @Composable
+    override fun Content() {
+        UserDictListScreen(
+            entries = entries,
+            snackbarHostState = snackbarHostState,
+            onNavigateUp = ::navigateUp,
+            onRestore = { restoreLauncher.launch("text/plain") },
+            onBackup = ::backup,
+            onImport = { dictName ->
+                beingImported = dictName
+                importLauncher.launch("text/plain")
+            },
+            onExport = { dictName ->
+                beingExported = dictName
+                exportLauncher.launch("$dictName.txt")
+            },
+        )
+    }
+
+    private fun refreshEntries() {
+        val list = UserDictManager.getUserDictList().toList()
+        entries.clear()
+        entries.addAll(list)
+    }
+
+    private fun showSnackBar(text: String) {
+        lifecycleScope.launch {
+            snackbarHostState.showSnackbar(message = text, duration = SnackbarDuration.Short)
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        registerLauncher()
-        return ui.root
+    private fun backup(dictName: String) {
+        lifecycleScope.launch {
+            val success = withContext(Dispatchers.IO) {
+                UserDictManager.backupUserDict(dictName)
+            }
+            if (success) {
+                showSnackBar(getString(R.string.backed_up_x_to_sync_dir, dictName))
+            }
+        }
     }
 
     private fun registerLauncher() {
@@ -119,7 +114,7 @@ class UserDictionaryFragment : Fragment() {
                             fileName,
                         ).getOrThrow()
                     }
-                    ui.showSnackBar(ctx.getString(R.string.exported_n_entries, count))
+                    showSnackBar(ctx.getString(R.string.exported_n_entries, count))
                 } catch (e: Exception) {
                     ctx.toast(e)
                 }
@@ -140,8 +135,8 @@ class UserDictionaryFragment : Fragment() {
                         }
                     }
                     if (result.isSuccess) {
-                        ui.showSnackBar(ctx.getString(R.string.restored_from_x, fileName))
-                        ui.adapter.submitList(UserDictManager.getUserDictList().toList())
+                        showSnackBar(ctx.getString(R.string.restored_from_x, fileName))
+                        refreshEntries()
                     }
                 } else {
                     val dictName = beingImported ?: return@launch
@@ -155,7 +150,7 @@ class UserDictionaryFragment : Fragment() {
                             ).getOrThrow()
                         }
                     }
-                    ui.showSnackBar(ctx.getString(R.string.import_n_entries, count))
+                    showSnackBar(ctx.getString(R.string.import_n_entries, count))
                 }
             } catch (e: Exception) {
                 ctx.importErrorDialog(e)
