@@ -90,6 +90,9 @@ sealed class NavigationRoute : Parcelable {
             SchemaList::class,
             UserDict::class,
             HotWords::class,
+            Profile::class,
+            About::class,
+            License::class,
         )
 
         fun NavDestination.isComposeDestination() = composeDestinations.any { hasRoute(it) }
