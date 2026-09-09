@@ -131,14 +131,12 @@ class ProfileSettingsFragment :
         state.backgroundSync = prefs.periodicBackgroundSync.getValue()
         state.backgroundSyncSummary = backgroundSyncSummary()
         state.backgroundSyncInterval = prefs.periodicBackgroundSyncInterval.getValue()
-        if (GitConfigSync.isSupported) {
-            state.gitEnabled = prefs.gitSyncEnabled.getValue()
-            state.gitRepoUrl = prefs.gitRepoUrl.getValue()
-            state.gitBranch = prefs.gitBranch.getValue()
-            state.gitUsername = prefs.gitUsername.getValue()
-            state.gitToken = prefs.gitToken.getValue()
-            state.gitSyncSummary = gitSyncSummary()
-        }
+        state.gitEnabled = prefs.gitSyncEnabled.getValue()
+        state.gitRepoUrl = prefs.gitRepoUrl.getValue()
+        state.gitBranch = prefs.gitBranch.getValue()
+        state.gitUsername = prefs.gitUsername.getValue()
+        state.gitToken = prefs.gitToken.getValue()
+        state.gitSyncSummary = gitSyncSummary()
     }
 
     private fun dataPathSummary(): String {

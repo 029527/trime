@@ -24,12 +24,11 @@ android {
 
     defaultConfig {
         applicationId = "com.osfans.trime"
-        minSdk = 21
+        minSdk = 26
         targetSdk = 36
         versionCode = 20261101
         versionName = "3.3.13"
 
-        multiDexEnabled = true
         buildConfigField("String", "BUILDER", "\"${project.builder}\"")
         buildConfigField("long", "BUILD_TIMESTAMP", project.buildTimestamp)
         buildConfigField("String", "BUILD_COMMIT_HASH", "\"${project.buildCommitHash}\"")

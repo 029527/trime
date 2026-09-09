@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import com.osfans.trime.R
 import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.data.sync.DataStorageMode
-import com.osfans.trime.data.sync.GitConfigSync
 import com.osfans.trime.ui.compose.TrimeScreen
 import com.osfans.trime.ui.compose.preference.DialogPreferenceItem
 import com.osfans.trime.ui.compose.preference.LoadingDialog
@@ -158,9 +157,7 @@ fun ProfileScreen(
         LazyColumn(contentPadding = padding) {
             item("storage") { StorageSection(state, actions) }
             item("sync") { SyncSection(state, actions) }
-            if (GitConfigSync.isSupported) {
-                item("git") { GitSection(state, actions) }
-            }
+            item("git") { GitSection(state, actions) }
             item("maintenance") { MaintenanceSection(actions) }
         }
     }
