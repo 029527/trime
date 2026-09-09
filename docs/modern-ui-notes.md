@@ -1,11 +1,20 @@
 # 应用界面现代化改造笔记（Compose + Material 3）
 
-分支 `feature/modern-ui`，基于 `custom`。本轮只做「地基 + 打样」：Compose 接入、主题层、
-Compose 版 preference 渲染器，以及两个已迁移页面（首页、虚拟键盘设置）。
-**后续 agent 请照本文的约定迁其余页面。**
+分支 `feature/modern-ui`，基于 `custom`。**改造已经收口：应用界面全部是 Compose + Material 3，
+`androidx.preference` 已经从依赖里去掉。**
 
 范围只限 **应用界面**（`ui/` 下的设置 App）。键盘视图 `ime/`、librime 绑定 `core/`、
 主题 yaml 解析 `data/theme/` 一律不动。
+
+分五波做完：
+
+| 波次 | 内容 |
+| --- | --- |
+| 一 | Compose/M3 地基、主题层、preference 渲染器，打样首页与虚拟键盘页 |
+| 二 | 六个设置页（通用、候选窗、剪贴板、主题、高级、开发者） |
+| 三 | 三个列表页（方案、用户词典、热词） |
+| 四 | 关于、开源许可、用户配置 |
+| 五（收口） | 首次引导、日志、剪贴板编辑、三个选择器对话框、加载框；删掉全部老基础设施 |
 
 ---
 
@@ -23,55 +32,65 @@ Compose 版 preference 渲染器，以及两个已迁移页面（首页、虚拟
 **为什么不用最新的 BOM**：项目 `minSdk = 21`，而 `androidx.compose.ui` 从 **1.10.0 起要求
 minSdk 23**。2025.11.01 是最后一条 compose ui 还停在 1.9.x（minSdk 21）的 BOM。
 将来若产品上决定放弃 Android 5.0/5.1，把 `minSdk` 提到 23 就能直接升到最新 BOM ——
-**这是产品决策，本轮没有替产品做主，`minSdk` 保持 21。**
+**这是产品决策，改造过程中没有替产品做主，`minSdk` 保持 21。**
 
 `build.gradle.kts` 里给 spotless 加了 `editorConfigOverride`，让
 `ktlint_function_naming_ignore_when_annotated_with = Composable` 生效，否则每个
 `@Composable` 的 PascalCase 函数名都会被 ktlint 判错。
 
+### 依赖增减
+
+- **去掉**：`androidx.preference`。
+- **保留**：`flexbox`、`bravh`（BaseRecyclerViewAdapterHelper）、`viewpager2`、
+  `recyclerview`、`splitties.views.dsl*` —— **这些全是键盘 `ime/` 在用**（候选栏、
+  剪贴板面板、符号面板），跟应用界面无关，别删。
+- `androidx.appcompat` 也留着：`MainActivity` / `LogActivity` 还是 `AppCompatActivity`
+  （要 `AppCompatDelegate.setDefaultNightMode` 来落实 `uiMode` 偏好项），另外几处无障碍
+  描述借用了 `androidx.appcompat.R.string.abc_*`。
+
 ---
 
-## 2. 导航方案：保留 Fragment 导航图，Compose 屏幕做它的目的地
+## 2. 导航方案：**继续用 Fragment 导航图，不换 navigation-compose**
 
-**决定：不引入 `navigation-compose`，继续用现有的 `NavigationRoute.createGraph()`
-（Navigation for Fragments），迁移过的页面写成宿主是 Fragment 的 Compose 屏幕。**
+**结论：维持现状。** 改造收口时重新评估过，结论是不换。
 
-理由：
+现状是 `NavigationRoute.createGraph()`（Navigation for Fragments），14 个目的地全部是
+宿主为 `ComposeFragment` 的 Compose 屏幕。
 
-1. `NavigationRoute` 是 `@Parcelize` 的，键盘那边通过
-   `MainActivity.EXTRA_SETTINGS_ROUTE` 直接把路由塞进 Intent 来跳设置页
-   （`processIntent` → `navController.navigate(route)`）。换成 navigation-compose 要
-   重做这条外部入口。
-2. 还有 11 个页面没迁。它们依赖 `activityViewModels<MainViewModel>()` 和
-   `findNavController()`。保留同一张图，它们**一行都不用改**就继续能进。
-3. 两套导航栈（fragment 一套、compose 一套）会带来返回栈错乱；单栈最稳。
+### 为什么不换
 
-代价：拿不到 navigation-compose 的转场动画，用的还是
-`util/NavController.kt` 里的 `navigateWithAnim`（objectAnimator）。等所有页面都迁完，
-可以一次性换成 navigation-compose，届时只需要改 `NavigationRoute` 和 `MainActivity`。
+1. **外部入口是硬约束。** `NavigationRoute` 是 `@Parcelize` 的，键盘通过
+   `AppUtils.launchMainToSchemaList()` / `launchMainToKeyboard()` 把路由塞进
+   `Intent`（`action = ACTION_RUN` + `MainActivity.EXTRA_SETTINGS_ROUTE`），
+   `MainActivity.processIntent()` 收到后 `popBackStack(Main, false)` 再 `navigate(route)`。
+   换成 navigation-compose 后 NavController 活在 composition 里，activity 拿不到它，
+   得改成「activity 收 Intent → 塞进一个 StateFlow → composition 里 `LaunchedEffect`
+   消费」，还要处理 `launchMode="singleTask"` 下 activity 已存在时的重复投递。
+   **这条链路的调用方在 `ime/`，本轮不许动**，改了就没法只在应用侧验证。
+2. **换了得上真机验证，而现在验证不了。** 本机没有 NDK，`assembleDebug` 跑不了，
+   装不了设备。返回栈、进程被杀后的状态恢复、`singleTask` 下的 Intent 重投，恰恰是
+   只能在真机上验出来的东西。拿编译通过当质量保证去换导航栈，风险和收益不成比例。
+3. **收益不大。** 想要的转场动画 `util/NavController.kt` 的 `navigateWithAnim`
+   已经给了；每屏一个 `ComposeView` 的开销在设置 App 这种量级上无所谓。
 
-### 谁负责画顶栏
+### 什么时候值得换
 
-`MainActivity` 的 XML `toolbar` 只服务**没迁的页面**。Compose 页面自己画
-`LargeTopAppBar`，并且要全屏铺到状态栏下面，所以 activity 会：
+同时满足这两条再说：能上真机验证；并且允许一起改 `ime/` 里的
+`AppUtils.launchMainTo*`（比如改成传字符串 route 而不是 Parcelable）。
+到那时要改的是 `NavigationRoute`、`MainActivity.processIntent`、
+`ComposeFragment`/`PreferenceDelegateComposeFragment` 这三处，页面本身不用动。
 
-- 隐藏 XML toolbar；
-- 不再给根布局加 systemBars 的 margin（insets 交给 Compose 的 `safeDrawing` 处理）；
-- 把 systemBars/ime 的底部间距改挂到 `TestInputPanel` 上，让试打字面板照样避开输入法。
+### 顶栏由谁画
 
-判断依据是 `NavigationRoute.Companion.composeDestinations`：
+**全部由 Compose 画。** `MainActivity` 已经没有 XML toolbar 了：
+`res/layout/activity_main.xml` 只剩 `FragmentContainerView` 和 `TestInputPanel`，
+`res/layout/toolbar.xml` 已删除。`MainActivity` 也不再按目的地切 chrome
+（原来的 `NavigationRoute.composeDestinations` / `isComposeDestination()` 已删除）。
 
-```kotlin
-private val composeDestinations = listOf(
-    Main::class,
-    VirtualKeyboard::class,
-)
-```
+insets 现在只有 `TestInputPanel`（activity 布局里的 View）需要手动处理，
+它要同时避开导航栏和输入法；Compose 页面自己用 `safeDrawing` 处理。
 
-> **迁完一个页面，务必把它的路由加进这个列表**，否则会同时出现两个标题栏。
-
-用目的地（而不是 fragment 的 `onStart`/`onStop`）来切 chrome，是为了避免前后两个
-fragment 生命周期交错时顶栏闪一下。
+> 如果将来又加了一个**不是** Compose 的目的地，得把这套按目的地切 chrome 的判断加回来。
 
 ---
 
@@ -79,26 +98,26 @@ fragment 生命周期交错时顶栏闪一下。
 
 ```
 ui/theme/                     主题层（只给 App 界面用，跟键盘的 yaml 主题无关）
-  Color.kt                    品牌配色（低版本回退用）
-  Theme.kt                    TrimeTheme：动态取色 / 回退、深浅色、系统栏图标色
-  Type.kt                     Typography
-  Shape.kt                    Shapes
+  Color.kt / Theme.kt / Type.kt / Shape.kt
 
 ui/compose/                   可复用的 Compose 地基
   ComposeFragment.kt          Compose 屏幕的 Fragment 宿主基类
   TrimeScreen.kt              统一 chrome：Large TopAppBar + 折叠 + edge-to-edge
+                              + contextual（多选）模式
   preference/
-    PreferenceItems.kt        低层列表项与对话框（PreferenceRow / Switch / Slider / …）
+    PreferenceItems.kt        低层列表项与对话框（PreferenceRow / Switch / Slider /
+                              SingleChoiceDialog / NoticeDialog / LoadingDialog /
+                              withLoadingState / …）
     PreferenceDelegateScreen.kt  吃 PreferenceDelegateUi 模型的渲染器 + Fragment 基类
 
 ui/main/MainScreen.kt         首页的可组合函数
 ui/main/MainFragment.kt       首页的宿主（只有十几行）
+ui/main/settings/list/ListScreen.kt   三个列表页共用的骨架（FAB + snackbar）
 ```
 
 命名约定：
 
-- 页面的可组合函数叫 `XxxScreen`，**放在与旧 Fragment 同一个包**（例如
-  `ui/main/settings/CandidatesSettingsScreen.kt`），文件名 `XxxScreen.kt`。
+- 页面的可组合函数叫 `XxxScreen`，**放在与旧 Fragment 同一个包**，文件名 `XxxScreen.kt`。
 - 宿主类沿用旧的 Fragment 类名（`XxxFragment`），这样 `NavigationRoute` 不用改。
 - 只在一个页面里用的可组合函数写成 `private`，多页面复用的才提到 `ui/compose/`。
 - 可复用的列表项后缀统一是 `...PreferenceItem`。
@@ -111,19 +130,24 @@ ui/main/MainFragment.kt       首页的宿主（只有十几行）
 TrimeTheme { /* content */ }
 ```
 
-`ComposeFragment` 已经帮你包好了，页面里**不要再包一层**。
+`ComposeFragment` 已经帮你包好了，页面里**不要再包一层**；独立 activity
+（`SetupActivity` / `LogActivity` / `ClipEditActivity`）自己在 `setContent` 里包。
 
 - **动态取色**：Android 12+（API 31）走 `dynamicLightColorScheme` /
-  `dynamicDarkColorScheme`，即 Material You 跟随壁纸；低版本回退到 `Color.kt` 里那套
+  `dynamicDarkColorScheme`（Material You 跟随壁纸）；低版本回退到 `Color.kt` 里那套
   以 Rime 强调色 `#009BD1` 为种子的冷蓝品牌色。
-- **深浅色**：`isSystemInDarkTheme()` 读的是 activity 的 configuration，而
-  `MainActivity` 已经用 `AppCompatDelegate.setDefaultNightMode()` 把 `uiMode` 偏好项
-  （AUTO/LIGHT/DARK）应用上去了，所以**这个偏好项自动生效，不用另外接线**。
+- **深浅色**：`isSystemInDarkTheme()` 读 activity 的 configuration。
+  `MainActivity` / `LogActivity` 是 `AppCompatActivity`，`AppCompatDelegate
+  .setDefaultNightMode()` 会把 `uiMode` 偏好项（AUTO/LIGHT/DARK）落到 configuration 上，
+  所以**这个偏好项在设置 App 里自动生效**。
+  `SetupActivity` / `ClipEditActivity` 不是 AppCompat，跟随系统深浅色
+  （引导页在用户还没设过任何东西的时候跑，无所谓；剪贴板编辑窗的
+  `Theme.DialogTheme` 本来就有 `values-night` 版本，两边一致）。
 - **系统栏图标颜色**：`TrimeTheme` 里的 `SideEffect` 按深浅色设置
-  `isAppearanceLightStatusBars` / `isAppearanceLightNavigationBars`。旧页面回来时
-  `MainActivity` 会把它设回 `false`（旧 toolbar 是深色的）。
+  `isAppearanceLightStatusBars` / `isAppearanceLightNavigationBars`；
+  `ClipEditActivity` 是悬浮窗口，传 `applySystemBarAppearance = false` 关掉。
 
-`TrimeScreen` 提供统一 chrome：
+### `TrimeScreen`
 
 ```kotlin
 TrimeScreen(
@@ -138,9 +162,28 @@ TrimeScreen(
 `padding` 一定要传给滚动容器的 `contentPadding`，**别当 `Modifier.padding` 用**，
 否则内容不会从大标题底下滚过去，edge-to-edge 也就白做了。
 
+**contextual（多选）模式**：`contextual = true` 时换成 M3 的 contextual 顶栏——
+钉住不折叠的小顶栏、`secondaryContainer` 容器色、导航图标变成 ✕。
+页面照旧把「退出多选」的回调传给 `onNavigateUp` 就行：
+
+```kotlin
+ListScreen(
+    title = if (selecting) stringResource(R.string.n_selected, n) else stringResource(R.string.schemata),
+    onNavigateUp = if (selecting) ({ exitSelection() }) else onNavigateUp,
+    contextual = selecting,
+    actions = { /* 多选时是删除，平时是编辑 */ },
+)
+```
+
+两种顶栏的 `scrollBehavior` 都是无条件创建的（避免切换时丢状态），退出 contextual
+时会把大标题的折叠状态复位。需要完全自定义导航图标的，传 `navigationIcon`。
+
+> 三个列表页都走 `ListScreen` → `TrimeScreen`，所以都能用；目前只有**方案列表页**
+> 真的有多选模式，用户词典和热词页没有。
+
 ---
 
-## 5. Compose 版 preference 渲染器（本轮最大的杠杆）
+## 5. Compose 版 preference 渲染器
 
 Trime 的设置项不是 XML 定义的，是 `data/prefs/` 里的代码模型：
 `PreferenceDelegateOwner` 里 `switch(...) / int(...) / list(...) / enum(...)` 这些函数
@@ -154,11 +197,14 @@ Trime 的设置项不是 XML 定义的，是 `data/prefs/` 里的代码模型：
 | `SeekBarInt` | 行内 `Slider` + 右侧数值气泡；点气泡开精确输入对话框（带「默认」按钮） |
 | `EditTextInt` | 行 + 数字输入对话框，按 min/max 夹紧 |
 | `EditText` | 行 + 文本输入对话框 |
-| `StringList` / `UniversalStringList` | 行显示当前项 + M3 单选对话框 |
-| `StringLike` | 纯行；点击行为由 `clickHandlers()` 按 key 注入 |
+| `StringList` / `UniversalStringList` | 行显示当前项 + M3 单选对话框；当前值不在候选里时显示「未设置」（`R.string.not_set`） |
+| `StringLike` | 纯行；点击行为由 `clickHandlers()` / `suspendClickHandlers()` 按 key 注入 |
 
 **存储格式没有任何改动。** 读写一律通过既有的 `PreferenceDelegate.getValue()/setValue()`，
-SharedPreferences 的 key、类型、序列化方式全部照旧，用户的设置不会丢。
+SharedPreferences 的 key、类型、序列化方式全部照旧。
+
+`PreferenceDelegateUi` 里那个 `createUi(context)`（渲染成 androidx `Preference`）
+已经删掉了，跟着删掉的还有它的类型参数 `<T : Preference>`；**模型定义全部保留**。
 
 `enableUiOn`（依赖关系）保持旧行为——**置灰而不是隐藏**。实现方式：页面持有一个
 `revision` 计数，注册 `PreferenceDelegateProvider.OnChangeListener`，任何一项变化就 +1，
@@ -173,152 +219,198 @@ class CandidatesSettingsFragment :
     PreferenceDelegateComposeFragment(AppPrefs.defaultInstance().candidates)
 ```
 
-再把 `NavigationRoute.composeDestinations` 里加上 `CandidatesWindow::class`，完事。
-
 标题按这个顺序取：构造参数 `titleRes` → `PreferenceDelegateOwner.title` → 导航图的
-`label`。现有的 provider（含 `ThemeManager.prefs`，即 `ThemePrefs`）都带了 `title`，
-所以一般不用传 `titleRes`；只有 provider 不是 `PreferenceDelegateOwner`、
-或者 `title` 为 0 时才需要显式传。
+`label`。现有的 provider（含 `ThemeManager.prefs`）都带了 `title`。
 
-需要给某个 `StringLike` 行挂点击行为（例如主题设置页的 `selected_theme`、
-`normal_mode_color`，虚拟键盘页的 `custom_sound_effect_name`）：
+三个可覆写的槽：
+
+| 槽 | 用途 |
+| --- | --- |
+| `clickHandlers(): Map<String, () -> Unit>` | 给某个 `StringLike` 行挂点击行为 |
+| `suspendClickHandlers(): Map<String, suspend () -> Unit>` | 同上，但可以挂起；在 composition 的协程作用域里启动，页面离开时取消 |
+| `Footer()` | 在模型渲染的行后面追加内容（在 LazyColumn 里，只有滚到才会组合） |
+| `Dialogs()` | 对话框等**不占布局空间**的东西，画在整个屏幕旁边而不是列表里 |
+
+例（主题设置页）：
 
 ```kotlin
-@Composable
-override fun clickHandlers(): Map<String, () -> Unit> = mapOf(
-    "selected_theme" to { ThemePickerDialog.build(lifecycleScope, requireContext()).show() },
+private var picker by mutableStateOf<Picker?>(null)
+
+@Composable override fun clickHandlers() = mapOf(
+    ThemePrefs.SELECTED_THEME to { picker = Picker.THEME },
 )
+
+@Composable override fun Dialogs() {
+    if (picker == Picker.THEME) ThemePickerDialog.ThemeSelectionDialog { picker = null }
+}
 ```
 
-需要在模型渲染的行后面追加自定义内容，覆写 `Footer()`（或直接用
-`PreferenceDelegateScreen(header = , footer = )`）。
-
 需要完全手写的页面（首页、Profile、关于），用 `TrimeScreen` +
-`PreferenceRow` / `PreferenceCard` / `PreferenceCategoryHeader` 这些积木自己拼，
-参考 `ui/main/MainScreen.kt`。
+`PreferenceRow` / `PreferenceCard` / `PreferenceCategoryHeader` 这些积木自己拼。
 
 ---
 
-## 6. 已迁移的页面
+## 6. 三个选择器对话框：两套前端，一份逻辑
 
-- **首页 `MainFragment`** → `MainScreen.kt`。分两组圆角卡片（数据 / 设置），
-  行带图标；顶栏是部署、试打字两个图标按钮加一个溢出菜单（开发者、关于）。
-- **虚拟键盘设置 `KeyboardSettingsFragment`** → 直接继承
-  `PreferenceDelegateComposeFragment`，只覆写了 `clickHandlers()`。**这是模板页面。**
+`ThemePickerDialog` / `ColorPickerDialog` / `SoundEffectPickerDialog` 做的事不只是写一个
+偏好项，它们还要叫 `ThemeManager` / `ColorManager` / `SoundEffectManager` 去加载。
 
-配套改动：
+它们各自有**两个前端**，共用同一份选中逻辑：
 
-- `MainViewModel` 加了 `testInputRequests: SharedFlow<Unit>` / `requestTestInput()`。
-  试打字面板 `TestInputPanel` 是 activity 布局里的 View，Compose 页面通过这个事件流
-  请求它，而不是去摸 activity。
-- `MainActivity` 按目的地切 chrome + insets（见第 2 节）。
+- `build(scope, context, afterConfirm): android.app.AlertDialog`
+  —— **键盘在用**（`ime/keyboard/CommonKeyboardActionListener`、
+  `ime/switches/SwitchOptionWindow` 通过 `TrimeInputMethodService.showDialog(Dialog)`
+  把它弹在输入法窗口上）。输入法那边没有 composition 可以承载 Compose 对话框，
+  所以这条平台路径**必须留着**，签名也不能动。
+- `ThemeSelectionDialog(onDismiss)` / `ColorSelectionDialog` / `SoundEffectSelectionDialog`
+  —— 设置 App 用的 M3 版，挂在 `Dialogs()` 槽上。
 
-### 行为上的两处小变化（有意为之）
+主题那个是挂起的（要枚举主题文件），Compose 版在枚举完之前什么都不画，
+等于旧实现「`build()` 挂起返回后才 `show()`」的效果。
 
-1. 首页顶栏不再显示「返回」箭头（旧实现里那个箭头按下去是 `moveTaskToBack`，
-   即最小化）。系统返回键行为不变。
-2. 首页顶栏不再显示副标题 slogan（`R.string.trime_app_slogan`）。M3 的
-   `LargeTopAppBar` 没有 subtitle 槽位，硬塞两行在收起状态会挤。
-   如果要保留，等 material3 的 `LargeFlexibleTopAppBar` 稳定后再加。
+## 6.1 加载框
 
-`MainActivity.setupToolbarMenu()` 里那几个「部署 / 试打字 / 开发者 / 关于」菜单项现在
-不会再显示了（只有首页会 `enableTopOptionsMenu()`，而首页已经迁走）。代码暂时留着，
-等最后一个页面迁完，连同 `MainViewModel.topOptionsMenu` 一起删。
+`ui/common/withLoadingDialog` + `ProgressBarDialogIndeterminate` 已删除，换成
+`ui/compose/preference/PreferenceItems.kt` 里的：
+
+```kotlin
+// 页面持有 loading 状态
+withLoadingState({ loading = it }) { /* 干活 */ }
+// 屏幕里
+if (loading) LoadingDialog(R.string.hot_word_deploying)
+```
+
+阈值仍是 200ms（快活不闪对话框），`finally` + `NonCancellable` 保证一定复位。
+热词页和用户配置页都用它。
 
 ---
 
-## 7. 剩余待迁移页面清单
+## 7. 已迁移页面总表
 
-按「好迁 → 难迁」排：
+**全部迁完。** 应用界面里已经没有 `androidx.preference` 页面、没有 XML 布局的页面
+（只剩 `activity_main.xml` 这个容器）。
 
-**A 类：一行搞定（纯 `PreferenceDelegateFragment`）**
-
-| 页面 | 路由 | 备注 |
+| 页面 | 路由 / 入口 | 实现 |
 | --- | --- | --- |
-| `GeneralSettingsFragment` | `General` | |
-| `CandidatesSettingsFragment` | `CandidatesWindow` | |
-| `ClipboardSettingsFragment` | `Clipboard` | |
+| 首页 | `Main` | `ui/main/MainScreen.kt`（手写） |
+| 通用 | `General` | `PreferenceDelegateComposeFragment` |
+| 虚拟键盘 | `VirtualKeyboard` | 同上 + `Dialogs()`（音效选择器） |
+| 候选窗 | `CandidatesWindow` | 同上 |
+| 主题 | `Theme` | 同上 + `Dialogs()`（主题 / 配色选择器） |
+| 剪贴板 | `Clipboard` | 同上 |
+| 高级 | `Advanced` | 同上 |
+| 开发者 | `Developer` | `DeveloperScreen.kt`（手写） |
+| 方案列表 | `SchemaList` | `SchemaListScreen.kt`（`ListScreen` + contextual 多选） |
+| 用户词典 | `UserDict` | `UserDictListScreen.kt` |
+| 热词 | `HotWords` | `HotWordListScreen.kt` |
+| 用户配置 | `Profile` | `ProfileScreen.kt`（手写，最重） |
+| 关于 | `About` | `AboutScreen.kt` |
+| 开源许可 | `License` | `LicenseScreen.kt` |
+| 首次引导 | `SetupActivity` | `ui/setup/SetupScreen.kt`（`HorizontalPager`） |
+| 日志 | `LogActivity` | `ui/main/log/LogScreen.kt` |
+| 剪贴板编辑 | `ClipEditActivity` | 同文件内的 `ClipEditContent` |
 
-**B 类：模型 + 少量钩子**
+### 被删掉的老基础设施
 
-| 页面 | 路由 | 备注 |
-| --- | --- | --- |
-| `theme/ThemeSettingsFragment` | `Theme` | provider 是 `ThemeManager.prefs`；两个 `clickHandlers`：`selected_theme` / `normal_mode_color` |
-| `AdvancedSettingsFragment` | `Advanced` | 只有 `onCreate/onDestroy` 里注册的两个 `PreferenceDelegate.OnChangeListener`，原样搬到新的 Fragment 即可 |
+| 文件 | 说明 |
+| --- | --- |
+| `ui/common/PaddingPreferenceFragment.kt` | androidx.preference 页面基类 |
+| `ui/common/OnItemChangedListener.kt` | 老列表页的回调接口 |
+| `ui/common/ProgressBarDialogIndeterminate.kt` | → `LoadingDialog` + `withLoadingState` |
+| `ui/main/settings/ProgressFragment.kt` | 没人继承了 |
+| `ui/main/settings/DialogSeekBarPreference.kt` | → 渲染器里的 `SliderPreferenceItem` |
+| `ui/main/settings/EditTextIntPreference.kt` | → 渲染器里的 `IntInputDialog` |
+| `data/prefs/PreferenceDelegateFragment.kt` | → `PreferenceDelegateComposeFragment` |
+| `PreferenceDelegateUi.createUi()` | 只删渲染函数，模型定义保留 |
+| `PreferenceDelegateProvider.createUi()` / `PreferenceDelegateOwner.createUi()` | 同上 |
+| `util/PreferenceScreen.kt` | androidx.preference 的扩展 |
+| `util/Bundle.kt` | 只有 `SetupFragment` 在用 |
+| `ui/main/log/LogView.kt` / `LogAdapter.kt` | → `LogScreen` |
+| `ui/setup/SetupFragment.kt` | → `SetupScreen` |
+| `res/layout/toolbar.xml` / `activity_setup.xml` / `fragment_setup.xml` / `activity_log.xml` / `activity_clip_edit.xml` | |
+| `MainViewModel.toolbarTitle` / `topOptionsMenu` 及配套 | XML toolbar 的遗留 |
+| `NavigationRoute.composeDestinations` / `isComposeDestination()` | 所有目的地都是 Compose 了 |
+| `attrs.xml` 里的 `DialogSeekBarPreferenceAttrs` / `FolderPickerPreferenceAttrs` | |
+| `colors.xml` 里的 `toolbarForegroundColor` | |
 
-**C 类：手写页面**
+### 一处要小心的替换
 
-| 页面 | 路由 | 备注 |
-| --- | --- | --- |
-| `AboutFragment` | `About` | 里面有跳 `License` 的入口 |
-| `LicenseFragment` | `License` | aboutlibraries 数据，适合做成 `LazyColumn` |
-| `DeveloperFragment` | `Developer` | |
-| `ProfileSettingsFragment` | `Profile` | 479 行，最重的一个：文件选择、同步、备份还原，牵扯 `ActivityResultLauncher` 和 `ProgressFragment` |
+`TrimeApplication` 原来用 `androidx.preference.PreferenceManager.getDefaultSharedPreferences()`
+拿全局 SharedPreferences——**那就是用户全部设置的存储**。去掉 androidx.preference 之后
+换成了 `util/SharedPreferences.kt` 里的 `Context.defaultSharedPreferences`，
+文件名和 mode 照抄 androidx 的实现：
 
-**D 类：列表页（RecyclerView + splitties view DSL + toolbar 的编辑/删除按钮）**
+```kotlin
+getSharedPreferences("${packageName}_preferences", Context.MODE_PRIVATE)
+```
 
-| 页面 | 路由 | 备注 |
-| --- | --- | --- |
-| `schema/SchemaListFragment` | `SchemaList` | 多选模式接了 `OnBackPressedDispatcher` |
-| `userdict/UserDictionaryFragment` | `UserDict` | |
-| `hotwords/HotWordFragment` | `HotWords` | |
-
-这三页依赖 `MainViewModel.enableToolbarEditButton/enableToolbarDeleteButton` 往 XML
-toolbar 上挂按钮。迁到 Compose 后应改成 `TrimeScreen(actions = ...)` 直接画，
-迁完后把 `MainViewModel` 里那几个 `toolbar*` LiveData 删掉。
-
-**E 类：独立 Activity / 对话框（本轮完全没碰）**
-
-- `ui/setup/`（首次引导，`SetupActivity` + ViewPager2 + `SetupPage`）
-- `ui/main/LogActivity`、`ui/main/ClipEditActivity`
-- `ColorPickerDialog` / `ThemePickerDialog` / `SoundEffectPickerDialog`
-  （还是 AppCompat 的 `AlertDialog`，它们做的事不只是写一个偏好项，所以先留着；
-  以后可以换成 M3 的 `AlertDialog` + `SingleChoiceDialog`）
-- `ui/common/ProgressBarDialogIndeterminate`、`ui/common/PaddingPreferenceFragment`
-  （最后一个 androidx.preference 页面迁完后，这两个和
-  `data/prefs/PreferenceDelegateFragment.kt`、
-  `PreferenceDelegateUi.createUi()`、`ui/main/settings/DialogSeekBarPreference.kt`、
-  `EditTextIntPreference.kt` 一起删，然后就能从依赖里去掉 `androidx.preference`）
+**改这两个值中任何一个都等于把用户配置弄丢。**
 
 ---
 
 ## 8. 后续 agent 必须遵守的约定
 
-1. **动一个页面 = 改一个 `XxxFragment` + 新增一个 `XxxScreen.kt` + 在
-   `NavigationRoute.composeDestinations` 里登记路由。** 三步缺一不可，
-   漏了第三步会出现两个标题栏。
+1. **加一个新页面 = 新增 `XxxScreen.kt` + 一个 `ComposeFragment` 宿主 +
+   在 `NavigationRoute.createGraph()` 里登记路由。**
 2. **不要改 `data/prefs/` 的数据模型**。`PreferenceDelegate` / `AppPrefs` 的 key、
    默认值、序列化方式是用户设置的存储格式，改了就是丢用户配置。要加设置项，
    照 `PreferenceDelegateOwner` 现有的写法加，Compose 渲染器会自动认。
-   `PreferenceDelegateUi.createUi()`（androidx 那半边）在最后一个旧页面迁完前不要删。
-3. **不要包第二层 `TrimeTheme`**，`ComposeFragment` 已经包好了。
+3. **不要包第二层 `TrimeTheme`**（`ComposeFragment` 已经包好了）。
 4. **不要在 Compose 页面里自己画顶栏**，用 `TrimeScreen`；也不要自己算 insets，
    用它给的 `padding`。
-5. **不要动 `ime/`、`core/`、`data/theme/`。**
+5. **不要动 `ime/`、`core/`、`data/theme/`。** 尤其注意 `ime/` 大量使用
+   splitties view DSL、flexbox、bravh、viewpager2，这些依赖不能删。
 6. **不要动 `.github/workflows/`、签名配置、版本号、`minSdk`。**
 7. 每完成一块就提交一次，中文 commit message，末尾带
    `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`。
 8. 交付前必须 `./gradlew spotlessApply` 再 `./gradlew :app:compileDebugKotlin` 通过。
-   本机没有 NDK，**跑不了 `assembleDebug`，也装不了设备**，这两条是唯一的验证手段。
-9. 新增字符串资源要同时补 `values-zh-rCN` 和 `values-zh-rTW`。本轮为了不碰翻译，
-   「返回」「更多」的无障碍描述直接借用了 `androidx.appcompat.R.string.*`。
+   本机没有 NDK，**跑不了 `assembleDebug`，也装不了设备**，这是唯一的验证手段。
+9. 新增字符串资源要同时补 `values-zh-rCN` 和 `values-zh-rTW`。
+   本轮新增的是 `exit_selection`（退出多选）和 `not_set`（未设置）。
 
 ---
 
-## 9. 已知遗留 / 后续可做
+## 9. 已知遗留 / 没验证过的东西
+
+**下面这些全都只过了编译，没有在真机上跑过一次。** 优先按这个顺序上真机验：
+
+1. **首次引导页**（`SetupScreen`）。它是新用户第一眼看到的界面，而且逻辑最绕：
+   离开去系统设置开输入法再回来时靠 `onWindowFocusChanged` bump `revision`
+   重新求值三步的 `isDone()`；存储模式没定之前不能左右滑；
+   选目录成功/失败的两条分支；未完成时的提醒通知。
+   还有一个**已知的细微差异**：旧实现在选目录成功后会强制显示「跳过」按钮，
+   新实现是按 `updateButtons()` 那套规则推导（全部完成时不显示跳过）。
+2. **日志页**（`LogScreen`）。`LazyColumn` 套在 `Modifier.horizontalScroll` 里，
+   横向宽度取的是**可见项**的最大宽度，滚动时可能会抖——旧的
+   `HorizontalScrollView` + `RecyclerView` 有同样的问题，但表现未必一样。
+   另外自动跟随到底、崩溃模式下的三种按钮可见性都要看一眼。
+3. **剪贴板编辑窗**（`ClipEditActivity`）。它是 `Theme.DialogTheme` 的悬浮窗口，
+   `windowSoftInputMode="stateAlwaysVisible|adjustPan"`，Compose 内容在这种窗口里
+   怎么测量高度、`FocusRequester` + `keyboard.show()` 能不能真的把键盘弹出来，
+   都得实测。它是从键盘里拉起来的，路径特殊。
+4. **`Context.defaultSharedPreferences`**。装一个旧版本、改几个设置、再装新版本，
+   确认设置还在。这条最要命。
+5. **三个选择器对话框的键盘那条路径**没有改过一行，但它们内部的加载逻辑被抽成了
+   私有函数，值得在键盘里点一次「切换主题 / 配色 / 音效」确认没坏。
+6. **contextual 顶栏**在方案列表页进出多选时的动画（大顶栏 ↔ 小顶栏切换会让
+   列表 contentPadding 跳变，这是 M3 本身的行为，但观感要看一眼）。
+
+其他遗留：
 
 - **Predictive back 没做。** 它需要在 `AndroidManifest.xml` 的 `<application>` 上开
   `android:enableOnBackInvokedCallback="true"`，而这是**进程级**开关，Trime 是输入法，
-  `InputMethodService` 在 API 33+ 也会受它影响（返回键怎么收起键盘）。本机装不了
-  NDK、跑不了真机，没法验证输入法那半边不出问题，所以本轮**有意没开**。
-  等能上真机验证时再开；开了之后 fragment 转场和 Compose 的
-  `PredictiveBackHandler` 才会有动画。
+  `InputMethodService` 在 API 33+ 也会受它影响（返回键怎么收起键盘）。装不了 NDK、
+  跑不了真机，没法验证输入法那半边不出问题，所以**有意没开**。
 - `MainActivity` 上的 `WindowInsetsAnimationCompat.Callback` 用的是
   `DISPATCH_MODE_STOP`，输入法弹出的动画 insets 不会往 Compose 子树传。
-  目前 Compose 页面里没有内联输入框（文本输入都在对话框里），影响不大；
-  以后如果 Compose 页面要跟 IME 动画联动，得把它改成 `DISPATCH_MODE_CONTINUE_ON_SUBTREE`。
-- 渲染器目前是**平铺列表**，因为 `PreferenceDelegateUi` 模型里没有分组信息
-  （androidx 那边也是平铺的）。想要分组的话，可以给模型加一个可选的 group 标签，
-  或者在页面里用 `header`/`footer` + `PreferenceCategoryHeader` 手动分。
-- `values/themes.xml` 里的 `Theme.TrimeAppTheme` 还是 AppCompat 主题，
-  没迁的页面和窗口背景仍然靠它。全部迁完后可以换成 M3 的 XML 主题或干脆删掉。
+  目前 Compose 页面里的文本输入都在对话框里，影响不大；
+  以后如果 Compose 页面要跟 IME 动画联动，得改成 `DISPATCH_MODE_CONTINUE_ON_SUBTREE`。
+- 渲染器目前是**平铺列表**，因为 `PreferenceDelegateUi` 模型里没有分组信息。
+  想要分组的话，可以给模型加一个可选的 group 标签，或者在页面里用
+  `header`/`footer` + `PreferenceCategoryHeader` 手动分。
+- `values/themes.xml` 里的 `Theme.TrimeAppTheme` 还是 AppCompat 主题。现在它只提供
+  窗口背景和 `AppCompatActivity` 需要的那点东西；因为 `MainActivity` / `LogActivity`
+  还是 `AppCompatActivity`（为了 `setDefaultNightMode`），暂时不能删。
+- 首页顶栏两处有意的行为变化（第一波就有）：不再显示「返回」箭头（旧实现按下去是
+  `moveTaskToBack`，即最小化），不再显示副标题 slogan（M3 `LargeTopAppBar` 没有
+  subtitle 槽位）。系统返回键行为不变，slogan 挪到了关于页。
