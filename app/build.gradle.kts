@@ -19,7 +19,7 @@ plugins {
 
 android {
     namespace = "com.osfans.trime"
-    compileSdk = 36
+    compileSdk = 37
     buildToolsVersion = "36.0.0"
 
     defaultConfig {
