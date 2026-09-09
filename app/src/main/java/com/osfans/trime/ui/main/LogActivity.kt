@@ -7,40 +7,54 @@ package com.osfans.trime.ui.main
 
 import android.content.ClipData
 import android.os.Bundle
-import android.view.View
-import android.view.ViewGroup
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.R
 import com.osfans.trime.TrimeApplication
-import com.osfans.trime.databinding.ActivityLogBinding
-import com.osfans.trime.ui.main.log.LogView
+import com.osfans.trime.ui.compose.preference.NoticeDialog
+import com.osfans.trime.ui.main.log.LogLine
+import com.osfans.trime.ui.main.log.LogScreen
+import com.osfans.trime.ui.theme.TrimeTheme
 import com.osfans.trime.util.DeviceInfo
 import com.osfans.trime.util.Logcat
 import com.osfans.trime.util.iso8601UTCDateTime
 import com.osfans.trime.util.toast
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import splitties.systemservices.clipboardManager
 
 /**
- * The activity to show [LogView].
+ * The log viewer, in the three flavours the launching intent picks:
+ *
+ * - **crash** — the stack trace of the process that died plus its logcat. There is
+ *   nothing to clear there, and it is meant to be exported rather than copied.
+ * - **deploy failure** — only the failure trace; no logcat to follow.
+ * - **real time** — this process's logcat as it happens.
  *
  * This file is adapted from fcitx5-android project.
  * Source: [fcitx5-android/LogActivity](https://github.com/fcitx5-android/fcitx5-android/blob/24457e13b7c3f9f59a6f220db7caad3d02f27651/app/src/main/java/org/fcitx/fcitx5/android/ui/main/LogActivity.kt)
  */
 class LogActivity : AppCompatActivity() {
     private lateinit var launcher: ActivityResultLauncher<String>
-    private lateinit var logView: LogView
+
+    private val lines = mutableStateListOf<LogLine>()
+    private var logcat: Logcat? = null
+    private var showCrashNotice by mutableStateOf(false)
+
+    private val currentLog: String
+        get() = lines.joinToString("\n") { it.text }
 
     companion object {
         const val FROM_CRASH = "from_crash"
@@ -59,7 +73,7 @@ class LogActivity : AppCompatActivity() {
                             contentResolver.openOutputStream(uri)!!.use { os ->
                                 os.bufferedWriter().use {
                                     it.write(DeviceInfo.get(this@LogActivity))
-                                    it.write(logView.currentLog)
+                                    it.write(currentLog)
                                 }
                             }
                         }
@@ -68,72 +82,68 @@ class LogActivity : AppCompatActivity() {
             }
     }
 
+    private fun setLogcat(logcat: Logcat) {
+        this.logcat = logcat
+        logcat.initLogFlow()
+        logcat.logFlow
+            .onEach { lines.add(LogLine.ofLogcat(it)) }
+            .launchIn(lifecycleScope)
+    }
+
+    private fun copyLog() {
+        clipboardManager.setPrimaryClip(ClipData.newPlainText("log", currentLog))
+        if (clipboardManager.hasPrimaryClip()) {
+            toast(R.string.copy_done)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val binding = ActivityLogBinding.inflate(layoutInflater)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
-            val systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = systemBars.left
-                rightMargin = systemBars.right
-                bottomMargin = systemBars.bottom
-            }
-            binding.logToolbar.toolbar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = systemBars.top
-            }
-            windowInsets
-        }
-        WindowCompat
-            .getInsetsController(window, window.decorView)
-            .isAppearanceLightStatusBars = false
 
-        setContentView(binding.root)
-        with(binding) {
-            setSupportActionBar(logToolbar.toolbar)
-            this@LogActivity.logView = logView
-            if (intent.hasExtra(FROM_CRASH)) {
-                supportActionBar!!.setTitle(R.string.crash_logs)
-                clearButton.visibility = View.GONE
-                copyButton.visibility = View.GONE
-                AlertDialog
-                    .Builder(this@LogActivity)
-                    .setTitle(R.string.app_crash)
-                    .setMessage(R.string.app_crash_message)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show()
-                logView.append("--------- Crash stacktrace")
-                logView.append(intent.getStringExtra(CRASH_STACK_TRACE) ?: "<empty>")
-                logView.setLogcat(Logcat(TrimeApplication.getLastPid()))
-            } else if (intent.hasExtra(FROM_DEPLOY)) {
-                supportActionBar!!.setTitle(R.string.deploy_failure)
-                clearButton.visibility = View.GONE
-                logView.append(intent.getStringExtra(DEPLOY_FAILURE_TRACE) ?: "<empty>")
-            } else {
-                supportActionBar!!.apply {
-                    setDisplayHomeAsUpEnabled(true)
-                    setTitle(R.string.real_time_logs)
+        val fromCrash = intent.hasExtra(FROM_CRASH)
+        val fromDeploy = intent.hasExtra(FROM_DEPLOY)
+        val titleRes = when {
+            fromCrash -> R.string.crash_logs
+            fromDeploy -> R.string.deploy_failure
+            else -> R.string.real_time_logs
+        }
+        when {
+            fromCrash -> {
+                showCrashNotice = true
+                lines.add(LogLine("--------- Crash stacktrace"))
+                lines.add(LogLine(intent.getStringExtra(CRASH_STACK_TRACE) ?: "<empty>"))
+                setLogcat(Logcat(TrimeApplication.getLastPid()))
+            }
+            fromDeploy -> lines.add(LogLine(intent.getStringExtra(DEPLOY_FAILURE_TRACE) ?: "<empty>"))
+            else -> setLogcat(Logcat())
+        }
+
+        setContent {
+            TrimeTheme {
+                LogScreen(
+                    title = stringResource(titleRes),
+                    lines = lines,
+                    onNavigateUp = ::finish,
+                    onClear = if (fromCrash || fromDeploy) null else ({ lines.clear() }),
+                    onCopy = if (fromCrash) null else ::copyLog,
+                    onExport = { launcher.launch("$packageName-${iso8601UTCDateTime()}.txt") },
+                )
+                if (showCrashNotice) {
+                    NoticeDialog(
+                        title = stringResource(R.string.app_crash),
+                        message = stringResource(R.string.app_crash_message),
+                        onDismiss = { showCrashNotice = false },
+                    )
                 }
-                copyButton.visibility = View.GONE
-                logView.setLogcat(Logcat())
-            }
-            clearButton.setOnClickListener {
-                logView.clear()
-            }
-            exportButton.setOnClickListener {
-                launcher.launch("$packageName-${iso8601UTCDateTime()}.txt")
-            }
-            copyButton.setOnClickListener {
-                val data = ClipData.newPlainText("log", logView.currentLog)
-                clipboardManager.setPrimaryClip(data)
-                if (clipboardManager.hasPrimaryClip()) {
-                    toast(R.string.copy_done)
-                }
-            }
-            jumpToBottomButton.setOnClickListener {
-                logView.scrollToBottom()
             }
         }
         registerLauncher()
+    }
+
+    override fun onDestroy() {
+        logcat?.shutdownLogFlow()
+        logcat = null
+        super.onDestroy()
     }
 }
