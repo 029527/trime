@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015 - 2025 Rime community
+ * SPDX-FileCopyrightText: 2015 - 2026 Rime community
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -13,9 +13,9 @@ import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatDelegate
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.prefs.PreferenceDelegate
-import com.osfans.trime.data.prefs.PreferenceDelegateFragment
+import com.osfans.trime.ui.compose.preference.PreferenceDelegateComposeFragment
 
-class AdvancedSettingsFragment : PreferenceDelegateFragment(AppPrefs.defaultInstance().advanced) {
+class AdvancedSettingsFragment : PreferenceDelegateComposeFragment(AppPrefs.defaultInstance().advanced) {
 
     private val uiMode = AppPrefs.defaultInstance().advanced.uiMode
 
