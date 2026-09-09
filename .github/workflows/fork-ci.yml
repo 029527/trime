@@ -40,6 +40,10 @@ jobs:
       - name: Install CMake
         run: sdkmanager --install "cmake;3.31.6"
 
+      # compose ui 1.12 要求 compileSdk 37；显式装一次，不依赖 AGP 的自动下载
+      - name: Install Android SDK Platform 37
+        run: sdkmanager --install "platforms;android-37.0"
+
       - name: Calculate JNI cache hash
         id: cache-hash
         run: ./gradlew :app:calculateNativeCacheHash
