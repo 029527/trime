@@ -81,6 +81,7 @@ sealed class NavigationRoute : Parcelable {
         private val composeDestinations = listOf(
             Main::class,
             VirtualKeyboard::class,
+            Profile::class,
             About::class,
             License::class,
         )
