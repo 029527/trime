@@ -214,20 +214,6 @@ class MainActivity : AppCompatActivity() {
                 item.isVisible = enabled
             }
         }
-        menu.item(R.string.edit, R.drawable.ic_baseline_edit_24, showAsAction = true) {
-            viewModel.toolbarEditButtonOnClickListener.value?.invoke()
-        }.apply {
-            viewModel.toolbarEditButtonVisible.observe(this@MainActivity) {
-                isVisible = it
-            }
-        }
-        menu.item(R.string.delete, R.drawable.ic_baseline_delete_24, showAsAction = true) {
-            viewModel.toolbarDeleteButtonOnClickListener.value?.invoke()
-        }.apply {
-            viewModel.toolbarDeleteButtonOnClickListener.observe(this@MainActivity) {
-                isVisible = it != null
-            }
-        }
         menu.forEach { item ->
             // show menu item on demand
             item.isVisible = false
