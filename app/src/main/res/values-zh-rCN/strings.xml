@@ -303,4 +303,9 @@
     <string name="user_dictionary_empty">还没有用户词典。先部署一个方案，词典就会出现在这里。</string>
     <string name="exit_selection">退出多选</string>
     <string name="not_set">未设置</string>
+    <string name="theme_tint_warm">配色暖度</string>
+    <string name="theme_tint_dim">配色亮度</string>
+    <string name="theme_tint_alpha">底色不透明度</string>
+    <string name="theme_tint_reset">恢复配色默认值</string>
+    <string name="theme_tint_reset_summary">回到 暖度 26% · 亮度 92% · 不透明度 90%</string>
 </resources>

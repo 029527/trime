@@ -305,4 +305,9 @@
     <string name="user_dictionary_empty">No user dictionary yet. Deploy a schema first, then it shows up here.</string>
     <string name="exit_selection">Exit selection</string>
     <string name="not_set">Not set</string>
+    <string name="theme_tint_warm">Colour warmth</string>
+    <string name="theme_tint_dim">Colour brightness</string>
+    <string name="theme_tint_alpha">Background opacity</string>
+    <string name="theme_tint_reset">Reset colour tuning</string>
+    <string name="theme_tint_reset_summary">Back to warmth 26% · brightness 92% · opacity 90%</string>
 </resources>
