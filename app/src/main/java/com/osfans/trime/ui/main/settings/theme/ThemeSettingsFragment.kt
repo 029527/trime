@@ -6,26 +6,34 @@
 package com.osfans.trime.ui.main.settings.theme
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.data.theme.ThemePrefs
 import com.osfans.trime.ui.compose.preference.PreferenceDelegateComposeFragment
 import com.osfans.trime.ui.main.settings.ColorPickerDialog
 import com.osfans.trime.ui.main.settings.ThemePickerDialog
-import kotlinx.coroutines.launch
 
 class ThemeSettingsFragment : PreferenceDelegateComposeFragment(ThemeManager.prefs) {
+    private enum class Picker { THEME, COLOR }
+
+    private var picker by mutableStateOf<Picker?>(null)
+
     @Composable
     override fun clickHandlers(): Map<String, () -> Unit> = mapOf(
-        // Both are still the old AlertDialogs: they don't just write a preference,
-        // they ask ThemeManager to load the theme / colour scheme.
-        ThemePrefs.SELECTED_THEME to {
-            // ThemePickerDialog.build is suspending (it enumerates the theme files).
-            lifecycleScope.launch { ThemePickerDialog.build(lifecycleScope, requireContext()).show() }
-            Unit
-        },
-        ThemePrefs.NORMAL_MODE_COLOR to {
-            ColorPickerDialog.build(lifecycleScope, requireContext()).show()
-        },
+        // Neither row is a plain preference write: they ask ThemeManager / ColorManager
+        // to load the theme or the colour scheme, so they get their own dialogs.
+        ThemePrefs.SELECTED_THEME to { picker = Picker.THEME },
+        ThemePrefs.NORMAL_MODE_COLOR to { picker = Picker.COLOR },
     )
+
+    @Composable
+    override fun Dialogs() {
+        when (picker) {
+            Picker.THEME -> ThemePickerDialog.ThemeSelectionDialog { picker = null }
+            Picker.COLOR -> ColorPickerDialog.ColorSelectionDialog { picker = null }
+            null -> Unit
+        }
+    }
 }

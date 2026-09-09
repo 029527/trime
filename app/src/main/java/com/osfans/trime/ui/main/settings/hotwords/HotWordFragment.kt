@@ -8,13 +8,16 @@ package com.osfans.trime.ui.main.settings.hotwords
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.R
 import com.osfans.trime.data.hotwords.HotWord
 import com.osfans.trime.data.hotwords.HotWordManager
-import com.osfans.trime.ui.common.withLoadingDialog
 import com.osfans.trime.ui.compose.ComposeFragment
+import com.osfans.trime.ui.compose.preference.withLoadingState
 import com.osfans.trime.util.toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,10 +33,14 @@ class HotWordFragment : ComposeFragment() {
 
     private val snackbarHostState = SnackbarHostState()
 
+    /** Drawn as a blocking dialog while a change is being written and deployed. */
+    private var loading by mutableStateOf(false)
+
     @Composable
     override fun Content() {
         HotWordListScreen(
             entries = words,
+            loading = loading,
             snackbarHostState = snackbarHostState,
             onNavigateUp = ::navigateUp,
             onSave = ::save,
@@ -59,7 +66,7 @@ class HotWordFragment : ComposeFragment() {
             var outcome: Result<Unit> = Result.success(Unit)
             // The snackbar is shown *after* the loading dialog is gone: showSnackbar
             // suspends until it is dismissed, which would otherwise hold the dialog up.
-            withLoadingDialog(ctx, R.string.hot_word_deploying) {
+            withLoadingState({ loading = it }) {
                 outcome = runCatching {
                     withContext(Dispatchers.IO) { HotWordManager.save(snapshot) }
                     mainViewModel.rime.runOnReady { deploy(skipImport = true) }

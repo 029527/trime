@@ -20,7 +20,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -38,13 +37,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import com.osfans.trime.R
 import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.data.sync.DataStorageMode
 import com.osfans.trime.data.sync.GitConfigSync
 import com.osfans.trime.ui.compose.TrimeScreen
 import com.osfans.trime.ui.compose.preference.DialogPreferenceItem
+import com.osfans.trime.ui.compose.preference.LoadingDialog
 import com.osfans.trime.ui.compose.preference.PreferenceCategoryHeader
 import com.osfans.trime.ui.compose.preference.PreferenceRow
 import com.osfans.trime.ui.compose.preference.SingleChoiceDialog
@@ -74,7 +73,7 @@ class ProfileScreenState {
     var gitToken by mutableStateOf("")
     var gitSyncSummary by mutableStateOf("")
 
-    /** Shown as a blocking indeterminate dialog, replacing `withLoadingDialog`. */
+    /** Shown as a blocking indeterminate dialog; see `withLoadingState`. */
     var loading by mutableStateOf(false)
     var dialog by mutableStateOf<ProfileDialog?>(null)
 }
@@ -403,23 +402,6 @@ private fun LowerBoundedIntInputDialog(
                 Text(stringResource(android.R.string.cancel))
             }
         },
-    )
-}
-
-/**
- * Material 3 stand-in for `ProgressBarDialogIndeterminate`: not cancellable, and the
- * caller only shows it once the work has run past its threshold.
- */
-@Composable
-private fun LoadingDialog() {
-    AlertDialog(
-        onDismissRequest = {},
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-        title = { Text(stringResource(R.string.loading)) },
-        text = {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        },
-        confirmButton = {},
     )
 }
 

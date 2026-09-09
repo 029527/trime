@@ -6,6 +6,7 @@
 package com.osfans.trime.ui.compose.preference
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -43,7 +45,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.osfans.trime.R
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 /** Horizontal padding shared by every row of a flat preference list. */
@@ -319,6 +328,73 @@ fun SingleChoiceDialog(
             }
         },
     )
+}
+
+/**
+ * A dialog that only says something — the Material 3 stand-in for an `AlertDialog`
+ * built with `setMessage()` and one dismiss button (e.g. "no theme to select").
+ */
+@Composable
+fun NoticeDialog(
+    title: String,
+    message: String,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(message) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+    )
+}
+
+/**
+ * Material 3 stand-in for `ProgressBarDialogIndeterminate`: not cancellable, and the
+ * caller only shows it once the work has run past a threshold (see `withLoadingState`).
+ */
+@Composable
+fun LoadingDialog(
+    @StringRes title: Int = R.string.loading,
+) {
+    AlertDialog(
+        onDismissRequest = {},
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+        title = { Text(stringResource(title)) },
+        text = { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) },
+        confirmButton = {},
+    )
+}
+
+/**
+ * Compose replacement for `withLoadingDialog`, with the same 200 ms threshold: work
+ * that finishes quickly never flashes a dialog at all.
+ *
+ * [setLoading] flips the caller's own state, which is what actually draws
+ * [LoadingDialog]; it is always turned back off, cancellation included.
+ */
+suspend fun withLoadingState(
+    setLoading: (Boolean) -> Unit,
+    threshold: Long = 200L,
+    action: suspend () -> Unit,
+) {
+    coroutineScope {
+        val loadingJob = launch {
+            delay(threshold)
+            setLoading(true)
+        }
+        try {
+            action()
+        } finally {
+            withContext(NonCancellable) {
+                loadingJob.cancelAndJoin()
+                setLoading(false)
+            }
+        }
+    }
 }
 
 /** Free text input dialog, the replacement for `EditTextPreference`'s dialog. */

@@ -6,7 +6,9 @@
 package com.osfans.trime.ui.main.settings
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.ui.compose.preference.PreferenceDelegateComposeFragment
 
@@ -15,12 +17,19 @@ import com.osfans.trime.ui.compose.preference.PreferenceDelegateComposeFragment
  * Compose-rendered settings screen. See `docs/modern-ui-notes.md`.
  */
 class KeyboardSettingsFragment : PreferenceDelegateComposeFragment(AppPrefs.defaultInstance().keyboard) {
+    private var showSoundEffectPicker by mutableStateOf(false)
+
     @Composable
     override fun clickHandlers(): Map<String, () -> Unit> = mapOf(
-        AppPrefs.Keyboard.CUSTOM_SOUND_EFFECT to {
-            // Still the old AlertDialog: picking a sound effect is not a plain
-            // preference write, it asks SoundEffectManager to switch profile.
-            SoundEffectPickerDialog.build(lifecycleScope, requireContext()).show()
-        },
+        // Picking a sound effect is not a plain preference write, it asks
+        // SoundEffectManager to switch profile.
+        AppPrefs.Keyboard.CUSTOM_SOUND_EFFECT to { showSoundEffectPicker = true },
     )
+
+    @Composable
+    override fun Dialogs() {
+        if (showSoundEffectPicker) {
+            SoundEffectPickerDialog.SoundEffectSelectionDialog { showSoundEffectPicker = false }
+        }
+    }
 }

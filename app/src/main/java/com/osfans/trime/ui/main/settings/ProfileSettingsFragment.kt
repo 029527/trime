@@ -20,15 +20,12 @@ import com.osfans.trime.data.sync.RimeDataSync
 import com.osfans.trime.data.sync.SafDisplayPath
 import com.osfans.trime.data.sync.UserDbMigration
 import com.osfans.trime.ui.compose.ComposeFragment
+import com.osfans.trime.ui.compose.preference.withLoadingState
 import com.osfans.trime.util.ResourceUtils
 import com.osfans.trime.util.buildDocumentsProviderIntent
 import com.osfans.trime.util.customFormatTimeInDefault
 import com.osfans.trime.util.toast
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -181,29 +178,8 @@ class ProfileSettingsFragment :
         return getString(R.string.git_sync_last, text)
     }
 
-    /**
-     * The Compose replacement for `withLoadingDialog`, with the same threshold: quick
-     * work never flashes a dialog, slow work blocks the screen until it is done.
-     */
-    private suspend fun withLoading(
-        threshold: Long = 200L,
-        action: suspend () -> Unit,
-    ) {
-        coroutineScope {
-            val loadingJob = launch {
-                delay(threshold)
-                state.loading = true
-            }
-            try {
-                action()
-            } finally {
-                withContext(NonCancellable) {
-                    loadingJob.cancelAndJoin()
-                    withContext(Dispatchers.Main) { state.loading = false }
-                }
-            }
-        }
-    }
+    /** Blocks the screen while [action] runs, unless it is quick; see `withLoadingState`. */
+    private suspend fun withLoading(action: suspend () -> Unit) = withLoadingState({ state.loading = it }, action = action)
 
     // endregion
 

@@ -354,6 +354,15 @@ abstract class PreferenceDelegateComposeFragment(
     protected open fun Footer() {
     }
 
+    /**
+     * Dialogs a [clickHandlers] entry opens. It sits beside the whole screen rather
+     * than inside the lazy list — which only composes the rows it can see — so it must
+     * only emit things that take no space of their own: dialogs and popups.
+     */
+    @Composable
+    protected open fun Dialogs() {
+    }
+
     @Composable
     final override fun Content() {
         PreferenceDelegateScreen(
@@ -364,6 +373,7 @@ abstract class PreferenceDelegateComposeFragment(
             suspendClickHandlers = suspendClickHandlers(),
             footer = { Footer() },
         )
+        Dialogs()
     }
 
     @Composable

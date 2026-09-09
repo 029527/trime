@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.osfans.trime.R
 import com.osfans.trime.data.hotwords.HotWord
 import com.osfans.trime.data.hotwords.HotWordManager
+import com.osfans.trime.ui.compose.preference.LoadingDialog
 import com.osfans.trime.ui.main.settings.list.AddFloatingActionButton
 import com.osfans.trime.ui.main.settings.list.ListEmptyHint
 import com.osfans.trime.ui.main.settings.list.ListEntryAction
@@ -49,6 +50,7 @@ import com.osfans.trime.ui.main.settings.list.plusBottom
 @Composable
 fun HotWordListScreen(
     entries: List<HotWord>,
+    loading: Boolean,
     snackbarHostState: SnackbarHostState,
     onNavigateUp: () -> Unit,
     onSave: (existing: HotWord?, word: HotWord) -> Unit,
@@ -94,6 +96,10 @@ fun HotWordListScreen(
                 )
             }
         }
+    }
+
+    if (loading) {
+        LoadingDialog(R.string.hot_word_deploying)
     }
 
     editing?.let { target ->
