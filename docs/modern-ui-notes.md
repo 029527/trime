@@ -453,3 +453,28 @@ adb install -r app/build/outputs/apk/debug/*.apk
 于是 `Content()` 绑到了**视图的**那个而不是 fragment 的抽象方法 —— 视图不断重新组合自己，
 每个 Compose 页面第一帧就 `StackOverflowError`。编译器不会警告（两个签名都合法）。
 现在写成局部变量 + `this@ComposeFragment.Content()`，别再改回 `apply`。
+
+## 11. 运行时配色微调（暖度 / 亮度 / 不透明度）
+
+原来键盘配色的暖白滤镜是在电脑上生成主题 yaml 时烘焙进颜色里的
+（trime-config 的 `tools/gen_ios_theme.py`，三个旋钮 `WARM` / `DIM` / `ALPHA`），
+改一次颜色要「改脚本 → 重新生成 → 同步到手机 → 部署」。现在这层滤镜搬到了 App 运行时：
+
+* 算法在 `data/theme/ColorTint.kt`，和生成脚本的 `gains()` / `warm()` / `translucent()` 一一对应
+  （按通道相乘、纯黑不动、深色配色加整数补偿、只有底色类的 key 才套 alpha）。全是纯函数，
+  基准色值有单元测试 `ColorTintTest`。
+* 挂载点是 `ColorManager` 的 `resolveColor()`（以及 `parseDrawable()` 的纯色分支 ——
+  键面和键盘底是当作 `GradientDrawable` 画的，不走 `resolveColor`，漏了这条路就只有文字会变色）。
+  两条路都要拿着**主题里的原始字符串**判断，因为「写没写 alpha」决定了要不要套不透明度，
+  解析成 int 之后就分不出 `0xD1D3D9` 和 `0xFFD1D3D9` 了。
+* 三个滑块在键盘样式页（`ThemePrefs.tintWarm` / `tintDim` / `tintAlpha`，默认 26 / 92 / 90），
+  底下一行「恢复配色默认值」。`ColorManager` 直接监听这三个 key，清缓存后 `fireChange()`，
+  `TrimeInputMethodService` 已有的 `onColorChangeListener` 会重建输入视图：**改完立刻生效，
+  不用部署、不用重启输入法**。
+
+### 迁移：主题 yaml 必须换成「未烘焙」的
+
+现在手机上那份 `ios.trime.yaml` 里的颜色**已经烘焙了 26 / 92 / 90**，App 再套一遍就是滤镜叠滤镜。
+切过去时要在 trime-config 那边把 `gen_ios_theme.py` 的旋钮设成中性值
+（`WARM = 0.0`、`DIM = 1.0`、`ALPHA = 1.0`）重新生成主题，App 这边默认的 26 / 92 / 90 才刚好
+等价于现在的观感。App 侧的滤镜在 `0 / 100 / 100` 时输出恒等于输入，所以两边不会互相绑死。
