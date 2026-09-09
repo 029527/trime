@@ -25,9 +25,10 @@ import androidx.core.view.WindowCompat
  * friends). It is **not** used by the keyboard itself, which keeps its own
  * yaml-driven theming in `data/theme/`.
  *
- * On Android 12+ the scheme is taken from the user's wallpaper (Material You); on
- * older releases it falls back to Trime's brand palette in [TrimeLightColorScheme] /
- * [TrimeDarkColorScheme].
+ * The palette is the shadcn/ui-style neutral one in [TrimeLightColorScheme] /
+ * [TrimeDarkColorScheme]. Material You dynamic colour is deliberately **off**: a
+ * wallpaper-derived scheme drags purples and blues into a UI whose whole point is to
+ * be colourless. Pass `dynamicColor = true` to opt a screen back into it.
  *
  * Light/dark follows the activity configuration, which `MainActivity` already drives
  * from the `uiMode` preference through `AppCompatDelegate.setDefaultNightMode`, so
@@ -36,7 +37,7 @@ import androidx.core.view.WindowCompat
 @Composable
 fun TrimeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     applySystemBarAppearance: Boolean = true,
     content: @Composable () -> Unit,
 ) {

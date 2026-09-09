@@ -18,6 +18,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <!-- 本色彩方案取自 Rime 官网（https://rime.im） -->
     <color name="colorPrimary">#37393C</color> <!-- 浅主题色 -->
     <color name="colorPrimaryDark">#2D2F30</color> <!-- 深主题色 -->
-    <color name="colorAccent">#009BD1</color>  <!-- 浅强调色 -->
+    <color name="colorAccent">#18181B</color>  <!-- 浅色强调色：跟 Compose 里的 shadcn zinc-900 一致 -->
     <color name="colorAccentDark">#317086</color> <!-- 深强调色 -->
 </resources>

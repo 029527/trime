@@ -10,13 +10,14 @@ import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
 /**
- * Slightly rounder than the Material 3 defaults, matching what Google's own
- * settings-style apps use for grouped list cards.
+ * Tighter than the Material 3 defaults, following shadcn/ui's `--radius: 0.5rem`
+ * (8dp) — its cards and dialogs sit around 8-12dp, where M3 would go 16-28dp and
+ * start looking like a toy.
  */
 internal val TrimeShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(20.dp),
-    extraLarge = RoundedCornerShape(28.dp),
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(10.dp),
+    large = RoundedCornerShape(12.dp),
+    extraLarge = RoundedCornerShape(16.dp),
 )
