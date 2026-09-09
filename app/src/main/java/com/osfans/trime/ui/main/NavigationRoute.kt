@@ -81,6 +81,8 @@ sealed class NavigationRoute : Parcelable {
         private val composeDestinations = listOf(
             Main::class,
             VirtualKeyboard::class,
+            About::class,
+            License::class,
         )
 
         fun NavDestination.isComposeDestination() = composeDestinations.any { hasRoute(it) }
