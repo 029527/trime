@@ -9,27 +9,21 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
-import androidx.core.os.bundleOf
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isGone
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
 import com.osfans.trime.R
+import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.data.sync.DataStorageMode
 import com.osfans.trime.data.sync.RimeDataSync
-import com.osfans.trime.databinding.ActivitySetupBinding
 import com.osfans.trime.ui.main.MainActivity
-import com.osfans.trime.ui.setup.SetupPage.Companion.firstUndonePage
-import com.osfans.trime.ui.setup.SetupPage.Companion.isLastPage
+import com.osfans.trime.ui.theme.TrimeTheme
 import com.osfans.trime.util.appContext
 import com.osfans.trime.util.createNotificationChannel
 import com.osfans.trime.util.startActivity
@@ -39,12 +33,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import splitties.systemservices.notificationManager
 
+/**
+ * The first-run wizard. The screen itself is [SetupScreen]; this activity keeps what
+ * only an activity can do — the folder picker, the "finish setting up" reminder
+ * notification, and re-checking system state every time the window comes back into
+ * focus (the user leaves to enable the IME in system settings and returns).
+ */
 class SetupActivity : FragmentActivity() {
-    private lateinit var viewPager: ViewPager2
+    /**
+     * Bumped whenever the wizard has to re-read system state; every `isDone()` check in
+     * [SetupScreen] keys off it. This is what the old fragments' `sync()` did.
+     */
+    private var revision by mutableIntStateOf(0)
 
-    private lateinit var skipButton: Button
-    private lateinit var prevButton: Button
-    private lateinit var nextButton: Button
+    private val prefs = AppPrefs.defaultInstance().profile
 
     private val dataPathPicker =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -55,14 +57,13 @@ class SetupActivity : FragmentActivity() {
                         RimeDataSync.persistTreeUri(this@SetupActivity, uri)
                         RimeDataSync.importToLocal(this@SetupActivity).getOrThrow()
                     }
-                    refreshCurrentFragment()
+                    refresh()
                     toast(R.string.setup__data_path_imported)
-                    skipButton.visibility = View.VISIBLE
                 }.onFailure {
                     withContext(Dispatchers.IO) {
                         RimeDataSync.clearExternalTree(this@SetupActivity)
                     }
-                    refreshCurrentFragment()
+                    refresh()
                     toast(R.string.setup__data_path_import_failed)
                 }
             }
@@ -72,9 +73,22 @@ class SetupActivity : FragmentActivity() {
         dataPathPicker.launch(null as Uri?)
     }
 
-    fun refreshCurrentFragment() {
-        val fragment = supportFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
-        (fragment as? SetupFragment)?.sync()
+    private fun refresh() {
+        revision++
+    }
+
+    /**
+     * Leaving external sync throws the granted tree away and marks the user database as
+     * un-migrated again — unchanged from the old radio group listener.
+     */
+    private fun onStorageModeChange(newMode: DataStorageMode) {
+        val oldMode = prefs.dataStorageMode.getValue()
+        if (oldMode == DataStorageMode.EXTERNAL_SYNC && newMode == DataStorageMode.APP_STORAGE) {
+            prefs.userDbMigrated.setValue(false)
+            RimeDataSync.clearExternalTree(this)
+        }
+        prefs.dataStorageMode.setValue(newMode)
+        refresh()
     }
 
     private fun completeSetup() {
@@ -93,55 +107,16 @@ class SetupActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val binding = ActivitySetupBinding.inflate(layoutInflater)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
-            val sysBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.root.setPadding(
-                sysBars.left,
-                sysBars.top,
-                sysBars.right,
-                sysBars.bottom,
-            )
-            windowInsets
-        }
-        setContentView(binding.root)
-        skipButton = binding.skipButton.apply {
-            text = getString(R.string.setup__skip)
-            setOnClickListener {
-                AlertDialog
-                    .Builder(this@SetupActivity)
-                    .setMessage(R.string.setup__skip_hint)
-                    .setPositiveButton(R.string.setup__skip_hint_yes) { _, _ ->
-                        completeSetup()
-                    }.setNegativeButton(R.string.setup__skip_hint_no, null)
-                    .show()
+        setContent {
+            TrimeTheme {
+                SetupScreen(
+                    revision = revision,
+                    onAction = { it.getButtonAction(this) },
+                    onStorageModeChange = ::onStorageModeChange,
+                    onFinish = ::completeSetup,
+                )
             }
         }
-        prevButton =
-            binding.prevButton.apply {
-                text = getString(R.string.setup__prev)
-                setOnClickListener { viewPager.currentItem -= 1 }
-            }
-        nextButton =
-            binding.nextButton.apply {
-                setOnClickListener {
-                    if (viewPager.currentItem != SetupPage.entries.size - 1) {
-                        viewPager.currentItem += 1
-                    } else {
-                        completeSetup()
-                    }
-                }
-            }
-        viewPager = binding.viewpager
-        viewPager.adapter = Adapter()
-        viewPager.registerOnPageChangeCallback(
-            object : ViewPager2.OnPageChangeCallback() {
-                override fun onPageSelected(position: Int) = updateButtons()
-            },
-        )
-        // Skip to undone page
-        firstUndonePage()?.let { viewPager.currentItem = it.ordinal }
-        updateButtons()
         shown = true
         createNotificationChannel(
             CHANNEL_ID,
@@ -149,28 +124,9 @@ class SetupActivity : FragmentActivity() {
         )
     }
 
-    fun updateButtons() {
-        val allDone = !SetupPage.hasUndonePage()
-        val modeSetupDone = SetupPage.Mode.isDone()
-        val isFirstPage = viewPager.currentItem == 0
-        val isLastPage = viewPager.currentItem.isLastPage()
-
-        viewPager.isUserInputEnabled = modeSetupDone
-
-        prevButton.isGone = isFirstPage
-        skipButton.isGone = !modeSetupDone || allDone
-        nextButton.text = getString(if (isLastPage) R.string.done else R.string.setup__next)
-        nextButton.isGone = isLastPage && !allDone
-        nextButton.isEnabled = modeSetupDone
-    }
-
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (!hasFocus) return
-        for (fragment in supportFragmentManager.fragments) {
-            if (fragment.isVisible) (fragment as? SetupFragment)?.sync()
-        }
-        updateButtons()
+        if (hasFocus) refresh()
     }
 
     override fun onPause() {
@@ -198,13 +154,5 @@ class SetupActivity : FragmentActivity() {
     override fun onResume() {
         notificationManager.cancel(NOTIFY_ID)
         super.onResume()
-    }
-
-    private inner class Adapter : FragmentStateAdapter(this) {
-        override fun getItemCount(): Int = SetupPage.entries.size
-
-        override fun createFragment(position: Int): Fragment = SetupFragment().apply {
-            arguments = bundleOf("page" to SetupPage.entries[position])
-        }
     }
 }
