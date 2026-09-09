@@ -15,16 +15,19 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.NinePatchDrawable
 import androidx.annotation.ColorInt
+import androidx.annotation.Keep
 import androidx.collection.LruCache
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.math.MathUtils
 import com.osfans.trime.data.base.DataManager
+import com.osfans.trime.data.prefs.PreferenceDelegate
 import com.osfans.trime.data.theme.model.ColorScheme
 import com.osfans.trime.util.ColorUtils
 import com.osfans.trime.util.NinePatchBitmapFactory
 import com.osfans.trime.util.WeakHashSet
 import com.osfans.trime.util.isNightMode
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 
 object ColorManager {
     private lateinit var theme: Theme
@@ -42,12 +45,72 @@ object ColorManager {
         private set(value) {
             if (this::_activeColorScheme.isInitialized && _activeColorScheme == value) return
             _activeColorScheme = value
+            invalidateColors()
             fireChange()
         }
 
     private var lightModeColorScheme: ColorScheme? = null
 
     private var darkModeColorScheme: ColorScheme? = null
+
+    // ------------------------------------------------ 运行时配色微调，见 [ColorTint]
+
+    /** 解析结果（含滤镜）的缓存。key 的解析只取决于配色方案和 fallback，两者变了就整清。 */
+    private val colorCache = ConcurrentHashMap<String, Int>()
+
+    private var cachedTintParams: ColorTint.Params? = null
+
+    private var cachedDarkScheme: Boolean? = null
+
+    /** 三个滑块的当前值。SharedPreferences 不用每次颜色都读，改了会通过监听器清掉。 */
+    private val tintParams: ColorTint.Params
+        get() = cachedTintParams ?: ColorTint
+            .of(
+                prefs.tintWarm.getValue(),
+                prefs.tintDim.getValue(),
+                prefs.tintAlpha.getValue(),
+            ).also { cachedTintParams = it }
+
+    /**
+     * 当前配色是深色配色吗（决定用 BASE_DARK + lift 还是 BASE_LIGHT）。
+     * 按方案自己的底色亮度判断，而不是看系统深浅色：用户可以在浅色模式下手动选深色配色。
+     */
+    private val isDarkScheme: Boolean
+        get() = cachedDarkScheme ?: evaluateDarkScheme().also { cachedDarkScheme = it }
+
+    private fun evaluateDarkScheme(): Boolean {
+        for (key in arrayOf("back_color", "keyboard_back_color", "key_back_color")) {
+            val raw = _activeColorScheme.colors[key]?.takeIf { it.isNotEmpty() } ?: continue
+            val color =
+                try {
+                    ColorUtils.parseColor(raw)
+                } catch (_: Exception) {
+                    continue // 底色是张图片之类，换下一个 key 判断
+                }
+            return ColorTint.isDarkColor(color)
+        }
+        return isNightMode
+    }
+
+    private fun invalidateColors() {
+        colorCache.clear()
+        cachedTintParams = null
+        cachedDarkScheme = null
+    }
+
+    /** 拖动配色微调滑块：清缓存并让所有用色的地方重建，不需要重新部署主题。 */
+    @Keep
+    private val onTintChangeListener =
+        PreferenceDelegate.OnChangeListener<Any> { _, _ ->
+            invalidateColors()
+            if (this::theme.isInitialized) fireChange()
+        }
+
+    init {
+        listOf(prefs.tintWarm, prefs.tintDim, prefs.tintAlpha).forEach {
+            it.registerOnChangeListener(onTintChangeListener)
+        }
+    }
 
     private val BuiltinFallbackColors =
         mapOf(
@@ -141,6 +204,7 @@ object ColorManager {
 
     fun onSystemNightModeChange(isNight: Boolean) {
         isNightMode = isNight
+        invalidateColors()
         activeColorScheme = evaluateActiveColorScheme()
     }
 
@@ -174,6 +238,7 @@ object ColorManager {
     /** 每次切换主题后，都要调用此函数，初始化配色 */
     fun switchTheme(theme: Theme) {
         bitmapCache?.evictAll()
+        invalidateColors()
         this.theme = theme
         val defaultScheme = colorScheme("default") ?: theme.colorSchemes.first()
         lightModeColorScheme = defaultScheme.colors["light_scheme"]?.let { colorScheme(it) }
@@ -188,25 +253,45 @@ object ColorManager {
 
     @ColorInt
     private fun resolveColor(key: String): Int {
+        colorCache[key]?.let { return it }
         val color =
             try {
                 resolveValue(key) { value ->
-                    ColorUtils.parseColor(value)
+                    tinted(key, value)
                 }
             } catch (_: IllegalArgumentException) {
-                ColorUtils.parseColor(key)
+                tinted(key, key)
             }
+        colorCache[key] = color
         return color
+    }
+
+    /**
+     * 解析主题里的颜色字面量，并在返回前套一层运行时配色滤镜。
+     *
+     * 这里是全 App 键盘颜色的唯一出口，所以滤镜挂在这一层。要不要套不透明度既取决于**请求的
+     * key**（是不是底色），也取决于**主题里写没写 alpha**，所以必须拿着原始字符串判断 ——
+     * 光看解析完的 int 分不出 `0xD1D3D9` 和 `0xFFD1D3D9`。
+     */
+    @ColorInt
+    private fun tinted(
+        key: String,
+        rawValue: String,
+    ): Int {
+        val color = ColorUtils.parseColor(rawValue)
+        val params = tintParams
+        if (params.isNeutral) return color
+        return ColorTint.tint(color, params, isDarkScheme, ColorTint.appliesAlpha(key, rawValue))
     }
 
     private fun resolveDrawable(key: String): Drawable? {
         val drawable =
             try {
                 resolveValue(key) { value ->
-                    parseDrawable(value)
+                    parseDrawable(key, value)
                 }
             } catch (_: IllegalArgumentException) {
-                parseDrawable(key)
+                parseDrawable(key, key)
             }
         return drawable
     }
@@ -237,7 +322,10 @@ object ColorManager {
         }
     }
 
-    private fun parseDrawable(value: String): Drawable? {
+    private fun parseDrawable(
+        key: String,
+        value: String,
+    ): Drawable? {
         if (value.isEmpty()) return null
         if (SUPPORTED_IMG_FORMATS.any { value.endsWith(it) }) {
             val path = resolveImageFilePath(value)
@@ -258,9 +346,10 @@ object ColorManager {
             }
             return bitmap.toDrawable(Resources.getSystem())
         } else {
+            // 纯色背景（键面、键盘底……）也要过滤镜，否则拖滑块只有文字色会变
             val color =
                 try {
-                    ColorUtils.parseColor(value)
+                    tinted(key, value)
                 } catch (_: Exception) {
                     Color.TRANSPARENT
                 }
