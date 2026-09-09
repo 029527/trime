@@ -16,12 +16,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -171,52 +173,59 @@ private fun SetupPageContent(
     onStorageModeChange: (DataStorageMode) -> Unit,
 ) {
     val context = LocalContext.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Box(
+    // The step is centred on the page, but still scrolls when it cannot fit (a short
+    // landscape window with the storage options open); `heightIn(min = maxHeight)`
+    // sits *inside* the scroll so there is room to centre in.
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val viewportHeight = maxHeight
+        Column(
             modifier = Modifier
-                .size(96.dp)
-                .clip(MaterialTheme.shapes.extraLarge)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center,
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = viewportHeight)
+                .padding(horizontal = 24.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_app_icon_foreground),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(96.dp),
-            )
-        }
-        Spacer(Modifier.height(24.dp))
-        Text(
-            text = page.getStepText(context).toString(),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = page.getHintText(context).toAnnotatedString(),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        if (page == SetupPage.Mode) {
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_app_icon_foreground),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(96.dp),
+                )
+            }
             Spacer(Modifier.height(24.dp))
-            StorageModeOptions(revision = revision, onSelect = onStorageModeChange)
-        }
-        Spacer(Modifier.height(24.dp))
-        if (done) {
-            DoneBadge()
-        } else if (page.showActionButton()) {
-            Button(onClick = { onAction(page) }) {
-                Text(page.getButtonText(context).toString())
+            Text(
+                text = page.getStepText(context).toString(),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = page.getHintText(context).toAnnotatedString(),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            if (page == SetupPage.Mode) {
+                Spacer(Modifier.height(24.dp))
+                StorageModeOptions(revision = revision, onSelect = onStorageModeChange)
+            }
+            Spacer(Modifier.height(24.dp))
+            if (done) {
+                DoneBadge()
+            } else if (page.showActionButton()) {
+                Button(onClick = { onAction(page) }) {
+                    Text(page.getButtonText(context).toString())
+                }
             }
         }
     }
