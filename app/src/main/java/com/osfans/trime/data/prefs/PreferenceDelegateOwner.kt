@@ -8,7 +8,6 @@ package com.osfans.trime.data.prefs
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.StringRes
-import androidx.preference.PreferenceScreen
 
 abstract class PreferenceDelegateOwner(
     protected val sharedPreferences: SharedPreferences,
@@ -192,16 +191,5 @@ abstract class PreferenceDelegateOwner(
         pref.register()
         ui.registerUi()
         return pref
-    }
-
-    override fun createUi(screen: PreferenceScreen) {
-        val ctx = screen.context
-        preferenceDelegatesUi.forEach {
-            screen.addPreference(
-                it.createUi(ctx).apply {
-                    isEnabled = it.isEnabled()
-                },
-            )
-        }
     }
 }

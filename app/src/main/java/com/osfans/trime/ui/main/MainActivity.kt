@@ -7,7 +7,6 @@ package com.osfans.trime.ui.main
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
 import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
@@ -15,39 +14,36 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.forEach
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.fragment.NavHostFragment
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import com.osfans.trime.BuildConfig
 import com.osfans.trime.R
-import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.soundeffect.SoundEffectManager
 import com.osfans.trime.databinding.ActivityMainBinding
-import com.osfans.trime.ui.main.NavigationRoute.Companion.isComposeDestination
 import com.osfans.trime.ui.setup.SetupActivity
 import com.osfans.trime.util.isStorageAvailable
-import com.osfans.trime.util.item
 import com.osfans.trime.util.parcelable
 import com.osfans.trime.util.startActivity
 import com.osfans.trime.worker.BackgroundSyncWork
 import kotlinx.coroutines.launch
-import splitties.views.topPadding
 
+/**
+ * Host of the settings app. Every destination of [NavigationRoute]'s graph is a Compose
+ * screen that draws its own Material 3 chrome edge to edge, so the activity owns no
+ * toolbar of its own: it only wires up the navigation host, the test input panel and
+ * the entry points other parts of Trime use ([EXTRA_SETTINGS_ROUTE]).
+ */
 class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
 
@@ -55,9 +51,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
     private var testInputPanel: TestInputPanel? = null
-
-    /** True while the current destination renders its own Compose chrome. */
-    private var composeDestination = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val uiMode =
@@ -76,23 +69,17 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         val binding = ActivityMainBinding.inflate(layoutInflater)
 
-        // Compose destinations draw their own chrome edge to edge and consume the
-        // window insets themselves, so the activity only insets the legacy pages.
+        // The Compose screens consume the window insets themselves; the test input
+        // panel is an activity-level View, so it is the only thing inset by hand — and
+        // it has to dodge the keyboard as well as the navigation bar.
         fun applyInsets(windowInsets: WindowInsetsCompat) {
             val systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
-            val bottom = maxOf(systemBars.bottom, ime.bottom)
-            binding.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = if (composeDestination) 0 else systemBars.left
-                rightMargin = if (composeDestination) 0 else systemBars.right
-                bottomMargin = if (composeDestination) 0 else bottom
-            }
             binding.testInputPanel.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = if (composeDestination) systemBars.left else 0
-                rightMargin = if (composeDestination) systemBars.right else 0
-                bottomMargin = if (composeDestination) bottom else 0
+                leftMargin = systemBars.left
+                rightMargin = systemBars.right
+                bottomMargin = maxOf(systemBars.bottom, ime.bottom)
             }
-            binding.mainToolbar.root.topPadding = systemBars.top
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
             applyInsets(windowInsets)
@@ -111,27 +98,8 @@ class MainActivity : AppCompatActivity() {
             },
         )
         setContentView(binding.root)
-        // always show toolbar back arrow icon
-        binding.mainToolbar.toolbar.navigationIcon =
-            DrawerArrowDrawable(this).apply {
-                progress = 1f
-                color = ContextCompat.getColor(this@MainActivity, R.color.toolbarForegroundColor)
-            }
-        // show menu icon and other action icons on toolbar
-        // don't use `setSupportActionBar(binding.toolbar)` here,
-        // because navController would change toolbar title, we need to control it by ourselves
-        setupToolbarMenu(binding.mainToolbar.toolbar.menu)
         navController = binding.navHostFragment.getFragment<NavHostFragment>().navController
         navController.graph = NavigationRoute.createGraph(navController)
-        binding.mainToolbar.toolbar.setNavigationOnClickListener {
-            // prevent navigate up when child fragment has enabled `OnBackPressedCallback`
-            if (onBackPressedDispatcher.hasEnabledCallbacks()) {
-                onBackPressedDispatcher.onBackPressed()
-                return@setNavigationOnClickListener
-            }
-            // "minimize" the activity if we can't go back
-            navController.navigateUp() || onSupportNavigateUp() || moveTaskToBack(false)
-        }
         onBackPressedDispatcher.addCallback {
             if (binding.testInputPanel.isVisible) {
                 binding.testInputPanel.dismiss()
@@ -141,28 +109,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         testInputPanel = binding.testInputPanel
-        viewModel.toolbarTitle.observe(this) {
-            binding.mainToolbar.toolbar.title = it
-        }
-        navController.addOnDestinationChangedListener { _, dest, _ ->
-            dest.label?.let { viewModel.setToolbarTitle(it.toString()) }
-            binding.mainToolbar.toolbar.subtitle =
-                if (dest.hasRoute<NavigationRoute.Main>()) {
-                    getString(R.string.trime_app_slogan)
-                } else {
-                    ""
-                }
-            composeDestination = dest.isComposeDestination()
-            binding.mainToolbar.root.isVisible = !composeDestination
-            if (!composeDestination) {
-                // The legacy toolbar is dark, so it wants light system bar icons;
-                // Compose screens set this themselves from `TrimeTheme`.
-                WindowCompat
-                    .getInsetsController(window, window.decorView)
-                    .isAppearanceLightStatusBars = false
-            }
-            binding.root.requestApplyInsets()
-        }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -170,7 +116,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         processIntent(intent)
         checkNotificationPermission()
     }
@@ -191,32 +136,6 @@ class MainActivity : AppCompatActivity() {
                 navController.popBackStack(NavigationRoute.Main, false)
                 navController.navigate(route)
             }
-        }
-    }
-
-    private fun setupToolbarMenu(menu: Menu) {
-        val optionMenuItems = listOf(
-            menu.item(R.string.deploy, R.drawable.ic_baseline_refresh_reversed_24, showAsAction = true) {
-                viewModel.rime.launchOnReady { it.deploy() }
-            },
-            menu.item(R.string.test_input, R.drawable.ic_baseline_keyboard_24, showAsAction = true) {
-                testInputPanel?.show(window)
-            },
-            menu.item(R.string.developer) {
-                navController.navigate(NavigationRoute.Developer)
-            },
-            menu.item(R.string.about) {
-                navController.navigate(NavigationRoute.About)
-            },
-        )
-        optionMenuItems.forEach { item ->
-            viewModel.topOptionsMenu.observe(this) { enabled ->
-                item.isVisible = enabled
-            }
-        }
-        menu.forEach { item ->
-            // show menu item on demand
-            item.isVisible = false
         }
     }
 

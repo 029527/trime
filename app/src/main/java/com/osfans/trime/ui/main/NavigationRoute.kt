@@ -7,8 +7,6 @@ package com.osfans.trime.ui.main
 
 import android.os.Parcelable
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.createGraph
 import androidx.navigation.fragment.fragment
 import com.osfans.trime.R
@@ -25,6 +23,12 @@ import com.osfans.trime.ui.main.settings.userdict.UserDictionaryFragment
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
+/**
+ * The destinations of the settings app. Every one of them is a Compose screen hosted by
+ * a `ComposeFragment`; the graph itself stays Navigation-for-Fragments so that the
+ * keyboard can keep handing a `@Parcelize`d route to `MainActivity` through
+ * `EXTRA_SETTINGS_ROUTE` (see `docs/modern-ui-notes.md`).
+ */
 @Parcelize
 sealed class NavigationRoute : Parcelable {
 
@@ -71,32 +75,6 @@ sealed class NavigationRoute : Parcelable {
     data object License : NavigationRoute()
 
     companion object {
-        /**
-         * Destinations whose fragment is a `ComposeFragment` and therefore draws its own
-         * Material 3 top app bar edge to edge. `MainActivity` hides its legacy toolbar
-         * and stops insetting the content for these.
-         *
-         * **When you migrate a page to Compose, add its route here.**
-         */
-        private val composeDestinations = listOf(
-            Main::class,
-            General::class,
-            VirtualKeyboard::class,
-            CandidatesWindow::class,
-            Theme::class,
-            Clipboard::class,
-            Advanced::class,
-            Developer::class,
-            SchemaList::class,
-            UserDict::class,
-            HotWords::class,
-            Profile::class,
-            About::class,
-            License::class,
-        )
-
-        fun NavDestination.isComposeDestination() = composeDestinations.any { hasRoute(it) }
-
         fun createGraph(controller: NavController) = controller.createGraph(Main) {
             val ctx = controller.context
 

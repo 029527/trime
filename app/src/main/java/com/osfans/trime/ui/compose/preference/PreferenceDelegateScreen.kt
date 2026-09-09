@@ -90,7 +90,7 @@ fun PreferenceDelegateList(
 @Composable
 private fun PreferenceDelegateItem(
     provider: PreferenceDelegateProvider,
-    ui: PreferenceDelegateUi<*>,
+    ui: PreferenceDelegateUi,
     revision: Int,
     onClickOverride: (() -> Unit)?,
 ) {

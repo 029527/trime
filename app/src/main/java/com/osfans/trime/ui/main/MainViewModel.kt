@@ -12,8 +12,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 class MainViewModel : ViewModel() {
-    val toolbarTitle = MutableLiveData<String>()
-
     private val _testInputRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     /**
@@ -26,23 +24,9 @@ class MainViewModel : ViewModel() {
         _testInputRequests.tryEmit(Unit)
     }
 
-    val topOptionsMenu = MutableLiveData<Boolean>()
-
     val rime = RimeDaemon.createSession(javaClass.name)
 
     val restartBackgroundSyncWork = MutableLiveData(false)
-
-    fun setToolbarTitle(title: String) {
-        toolbarTitle.value = title
-    }
-
-    fun enableTopOptionsMenu() {
-        topOptionsMenu.value = true
-    }
-
-    fun disableTopOptionsMenu() {
-        topOptionsMenu.value = false
-    }
 
     override fun onCleared() {
         RimeDaemon.destroySession(javaClass.name)

@@ -6,21 +6,21 @@ package com.osfans.trime.data.prefs
 
 import android.content.Context
 import androidx.annotation.StringRes
-import androidx.preference.EditTextPreference
-import androidx.preference.ListPreference
-import androidx.preference.Preference
-import androidx.preference.SwitchPreference
-import com.osfans.trime.ui.main.settings.DialogSeekBarPreference
-import com.osfans.trime.ui.main.settings.EditTextIntPreference
 
-abstract class PreferenceDelegateUi<T : Preference>(
+/**
+ * How one preference wants to be shown. This is only the *description* — the widget is
+ * picked by the renderer, `ui/compose/preference/PreferenceDelegateScreen.kt` — and the
+ * value itself lives in the matching [PreferenceDelegate], so nothing here has any say
+ * over the stored format.
+ */
+abstract class PreferenceDelegateUi(
     val key: String,
     private val enableUiOn: (() -> Boolean)? = null,
 ) {
-    abstract fun createUi(context: Context): T
-
+    /** Dependent rows are greyed out rather than hidden, as they always have been. */
     fun isEnabled() = enableUiOn?.invoke() ?: true
 
+    /** A plain row; what tapping it does is injected by the page that renders it. */
     class StringLike(
         @StringRes
         val title: Int,
@@ -29,18 +29,7 @@ abstract class PreferenceDelegateUi<T : Preference>(
         @StringRes
         val summary: Int? = null,
         enableUiOn: (() -> Boolean)? = null,
-    ) : PreferenceDelegateUi<Preference>(key, enableUiOn) {
-        override fun createUi(context: Context) = Preference(context).apply {
-            key = this@StringLike.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            setDefaultValue(defaultValue)
-            if (this@StringLike.summary != null) {
-                setSummary(this@StringLike.summary)
-            }
-            setTitle(this@StringLike.title)
-        }
-    }
+    ) : PreferenceDelegateUi(key, enableUiOn)
 
     class Switch(
         @StringRes
@@ -50,19 +39,9 @@ abstract class PreferenceDelegateUi<T : Preference>(
         @StringRes
         val summary: Int? = null,
         enableUiOn: (() -> Boolean)? = null,
-    ) : PreferenceDelegateUi<SwitchPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = SwitchPreference(context).apply {
-            key = this@Switch.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            setDefaultValue(defaultValue)
-            if (this@Switch.summary != null) {
-                setSummary(this@Switch.summary)
-            }
-            setTitle(this@Switch.title)
-        }
-    }
+    ) : PreferenceDelegateUi(key, enableUiOn)
 
+    /** A fixed set of choices, labelled by string resources. */
     class StringList<T : Any>(
         @StringRes
         val title: Int,
@@ -73,20 +52,12 @@ abstract class PreferenceDelegateUi<T : Preference>(
         @StringRes
         val entryLabels: List<Int>,
         enableUiOn: (() -> Boolean)? = null,
-    ) : PreferenceDelegateUi<ListPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = ListPreference(context).apply {
-            key = this@StringList.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            entryValues = this@StringList.entryValues.map { serializer.serialize(it) }.toTypedArray()
-            summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-            setDefaultValue(serializer.serialize(defaultValue))
-            setTitle(this@StringList.title)
-            entries = this@StringList.entryLabels.map { context.getString(it) }.toTypedArray()
-            setDialogTitle(this@StringList.title)
-        }
-    }
+    ) : PreferenceDelegateUi(key, enableUiOn)
 
+    /**
+     * Choices that only exist at runtime (installed input methods, deployed schemata…),
+     * so both the values and the labels are computed every time they are shown.
+     */
     class UniversalStringList<T : Any>(
         @StringRes
         val title: Int,
@@ -95,19 +66,7 @@ abstract class PreferenceDelegateUi<T : Preference>(
         val entryValues: (() -> List<String>),
         val entryLabels: ((Context) -> List<CharSequence>),
         enableUiOn: (() -> Boolean)? = null,
-    ) : PreferenceDelegateUi<ListPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = ListPreference(context).apply {
-            key = this@UniversalStringList.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            entryValues = this@UniversalStringList.entryValues().toTypedArray()
-            summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-            setDefaultValue(defaultValue.toString())
-            setTitle(this@UniversalStringList.title)
-            entries = this@UniversalStringList.entryLabels(context).toTypedArray()
-            setDialogTitle(this@UniversalStringList.title)
-        }
-    }
+    ) : PreferenceDelegateUi(key, enableUiOn)
 
     class EditText(
         @StringRes
@@ -117,20 +76,7 @@ abstract class PreferenceDelegateUi<T : Preference>(
         @StringRes
         val message: Int? = null,
         enableUiOn: (() -> Boolean)? = null,
-    ) : PreferenceDelegateUi<EditTextPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = EditTextPreference(context).apply {
-            key = this@EditText.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
-            setDefaultValue(this@EditText.defaultValue)
-            setTitle(this@EditText.title)
-            setDialogTitle(this@EditText.title)
-            if (this@EditText.message != null) {
-                setDialogMessage(this@EditText.message)
-            }
-        }
-    }
+    ) : PreferenceDelegateUi(key, enableUiOn)
 
     class EditTextInt(
         @StringRes
@@ -141,20 +87,7 @@ abstract class PreferenceDelegateUi<T : Preference>(
         val max: Int,
         val unit: String = "",
         enableUiOn: (() -> Boolean)? = null,
-    ) : PreferenceDelegateUi<EditTextPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = EditTextIntPreference(context).apply {
-            key = this@EditTextInt.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            summaryProvider = EditTextIntPreference.SimpleSummaryProvider
-            setDefaultValue(this@EditTextInt.defaultValue)
-            setTitle(this@EditTextInt.title)
-            setDialogTitle(this@EditTextInt.title)
-            min = this@EditTextInt.min
-            max = this@EditTextInt.max
-            unit = this@EditTextInt.unit
-        }
-    }
+    ) : PreferenceDelegateUi(key, enableUiOn)
 
     class SeekBarInt(
         @StringRes
@@ -169,20 +102,5 @@ abstract class PreferenceDelegateUi<T : Preference>(
         val defaultLabel: Int? = null,
         val useMinAsDefault: Boolean = false,
         enableUiOn: (() -> Boolean)? = null,
-    ) : PreferenceDelegateUi<DialogSeekBarPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = DialogSeekBarPreference(context).apply {
-            key = this@SeekBarInt.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            summaryProvider = DialogSeekBarPreference.SimpleSummaryProvider
-            this@SeekBarInt.defaultLabel?.let { systemDefaultText = context.getString(it) }
-            setDefaultValue(this@SeekBarInt.defaultValue)
-            setTitle(this@SeekBarInt.title)
-            min = this@SeekBarInt.min
-            max = this@SeekBarInt.max
-            unit = this@SeekBarInt.unit
-            step = this@SeekBarInt.step
-            useMinAsDefault = this@SeekBarInt.useMinAsDefault
-        }
-    }
+    ) : PreferenceDelegateUi(key, enableUiOn)
 }

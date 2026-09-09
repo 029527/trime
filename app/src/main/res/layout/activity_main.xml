@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-  ~ SPDX-FileCopyrightText: 2015 - 2025 Rime community
+  ~ SPDX-FileCopyrightText: 2015 - 2026 Rime community
   ~ SPDX-License-Identifier: GPL-3.0-or-later
   -->
 
+<!--
+  Every destination is a Compose screen drawing its own Material 3 top app bar edge to
+  edge, so this layout is nothing but a container for the navigation host and the test
+  input panel.
+  -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <include android:id="@+id/mainToolbar"
-        layout="@layout/toolbar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
@@ -26,7 +25,7 @@
         app:layout_constraintBottom_toTopOf="@id/test_input_panel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/mainToolbar" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.osfans.trime.ui.main.TestInputPanel
         android:id="@+id/test_input_panel"

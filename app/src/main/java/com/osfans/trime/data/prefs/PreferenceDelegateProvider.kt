@@ -4,22 +4,18 @@
  */
 package com.osfans.trime.data.prefs
 
-import androidx.preference.PreferenceScreen
 import com.osfans.trime.util.WeakHashSet
 
 abstract class PreferenceDelegateProvider {
     private val _preferenceDelegates: MutableMap<String, PreferenceDelegate<*>> = mutableMapOf()
 
-    private val _preferenceDelegatesUi: MutableList<PreferenceDelegateUi<*>> = mutableListOf()
+    private val _preferenceDelegatesUi: MutableList<PreferenceDelegateUi> = mutableListOf()
 
     val preferenceDelegates: Map<String, PreferenceDelegate<*>>
         get() = _preferenceDelegates
 
-    val preferenceDelegatesUi: List<PreferenceDelegateUi<*>>
+    val preferenceDelegatesUi: List<PreferenceDelegateUi>
         get() = _preferenceDelegatesUi
-
-    open fun createUi(screen: PreferenceScreen) {
-    }
 
     fun interface OnChangeListener {
         fun onChange(key: String)
@@ -41,7 +37,7 @@ abstract class PreferenceDelegateProvider {
         preference.notifyChange()
     }
 
-    fun PreferenceDelegateUi<*>.registerUi() {
+    fun PreferenceDelegateUi.registerUi() {
         _preferenceDelegatesUi.add(this)
     }
 

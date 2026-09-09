@@ -13,13 +13,13 @@ import android.os.Process
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
-import androidx.preference.PreferenceManager
 import com.osfans.trime.data.db.ClipboardHelper
 import com.osfans.trime.data.db.CollectionHelper
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.receiver.RimeIntentReceiver
 import com.osfans.trime.ui.main.LogActivity
+import com.osfans.trime.util.defaultSharedPreferences
 import com.osfans.trime.util.isNightMode
 import com.osfans.trime.worker.BackgroundSyncWork
 import kotlinx.coroutines.CoroutineName
@@ -61,7 +61,7 @@ class TrimeApplication : Application() {
         if (!BuildConfig.DEBUG) {
             Thread.setDefaultUncaughtExceptionHandler { _, e ->
                 val crashTime = System.currentTimeMillis()
-                val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                val sharedPrefs = applicationContext.defaultSharedPreferences
                 val lastCrashTimePrefKey = "last_crash_time"
                 val lastCrashTime = sharedPrefs.getLong(lastCrashTimePrefKey, -1L)
                 sharedPrefs.edit(commit = true) {
@@ -127,7 +127,7 @@ class TrimeApplication : Application() {
                     },
                 )
             }
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            val sharedPreferences = applicationContext.defaultSharedPreferences
             val appPrefs = AppPrefs.initDefault(sharedPreferences)
             // record last pid for crash logs
             appPrefs.internal.pid.apply {
