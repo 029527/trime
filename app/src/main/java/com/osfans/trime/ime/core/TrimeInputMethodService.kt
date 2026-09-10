@@ -57,6 +57,7 @@ import com.osfans.trime.util.forceShowSelf
 import com.osfans.trime.util.isLandscape
 import com.osfans.trime.util.monitorCursorAnchor
 import com.osfans.trime.util.styledFloat
+import com.osfans.trime.voice.VoiceInputManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -75,6 +76,12 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private val jobs = Channel<Job>(capacity = Channel.UNLIMITED)
 
     private val prefs = AppPrefs.defaultInstance()
+
+    /**
+     * 语音输入的总调度。挂在 service 上，跟输入法进程同生命周期；
+     * 语音文本直接走 `InputConnection`，不经过 Rime。
+     */
+    val voiceInput by lazy { VoiceInputManager(this) }
     private lateinit var decorView: View
     private lateinit var contentView: FrameLayout
     private lateinit var lastKnownConfig: Configuration
@@ -392,6 +399,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     override fun onDestroy() {
+        voiceInput.abort()
         InputFeedbackManager.destroy()
         inputView = null
         extractInputUi = null
@@ -754,6 +762,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
 
     override fun onFinishInputView(finishingInput: Boolean) {
         Timber.d("onFinishInputView: finishingInput=$finishingInput")
+        // 输入框换了/键盘收了/息屏，录音必须停掉并释放麦克风
+        voiceInput.abort()
         decorLocationUpdated = false
         inputView?.dismissCandidateActionMenu()
         candidatesView?.dismissCandidateActionMenu()

@@ -13,6 +13,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <!-- git config sync -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 语音输入：麦克风采集。输入法服务自己弹不了运行时权限，
+         走 .voice.VoicePermissionActivity 申请。 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:name="com.osfans.trime.TrimeApplication"
@@ -84,6 +87,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
             android:taskAffinity=".ui.main.LiquidKeyboardEditActivity"
             android:theme="@style/Theme.DialogTheme"
             android:windowSoftInputMode="stateAlwaysVisible|adjustPan" />
+
+        <!-- 只用来替输入法申请录音权限，申请完立刻关掉 -->
+        <activity
+            android:name=".voice.VoicePermissionActivity"
+            android:autoRemoveFromRecents="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:taskAffinity=".voice.VoicePermissionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <!-- Using an activity alias to disable/enable the app icon in the launcher -->
         <activity-alias

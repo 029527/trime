@@ -13,7 +13,7 @@ import java.io.FileInputStream
 class AtomicLocalFileCopyTest :
     StringSpec({
         "copies file content via temp-dir round trip" {
-            val dir = createTempDir()
+            val dir = kotlin.io.path.createTempDirectory().toFile()
             try {
                 val source = File(dir, "source.txt")
                 val dest = File(dir, "dest.txt")
@@ -33,7 +33,7 @@ class AtomicLocalFileCopyTest :
         }
 
         "replaces an existing destination file" {
-            val dir = createTempDir()
+            val dir = kotlin.io.path.createTempDirectory().toFile()
             try {
                 val source = File(dir, "source.txt")
                 val dest = File(dir, "dest.txt")
@@ -51,7 +51,7 @@ class AtomicLocalFileCopyTest :
         }
 
         "does not overwrite a sibling named dest.txt.tmp" {
-            val dir = createTempDir()
+            val dir = kotlin.io.path.createTempDirectory().toFile()
             try {
                 val sibling = File(dir, "dest.txt.tmp")
                 sibling.writeText("sibling")
@@ -69,7 +69,7 @@ class AtomicLocalFileCopyTest :
         }
 
         "keeps original content when write callback throws" {
-            val dir = createTempDir()
+            val dir = kotlin.io.path.createTempDirectory().toFile()
             try {
                 val dest = File(dir, "dest.txt")
                 dest.writeText("original")

@@ -20,6 +20,7 @@ import com.osfans.trime.ui.main.settings.hotwords.HotWordFragment
 import com.osfans.trime.ui.main.settings.schema.SchemaListFragment
 import com.osfans.trime.ui.main.settings.theme.ThemeSettingsFragment
 import com.osfans.trime.ui.main.settings.userdict.UserDictionaryFragment
+import com.osfans.trime.ui.main.settings.voice.VoiceInputSettingsFragment
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -64,6 +65,9 @@ sealed class NavigationRoute : Parcelable {
 
     @Serializable
     data object Advanced : NavigationRoute()
+
+    @Serializable
+    data object VoiceInput : NavigationRoute()
 
     @Serializable
     data object Developer : NavigationRoute()
@@ -112,6 +116,9 @@ sealed class NavigationRoute : Parcelable {
             }
             fragment<AdvancedSettingsFragment, Advanced> {
                 label = ctx.getString(R.string.advanced)
+            }
+            fragment<VoiceInputSettingsFragment, VoiceInput> {
+                label = ctx.getString(R.string.voice_input)
             }
             fragment<DeveloperFragment, Developer> {
                 label = ctx.getString(R.string.developer)

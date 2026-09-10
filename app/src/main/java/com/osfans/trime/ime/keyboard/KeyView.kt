@@ -50,6 +50,9 @@ class KeyView(
     private var keyPressed = false
     override fun isPressed(): Boolean = keyPressed
 
+    /** 非空表示这次按压被 [KeyboardActionListener.onHoldStart] 接管了（按住说话）。 */
+    private var holdAction: KeyAction? = null
+
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
     }
@@ -106,12 +109,21 @@ class KeyView(
             if (keyboard.firstPressedKeyIndex == -1) keyboard.firstPressedKeyIndex = id
             setPressedState(true)
             key.getCode(KeyBehavior.CLICK).let { keyboardActionListener.onPress(it) }
+            // 「按住说话」这类键在按下的那一刻就要开始干活，松手才结束；
+            // 被接管之后这次按压不会再走 onAction。
+            holdAction = key.getAction(KeyBehavior.CLICK)?.takeIf { keyboardActionListener.onHoldStart(it) }
             showPopupPreview()
         }
 
         onRelease = { behavior, isFromLongPress ->
             Timber.d("KeyView release: label=${key.getLabel()}, behavior=$behavior, fromLongPress=$isFromLongPress")
-            if (isFromLongPress) {
+            val held = holdAction
+            if (held != null) {
+                holdAction = null
+                keyboardActionListener.onHoldEnd(held)
+                setPressedState(false)
+                dismissPopupPreview()
+            } else if (isFromLongPress) {
                 if (hasPopup) {
                     val triggerAction = PopupAction.TriggerAction(id)
                     popup.listener.onPopupAction(triggerAction)
@@ -175,7 +187,10 @@ class KeyView(
         }
 
         onLongClick = {
-            if (key.popup.isNotEmpty()) {
+            if (holdAction != null) {
+                // 这次按压已经被「按住说话」接管了：长按不能再触发这个键原本的长按动作，
+                // 否则按住麦克风一秒就会顺手切走键盘。
+            } else if (key.popup.isNotEmpty()) {
                 dismissPopupPreview()
                 showPopupKeyboard()
             } else if (hasLongPress) {
@@ -188,12 +203,16 @@ class KeyView(
         }
 
         onMove = { x, y, isLongPress ->
-            if (isLongPress && hasPopup) {
+            if (isLongPress && hasPopup && holdAction == null) {
                 popup.listener.onPopupAction(PopupAction.ChangeFocusAction(id, x, y))
             }
         }
 
         onCancel = {
+            holdAction?.let {
+                holdAction = null
+                keyboardActionListener.onHoldEnd(it)
+            }
             deletedTextBuffer.clear()
             setPressedState(false)
             dismissPopupPreview()

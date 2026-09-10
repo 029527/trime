@@ -117,6 +117,21 @@ class CommonKeyboardActionListener {
                 }
             }
 
+            /**
+             * 麦克风键（主题里写 `{command: voice_input}`）走"按住说话"：
+             * 按下开始录，松手结束。接管之后松手不会再触发 [onAction]。
+             */
+            override fun onHoldStart(action: KeyAction): Boolean {
+                if (action.command != VOICE_INPUT_COMMAND) return false
+                service.voiceInput.onPress()
+                return true
+            }
+
+            override fun onHoldEnd(action: KeyAction) {
+                if (action.command != VOICE_INPUT_COMMAND) return
+                service.voiceInput.onRelease()
+            }
+
             override fun onAction(action: KeyAction) {
                 val text = action.getText(KeyboardSwitcher.currentKeyboard)
                 val shouldHandle = when {
@@ -176,6 +191,12 @@ class CommonKeyboardActionListener {
                 val arg = expandActiveText(action.option)
 
                 when (action.command) {
+                    // 正常路径是 onHoldStart/onHoldEnd（按住说话）。走到这里说明这次按键
+                    // 没经过 KeyView 的按压流程（比如从长按弹出的小键盘上触发），
+                    // 退化成点按开关：没在录就开始，正在录就结束。
+                    VOICE_INPUT_COMMAND -> {
+                        if (service.voiceInput.isActive) service.voiceInput.finish() else service.voiceInput.onPress()
+                    }
                     "liquid_keyboard" -> handleLiquidKeyboard(arg)
                     "menu_keyboard" -> windowManager.attachWindow(SwitchOptionWindow())
                     "clipboard_window" -> handleClipboardWindow(arg)
@@ -449,5 +470,8 @@ class CommonKeyboardActionListener {
         private val TEXT_INPUT_PATTERN = """^((?:\{Escape\})?[^{}]+|\{[^{}]+\}).*$""".toRegex()
 
         private val PLACEHOLDER_PATTERN = Regex(".*(%([1-4]\\$)?s).*")
+
+        /** 主题里写 `ios_mic: {label: 'ic@microphone-outline', command: voice_input}` 就能触发。 */
+        const val VOICE_INPUT_COMMAND = "voice_input"
     }
 }

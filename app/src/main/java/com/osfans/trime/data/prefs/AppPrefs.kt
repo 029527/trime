@@ -47,6 +47,7 @@ class AppPrefs(
     val candidates = Candidates(shared).register()
     val clipboard = Clipboard(shared).register()
     val advanced = Advanced(shared).register()
+    val voice = Voice(shared).register()
 
     @Keep
     private val onSharedPreferenceChangeListener =
@@ -597,5 +598,50 @@ class AppPrefs(
             IGNORE_SYSTEM_GESTURE_INSETS,
             false,
         )
+    }
+
+    /**
+     * 语音输入。
+     *
+     * 这里**只放不敏感的开关**：火山的 apiKey / appKey / accessKey 走
+     * [com.osfans.trime.voice.VoiceCredentialStore]（EncryptedSharedPreferences），
+     * 不进这个普通的 SharedPreferences。
+     *
+     * 这些项全部用不带 UI 模型的重载注册，界面是手写的
+     * `ui/main/settings/voice/VoiceInputScreen.kt`，不走 preference 渲染器。
+     */
+    class Voice(
+        shared: SharedPreferences,
+    ) : PreferenceDelegateOwner(shared, R.string.voice_input) {
+        companion object {
+            const val ENABLED = "voice__enabled"
+            const val PROVIDER = "voice__provider"
+            const val AUTH_MODE = "voice__auth_mode"
+            const val RESOURCE_ID = "voice__resource_id"
+            const val TRIGGER_MODE = "voice__trigger_mode"
+            const val SILENCE_TIMEOUT = "voice__silence_timeout"
+            const val MAX_DURATION = "voice__max_duration"
+
+            const val PROVIDER_VOLCANO = "volcano"
+            const val PROVIDER_FAKE = "fake"
+
+            const val TRIGGER_HOLD = "hold"
+            const val TRIGGER_TOGGLE = "toggle"
+            const val TRIGGER_BOTH = "both"
+        }
+
+        val enabled = bool(ENABLED, false)
+        val provider = string(PROVIDER, PROVIDER_VOLCANO)
+        val authMode = string(AUTH_MODE, "apiKey")
+        val resourceId = string(RESOURCE_ID, "volc.seedasr.sauc.duration")
+
+        /** hold=只按住说话；toggle=只点按开关；both=按住说话，轻点转成长录（默认）。 */
+        val triggerMode = string(TRIGGER_MODE, TRIGGER_BOTH)
+
+        /** 多少秒没有新文本就自动收尾。 */
+        val silenceTimeout = int(SILENCE_TIMEOUT, 6)
+
+        /** 单次录音最长多少秒，防止忘了松手一直录。 */
+        val maxDuration = int(MAX_DURATION, 60)
     }
 }

@@ -38,7 +38,7 @@ class SyncRelativePathTest :
             }
         }
         "resolveContained stays within root" {
-            val root = createTempDir()
+            val root = kotlin.io.path.createTempDirectory().toFile()
             try {
                 val resolved = SyncRelativePath.resolveContained(root, "default.yaml")
                 resolved.path shouldBe File(root, "default.yaml").canonicalFile.path

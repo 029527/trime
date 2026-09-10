@@ -46,6 +46,7 @@ private val SettingsEntries = listOf(
     HomeEntry(R.string.candidates_window, R.drawable.ic_baseline_list_alt_24, NavigationRoute.CandidatesWindow),
     HomeEntry(R.string.theme, R.drawable.ic_baseline_color_lens_24, NavigationRoute.Theme),
     HomeEntry(R.string.clipboard, R.drawable.ic_clipboard_24, NavigationRoute.Clipboard),
+    HomeEntry(R.string.voice_input, R.drawable.ic_baseline_mic_24, NavigationRoute.VoiceInput),
     HomeEntry(R.string.advanced, R.drawable.ic_baseline_more_horiz_24, NavigationRoute.Advanced),
 )
 
