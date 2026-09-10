@@ -80,7 +80,10 @@ class KeyboardWindow :
 
     private lateinit var keyboardView: FrameLayout
 
-    companion object : ResidentWindow.Key
+    companion object : ResidentWindow.Key {
+        /** 主题里横屏专用布局的名字后缀，见 [landscapeVariantOf]。 */
+        const val LANDSCAPE_SUFFIX = "_land"
+    }
 
     override val key: ResidentWindow.Key
         get() = KeyboardWindow
@@ -268,7 +271,23 @@ class KeyboardWindow :
                 theme.presetKeyboards[final]?.landscapeKeyboard ?: ""
             if (landscape.isNotEmpty() && presetKeyboardIds.contains(landscape)) final = landscape
         }
-        return final
+        return landscapeVariantOf(final)
+    }
+
+    /**
+     * 横屏时改用主题里同名加 [LANDSCAPE_SUFFIX] 后缀的那份键盘（`t9` → `t9_land`），
+     * 主题没定义就原样返回。[evalKeyboard] 是键盘名解析的唯一入口，`select:` 切键盘、
+     * `.default`/`.ascii` 之类的伪名字、以及旋转后重建输入视图都会经过它，所以这里
+     * 加一次判断就够了，不用散在别处。
+     *
+     * 用的是屏幕的真实方向，跟按键上的 `hide_in_landscape` 一致；「启用横屏模式」偏好项
+     * 管的是分屏/键高，跟套哪一份布局是两回事，所以不掺进来。
+     */
+    private fun landscapeVariantOf(name: String): String {
+        if (name.isEmpty() || name.endsWith(LANDSCAPE_SUFFIX)) return name
+        if (!context.resources.configuration.isLandscape()) return name
+        val landscapeName = name + LANDSCAPE_SUFFIX
+        return if (presetKeyboardIds.contains(landscapeName)) landscapeName else name
     }
 
     fun switchKeyboard(to: String) {
