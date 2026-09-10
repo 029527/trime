@@ -11,7 +11,7 @@ import java.io.File
 class OrphanCleanerTest :
     StringSpec({
         "preserves installation.yaml even when missing from external listing" {
-            val root = createTempDir()
+            val root = kotlin.io.path.createTempDirectory().toFile()
             try {
                 val installation = File(root, "installation.yaml")
                 installation.writeText("installation_id: test")
