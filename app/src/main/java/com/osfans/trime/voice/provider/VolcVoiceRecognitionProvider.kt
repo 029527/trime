@@ -95,7 +95,6 @@ class VolcVoiceRecognitionProvider(
             .connectTimeout(10, TimeUnit.SECONDS)
             // WebSocket 不能按读超时算，靠 ping 保活
             .readTimeout(0, TimeUnit.MILLISECONDS)
-            .pingInterval(20, TimeUnit.SECONDS)
             .build()
 
         val accumulator = VolcTranscriptAccumulator()
@@ -155,7 +154,13 @@ class VolcVoiceRecognitionProvider(
 
                 runCatching { VolcProtocol.decodeServerResponse(data) }
                     .onSuccess { response ->
-                        val isFinal = response.header.flags == VolcMessageFlags.ASYNC_FINAL
+                        // 实测（2026-09-10，volc.seedasr.sauc.duration）：服务端**从不发**
+                        // ASYNC_FINAL，最后一帧用的是 NEGATIVE_SEQUENCE_LAST，发完就关连接。
+                        // 只认 ASYNC_FINAL 的话永远等不到定稿，会一直挂到超时。
+                        // definite 的分句也当定稿，长句会分段上屏。
+                        val isFinal = response.header.flags == VolcMessageFlags.ASYNC_FINAL ||
+                            response.header.flags == VolcMessageFlags.NEGATIVE_SEQUENCE_LAST ||
+                            response.result.utterances.any { it.definite }
                         val text = accumulator.apply(response.result, isFinal)
                         if (isFinal) {
                             sawFinal = true
@@ -180,6 +185,15 @@ class VolcVoiceRecognitionProvider(
                         trySend(VoiceRecognitionEvent.Completed)
                         close()
                     }
+            }
+
+            /**
+             * 火山发完最后一帧就主动关连接。OkHttp 收到关闭帧只会先回调这里，
+             * 不回一个 close 的话连接会一直挂着，直到读超时才报错 —— 表现就是
+             * 「识别明明出来了，却卡十几秒然后提示连不上」。
+             */
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                webSocket.close(code, reason)
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
