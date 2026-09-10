@@ -273,6 +273,21 @@ object VolcProtocol {
         out.toString()
     }.getOrNull()
 
+    /**
+     * 握手被 HTTP 拒掉时，从响应体里捞服务端的原话。
+     *
+     * 鉴权失败 / 额度用完这类问题只在这个 body 里说得清楚，
+     * 只报一句"连接失败"等于把唯一有用的信息扔了。
+     */
+    fun readableHttpError(body: String): String? {
+        if (body.isBlank()) return null
+        fromJson(body)?.let { (code, message) ->
+            if (message != null) return code?.let { "$message ($it)" } ?: message
+            if (code != null) return "错误码 $code"
+        }
+        return body.trim().take(200).ifEmpty { null }
+    }
+
     // MARK: - server response
 
     fun decodeServerResponse(data: ByteArray): VolcServerResponse {

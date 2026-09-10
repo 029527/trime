@@ -6,8 +6,11 @@
 package com.osfans.trime.ime.core
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.graphics.Outline
 import android.os.Build
+import android.text.TextUtils
+import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
@@ -17,6 +20,7 @@ import android.view.WindowInsets
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InlineSuggestionsResponse
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -41,6 +45,7 @@ import com.osfans.trime.ime.popup.PopupDelegate
 import com.osfans.trime.ime.symbol.LiquidWindow
 import com.osfans.trime.ime.window.BoardWindowManager
 import com.osfans.trime.util.isLandscape
+import com.osfans.trime.voice.VoiceInputState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.kodein.di.instance
@@ -62,6 +67,7 @@ import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.core.add
 import splitties.views.dsl.core.imageView
 import splitties.views.dsl.core.matchParent
+import splitties.views.dsl.core.textView
 import splitties.views.dsl.core.view
 import splitties.views.dsl.core.wrapContent
 import splitties.views.imageDrawable
@@ -101,7 +107,25 @@ class InputView(
             setOnClickListener(placeholderListener)
         }
 
+    /**
+     * 录音期间盖在键盘顶上的状态条。语音输入不像打字那样有明显的反馈，
+     * 不给个"在听"的提示用户不知道到底录没录上。
+     */
+    private val voiceStatusBar: TextView =
+        textView {
+            visibility = View.GONE
+            gravity = Gravity.CENTER
+            maxLines = 2
+            ellipsize = TextUtils.TruncateAt.START
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), dp(8), dp(12), dp(8))
+            elevation = dp(8f)
+            isClickable = false
+            isFocusable = false
+        }
+
     private val updateWindowViewHeightJob: Job
+    private val voiceStatusJob: Job
 
     private val inputDepMgr = InputDependencyManager.initialize(this, themedContext, theme, service, rime)
     private val di = inputDepMgr.di
@@ -224,6 +248,14 @@ class InputView(
                         bottomOfParent()
                     },
                 )
+                // 最后加，画在键盘上面
+                add(
+                    voiceStatusBar,
+                    lParams(matchParent, wrapContent) {
+                        below(inputBar.view)
+                        centerHorizontally()
+                    },
+                )
             }
 
         // round the top corners of the whole keyboard area (candidate bar + keyboard),
@@ -255,6 +287,11 @@ class InputView(
             }
 
         updateKeyboardSize()
+
+        voiceStatusJob =
+            service.lifecycleScope.launch {
+                service.voiceInput.state.collect { renderVoiceStatus(it) }
+            }
 
         // the preedit popup lives above the keyboard unless it is embedded in the bar;
         // it must be attached even when inline preedit keeps it empty, because its
@@ -512,13 +549,48 @@ class InputView(
     @RequiresApi(Build.VERSION_CODES.R)
     fun handleInlineSuggestions(response: InlineSuggestionsResponse): Boolean = inputBar.handleInlineSuggestions(response)
 
+    private fun renderVoiceStatus(state: VoiceInputState) {
+        when (state) {
+            is VoiceInputState.Idle -> voiceStatusBar.visibility = View.GONE
+            is VoiceInputState.Listening -> {
+                voiceStatusBar.setBackgroundColor(VOICE_LISTENING_COLOR)
+                voiceStatusBar.text =
+                    if (state.text.isEmpty()) {
+                        if (state.latched) "● 正在听……（再点一下麦克风结束）" else "● 正在听……（松手结束）"
+                    } else {
+                        state.text
+                    }
+                voiceStatusBar.visibility = View.VISIBLE
+            }
+            is VoiceInputState.Finishing -> {
+                voiceStatusBar.setBackgroundColor(VOICE_FINISHING_COLOR)
+                voiceStatusBar.text = state.text.ifEmpty { "识别中……" }
+                voiceStatusBar.visibility = View.VISIBLE
+            }
+            is VoiceInputState.Error -> {
+                voiceStatusBar.setBackgroundColor(VOICE_ERROR_COLOR)
+                voiceStatusBar.text = state.message
+                voiceStatusBar.visibility = View.VISIBLE
+            }
+        }
+    }
+
     override fun onDetachedFromWindow() {
         ViewCompat.setOnApplyWindowInsetsListener(this, null)
         // cancel the notification job and clear all broadcast receivers,
         // implies that InputView should not be attached again after detached.
         updateWindowViewHeightJob.cancel()
+        voiceStatusJob.cancel()
         popup.root.removeAllViews()
         inputDepMgr.stop()
         super.onDetachedFromWindow()
+    }
+
+    companion object {
+        // 状态条的三种底色。故意不走主题配色：录音是个临时的、强提示的状态，
+        // 跟着配色走反而可能跟键盘底色糊成一片。
+        private const val VOICE_LISTENING_COLOR = 0xE6D32F2F.toInt()
+        private const val VOICE_FINISHING_COLOR = 0xE61E88E5.toInt()
+        private const val VOICE_ERROR_COLOR = 0xE6616161.toInt()
     }
 }
