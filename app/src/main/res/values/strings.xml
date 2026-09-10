@@ -265,6 +265,8 @@
     <string name="dark">Dark</string>
     <string name="never">Never</string>
     <string name="landscape_only">Landscape only</string>
+    <string name="landscape_fullscreen">Text box above the keyboard in landscape</string>
+    <string name="landscape_fullscreen_summary">In landscape the keyboard takes over the whole screen (the system fullscreen mode) and shows what you type in a box above it. Off for the floating keyboard, and for apps that ask not to be taken over.</string>
     <string name="landscape_floating">Floating keyboard in landscape</string>
     <string name="landscape_floating_width">Floating keyboard width (custom)</string>
     <string name="landscape_floating_margin">Floating keyboard margin</string>

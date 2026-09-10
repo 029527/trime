@@ -49,6 +49,7 @@ import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.ime.composition.CandidatesView
 import com.osfans.trime.ime.keyboard.InputFeedbackManager
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.isFloatingKeyboard
 import com.osfans.trime.receiver.RimeIntentReceiver
 import com.osfans.trime.util.any
 import com.osfans.trime.util.findSectionFrom
@@ -126,6 +127,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
     private var inputView: InputView? = null
     private var candidatesView: CandidatesView? = null
+
+    /** 全屏（抽取）模式下键盘上方的输入框，由框架在首次进全屏时创建。 */
+    private var extractInputUi: ExtractInputUi? = null
     private val navBarManager = NavigationBarManager()
     private val inputDeviceManager = InputDeviceManager { useVirtualKeyboard, useCandidatesView ->
         postRimeJob {
@@ -155,6 +159,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         prefs.keyboard.landscapeFloatingWidth,
         prefs.keyboard.landscapeFloatingHeight,
         prefs.keyboard.landscapeFloatingMargin,
+        prefs.keyboard.landscapeFullscreen,
         prefs.advanced.ignoreSystemGestureInsets,
     )
 
@@ -162,6 +167,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private val recreateInputViewListener =
         PreferenceDelegate.OnChangeListener<Any> { _, _ ->
             applyDisplayCutoutMode()
+            // 先重算全屏，再重建输入视图：setInputView 要按 isFullscreenMode() 定输入区高度
+            updateFullscreenMode()
             replaceInputView(ThemeManager.activeTheme)
         }
 
@@ -378,11 +385,16 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         replaceInputView(theme)
         replaceCandidateView(theme)
         inputView?.updateEnterKeyLabel(currentInputEditorInfo)
+        extractInputUi?.run {
+            applyColors(theme)
+            updateAction(currentInputEditorInfo, theme)
+        }
     }
 
     override fun onDestroy() {
         InputFeedbackManager.destroy()
         inputView = null
+        extractInputUi = null
         recreateInputViewPrefs.forEach {
             it.unregisterOnChangeListener(recreateInputViewListener)
         }
@@ -591,12 +603,34 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
 
     override fun setInputView(view: View) {
         super.setInputView(view)
-        val inputArea = contentView.findViewById<FrameLayout>(android.R.id.inputArea)
-        inputArea.updateLayoutParams<ViewGroup.LayoutParams> {
-            height = ViewGroup.LayoutParams.MATCH_PARENT
+        applyInputAreaHeight()
+    }
+
+    /**
+     * 输入区（`android.R.id.inputArea`）平时撑满整个窗口，键盘贴底，上面那片透明的地方
+     * 留给按键弹窗；[onComputeInsets] 会把可触摸区域限回键盘本身。
+     *
+     * 但全屏（抽取）模式下窗口是竖向 LinearLayout，抽取区靠 weight 分剩下的高度 —— 输入区
+     * 撑满就等于把抽取区挤成 0，输入框根本画不出来。所以这时候改成 wrap_content，
+     * 再把这条链路上的 clipChildren 关掉，让按键弹窗还能画到输入框那片区域上去。
+     */
+    private fun applyInputAreaHeight() {
+        if (!::contentView.isInitialized) return
+        val inputArea = contentView.findViewById<FrameLayout>(android.R.id.inputArea) ?: return
+        val fullscreen = isFullscreenMode()
+        val height =
+            if (fullscreen) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
+        inputArea.updateLayoutParams<ViewGroup.LayoutParams> { this.height = height }
+        inputView?.updateLayoutParams<ViewGroup.LayoutParams> { this.height = height }
+        inputArea.clipChildren = !fullscreen
+        inputArea.clipToPadding = !fullscreen
+        (inputArea.parent as? ViewGroup)?.let {
+            it.clipChildren = !fullscreen
+            it.clipToPadding = !fullscreen
         }
-        view.updateLayoutParams<ViewGroup.LayoutParams> {
-            height = ViewGroup.LayoutParams.MATCH_PARENT
+        inputView?.let {
+            it.clipChildren = !fullscreen
+            it.clipToPadding = !fullscreen
         }
     }
 
@@ -606,6 +640,57 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         isCandidatesOnly: Boolean,
     ) {
         win.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        // 全屏状态刚变过，输入区高度要跟着换一套
+        applyInputAreaHeight()
+    }
+
+    /**
+     * 横屏时进系统的全屏（抽取）模式，把输入内容画在键盘上方，见 [onCreateExtractTextView]。
+     *
+     * 四种「不该进」的情况：
+     * 1. 竖屏 —— 保持原样，永远不进；
+     * 2. 偏好项「横屏时在键盘上方显示输入框」关掉了；
+     * 3. 用了横屏小窗键盘 —— 小窗本来就不占满屏幕，再进全屏反而把整个 App 遮住；
+     * 4. 编辑器带 [EditorInfo.IME_FLAG_NO_EXTRACT_UI] —— 进了全屏也不许画抽取视图，
+     *    那就成了纯遮挡。
+     *
+     * 其余情况交回框架的原实现，它还会挡掉 [EditorInfo.IME_FLAG_NO_FULLSCREEN]
+     * 以及 App 窗口本身是竖着的（分屏 / 自由窗口）这些场景。
+     */
+    override fun onEvaluateFullscreenMode(): Boolean {
+        if (!resources.configuration.isLandscape()) return false
+        if (!prefs.keyboard.landscapeFullscreen.getValue()) return false
+        if (isFloatingKeyboard()) return false
+        if (currentInputEditorInfo?.imeOptions?.hasFlag(EditorInfo.IME_FLAG_NO_EXTRACT_UI) == true) return false
+        return super.onEvaluateFullscreenMode()
+    }
+
+    override fun onCreateExtractTextView(): View {
+        val theme = ThemeManager.activeTheme
+        val ui =
+            ExtractInputUi(this).apply {
+                applyColors(theme)
+                updateAction(currentInputEditorInfo, theme)
+                setOnActionClickListener { performEditorAction() }
+            }
+        extractInputUi = ui
+        return ui
+    }
+
+    /** 框架换编辑器时来刷抽取视图里的动作键（默认实现认的是 internal id，这里自己接）。 */
+    override fun onUpdateExtractingViews(ei: EditorInfo) {
+        extractInputUi?.updateAction(ei, ThemeManager.activeTheme)
+    }
+
+    /** 抽取视图右边那个「完成」按下去：照 framework 的 accessory action 走。 */
+    private fun performEditorAction() {
+        val ei = currentInputEditorInfo ?: return
+        val ic = currentInputConnection ?: return
+        val action = ei.imeOptions and EditorInfo.IME_MASK_ACTION
+        when {
+            ei.actionId != 0 -> ic.performEditorAction(ei.actionId)
+            action != EditorInfo.IME_ACTION_NONE -> ic.performEditorAction(action)
+        }
     }
 
     override fun onStartInput(
@@ -1074,8 +1159,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             step *= 2
         }
     }
-
-    override fun onEvaluateFullscreenMode(): Boolean = false
 
     private var showingDialog: Dialog? = null
 

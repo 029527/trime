@@ -262,6 +262,8 @@
     <string name="dark">暗色</string>
     <string name="never">從不</string>
     <string name="landscape_only">僅限橫屏</string>
+    <string name="landscape_fullscreen">橫屏時在鍵盤上方顯示輸入框</string>
+    <string name="landscape_fullscreen_summary">橫屏時鍵盤接管整個螢幕（系統的全螢幕模式），把正在輸入的內容顯示在鍵盤上方的輸入框裡。使用小窗鍵盤時不生效，應用自己宣告不要全螢幕時也不生效。</string>
     <string name="landscape_floating">橫屏時使用小窗鍵盤（靠右下角）</string>
     <string name="landscape_floating_width">小窗鍵盤寬度（自訂時）</string>
     <string name="landscape_floating_margin">小窗鍵盤邊距</string>

@@ -124,6 +124,7 @@ class AppPrefs(
             const val LANDSCAPE_MODE = "keyboard_landscape_mode"
             const val SPLIT_SPACE_PERCENT = "keyboard_split_space"
             const val LANDSCAPE_SCHEMA = "keyboard_landscape_schema"
+            const val LANDSCAPE_FULLSCREEN = "keyboard_landscape_fullscreen"
 
             const val USE_SOFT_CURSOR = "use_soft_cursor"
             const val LANDSCAPE_FLOATING = "keyboard_landscape_floating"
@@ -200,6 +201,18 @@ class AppPrefs(
         )
 
         private fun enabledSchemaList() = runCatching { Rime.getSelectedRimeSchemaList().toList() }.getOrDefault(emptyList())
+
+        /**
+         * In landscape, take over the whole screen (the system's fullscreen/extract mode) and
+         * draw a text box above the keyboard, so the text is not hidden behind the keyboard.
+         * Off for the floating keyboard, and for editors that ask not to be extracted.
+         */
+        val landscapeFullscreen = switch(
+            R.string.landscape_fullscreen,
+            LANDSCAPE_FULLSCREEN,
+            true,
+            R.string.landscape_fullscreen_summary,
+        )
 
         /** In landscape, show the keyboard as a small window at the bottom end instead of full width. */
         val landscapeFloating = switch(R.string.landscape_floating, LANDSCAPE_FLOATING, false)

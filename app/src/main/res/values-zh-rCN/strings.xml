@@ -263,6 +263,8 @@
     <string name="dark">暗色</string>
     <string name="never">从不</string>
     <string name="landscape_only">仅限横屏</string>
+    <string name="landscape_fullscreen">横屏时在键盘上方显示输入框</string>
+    <string name="landscape_fullscreen_summary">横屏时键盘接管整个屏幕（系统的全屏模式），把正在输入的内容显示在键盘上方的输入框里。用小窗键盘时不生效，应用自己声明不要全屏时也不生效。</string>
     <string name="landscape_floating">横屏时使用小窗键盘（靠右下角）</string>
     <string name="landscape_floating_width">小窗键盘宽度（自定义时）</string>
     <string name="landscape_floating_margin">小窗键盘边距</string>
