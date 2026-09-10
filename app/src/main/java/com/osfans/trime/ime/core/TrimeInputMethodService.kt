@@ -617,18 +617,20 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private fun applyInputAreaHeight() {
         if (!::contentView.isInitialized) return
         val inputArea = contentView.findViewById<FrameLayout>(android.R.id.inputArea) ?: return
+        // setInputView 里 this.inputView 还是上一个视图，所以认 inputArea 里挂着的那个
+        val view = inputArea.getChildAt(0)
         val fullscreen = isFullscreenMode()
         val height =
             if (fullscreen) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
         inputArea.updateLayoutParams<ViewGroup.LayoutParams> { this.height = height }
-        inputView?.updateLayoutParams<ViewGroup.LayoutParams> { this.height = height }
+        view?.updateLayoutParams<ViewGroup.LayoutParams> { this.height = height }
         inputArea.clipChildren = !fullscreen
         inputArea.clipToPadding = !fullscreen
         (inputArea.parent as? ViewGroup)?.let {
             it.clipChildren = !fullscreen
             it.clipToPadding = !fullscreen
         }
-        inputView?.let {
+        (view as? ViewGroup)?.let {
             it.clipChildren = !fullscreen
             it.clipToPadding = !fullscreen
         }
