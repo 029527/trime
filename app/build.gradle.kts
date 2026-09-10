@@ -167,6 +167,8 @@ dependencies {
     implementation(libs.xxpermissions)
     implementation(libs.kodein.di)
     implementation(libs.snakeyaml)
+    implementation(libs.okhttp)
+    implementation(libs.androidx.security.crypto)
     implementation(libs.jgit)
     implementation(libs.slf4j.nop)
     implementation(libs.splitties.bitflags)
