@@ -36,3 +36,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# androidx.security:security-crypto 依赖的 Google Tink 引用了 errorprone 的编译期注解，
+# 运行时根本用不到，但 R8 会当成缺类直接失败（2026-09-11 CI 上踩到）。
+# 注意：debug 包不混淆，所以本地装得上不代表能出 release 包。
+-dontwarn com.google.errorprone.annotations.**
