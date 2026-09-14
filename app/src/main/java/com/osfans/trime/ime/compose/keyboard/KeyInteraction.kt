@@ -11,6 +11,8 @@ import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.ime.compose.keyboard.gesture.KeyCaps
 import com.osfans.trime.ime.compose.keyboard.gesture.KeyGestureListener
 import com.osfans.trime.ime.compose.keyboard.gesture.KeyGestureTarget
+import com.osfans.trime.ime.compose.keyboard.gesture.KeyHitTester
+import com.osfans.trime.ime.compose.keyboard.gesture.KeyTouchBox
 import com.osfans.trime.ime.keyboard.Key
 import com.osfans.trime.ime.keyboard.KeyAction
 import com.osfans.trime.ime.keyboard.KeyBehavior
@@ -19,6 +21,7 @@ import com.osfans.trime.ime.keyboard.KeyboardActionListener
 import com.osfans.trime.ime.keyboard.isIconFont
 import com.osfans.trime.ime.popup.PopupAction
 import timber.log.Timber
+import kotlin.math.floor
 
 /**
  * What pressing, swiping and holding a key does: `KeyView`'s behavior, keyed by key index
@@ -54,18 +57,18 @@ class KeyInteraction(
             )
         }
 
+    /** Touch areas of the keys, extra touch width included; the layout is fixed once [keyboard] is built. */
+    private val touchBoxes by lazy {
+        keyboard.keys.map { key ->
+            KeyTouchBox(key.x - key.extraWidthLeft, key.y, key.x + key.width + key.extraWidthRight, key.y + key.height, key.edgeFlags)
+        }
+    }
+
     override fun keyAt(
         x: Float,
         y: Float,
-    ): Int {
-        val px = x.toInt()
-        val py = y.toInt()
-        return keyboard.keys.indexOfFirst { key ->
-            px >= key.x - key.extraWidthLeft &&
-                px < key.x + key.width + key.extraWidthRight &&
-                py >= key.y &&
-                py < key.y + key.height
-        }
+    ): Int = KeyHitTester.keyAt(touchBoxes, floor(x).toInt(), floor(y).toInt()) { px, py ->
+        keyboard.getNearestKeys(px, py) ?: IntArray(0)
     }
 
     override fun capsOf(key: Int): KeyCaps = caps[key]
