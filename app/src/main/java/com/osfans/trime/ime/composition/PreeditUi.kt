@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015 - 2025 Rime community
+ * SPDX-FileCopyrightText: 2015 - 2026 Rime community
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -22,8 +22,12 @@ import splitties.views.dsl.core.add
 import splitties.views.dsl.core.lParams
 import splitties.views.dsl.core.view
 
-open class PreeditUi(
-    final override val ctx: Context,
+/**
+ * The View preedit of the popup candidate window ([CandidatesView]). The keyboard's own
+ * preedit bar is Compose, see [com.osfans.trime.ime.compose.composition.PreeditBar].
+ */
+class PreeditUi(
+    override val ctx: Context,
     private val theme: Theme,
     private val setupPreeditView: (TextView.() -> Unit)? = null,
     private val onMoveCursor: ((Int) -> Unit)? = null,
@@ -60,32 +64,9 @@ open class PreeditUi(
     var visible = false
         private set
 
-    private fun updateTextView(
-        str: CharSequence,
-        visible: Boolean,
-    ) = preedit.run {
-        text = str
-        visibility = if (visible) View.VISIBLE else View.GONE
-    }
-
     fun update(composition: CompositionProto) {
-        val string = composition.toSpannedString()
-        val cursorPos = composition.cursorPos
-        val hasPreedit = composition.length > 0
-        visible = hasPreedit
-        if (!visible) {
-            updateTextView("", false)
-            return
-        }
-        val stringWithCursor =
-            if (cursorPos == 0 || cursorPos == string.length) {
-                string
-            } else {
-                buildSpannedString {
-                    if (cursorPos > 0) append(string, 0, cursorPos)
-                    append(string, cursorPos, string.length)
-                }
-            }
-        updateTextView(stringWithCursor, true)
+        visible = composition.length > 0
+        preedit.text = if (visible) composition.toSpannedString() else ""
+        preedit.visibility = if (visible) View.VISIBLE else View.GONE
     }
 }

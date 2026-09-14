@@ -11,6 +11,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.TextView
 import androidx.core.math.MathUtils
+import com.osfans.trime.ime.compose.composition.PreeditText
 
 @SuppressLint("AppCompatCustomView")
 class PreeditTextView
@@ -35,8 +36,7 @@ constructor(
                     0,
                     textString.length,
                 )
-                val bytes = textString.substring(0, lastTapOffset).toByteArray()
-                newCursorPos = bytes.size
+                newCursorPos = PreeditText.caretPositionFor(textString, lastTapOffset)
                 return true
             }
             MotionEvent.ACTION_UP -> {

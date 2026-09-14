@@ -11,6 +11,15 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.PopupWindow
 
+/**
+ * A transparent popup laid over [contentView] that forwards its touches to it, for content
+ * drawn outside the IME window's touchable region.
+ *
+ * The popup only holds a plain receiver view; [contentView] itself stays in the IME window.
+ * That is what lets Compose content use it: a ComposeView inside the popup would have no
+ * lifecycle / saved-state owner to find, forwarding events to one in the IME window needs none.
+ * The popup is laid out at [contentView]'s window location, so forwarded coordinates line up.
+ */
 class TouchEventReceiverWindow(
     private val contentView: View,
 ) {
