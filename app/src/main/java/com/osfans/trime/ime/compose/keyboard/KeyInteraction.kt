@@ -106,7 +106,8 @@ class KeyInteraction(
                     dismissPopupPreview(k)
                 }
                 setPressedState(k, false)
-            } else if (caps[key].repeatable) {
+            } else if (caps[key].repeatable && behavior == KeyBehavior.CLICK) {
+                // each repeat arrives as CLICK; the LONG_CLICK release that ends the hold must not type once more
                 k.getAction(KeyBehavior.CLICK)?.let { processKeyAction(it, KeyBehavior.CLICK) }
             }
         } else {
