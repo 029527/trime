@@ -5,13 +5,22 @@
 
 package com.osfans.trime.ime.compose.keyboard.gesture
 
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
+import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
+import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
+import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.PointerInputModifierNode
+import androidx.compose.ui.node.currentValueOf
+import androidx.compose.ui.platform.InspectorInfo
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.IntSize
+import com.osfans.trime.ime.keyboard.InputFeedbackManager
 import com.osfans.trime.ime.keyboard.KeyBehavior
 
 /** What a key can do, which decides the gestures worth waiting for. Mirrors `GestureFrame`'s flags. */
@@ -81,27 +90,84 @@ interface KeyGestureListener {
 }
 
 /**
- * Keyboard-wide touch handling.
+ * Keyboard-wide touch handling: every pointer drives its own key through [KeyGestureTracker].
  *
- * Placeholder: taps only, one pointer at a time. Swipes, long press, repeat, double tap,
- * slide and multi-touch are yet to be ported from `GestureFrame`.
+ * Pointer events are handled synchronously in the main pass, so [KeyGestureListener.onPress]
+ * fires while the DOWN event is being dispatched, with no touch slop or gesture arbitration.
  */
 fun Modifier.keyGestures(
     target: KeyGestureTarget,
     listener: KeyGestureListener,
-): Modifier = pointerInput(target, listener) {
-    awaitEachGesture {
-        val down = awaitFirstDown(requireUnconsumed = false)
-        val key = target.keyAt(down.position.x, down.position.y)
-        if (key < 0) return@awaitEachGesture
-        down.consume()
-        listener.onPress(key)
-        val up = waitForUpOrCancellation()
-        if (up != null) {
-            up.consume()
-            listener.onRelease(key, KeyBehavior.CLICK, false)
-        } else {
-            listener.onCancel(key)
+): Modifier = this then KeyGesturesElement(target, listener)
+
+private class KeyGesturesElement(
+    private val target: KeyGestureTarget,
+    private val listener: KeyGestureListener,
+) : ModifierNodeElement<KeyGesturesNode>() {
+    override fun create() = KeyGesturesNode(target, listener)
+
+    override fun update(node: KeyGesturesNode) = node.update(target, listener)
+
+    override fun equals(other: Any?) = other is KeyGesturesElement && other.target === target && other.listener === listener
+
+    override fun hashCode() = 31 * System.identityHashCode(target) + System.identityHashCode(listener)
+
+    override fun InspectorInfo.inspectableProperties() {
+        name = "keyGestures"
+    }
+}
+
+private class KeyGesturesNode(
+    target: KeyGestureTarget,
+    listener: KeyGestureListener,
+) : Modifier.Node(),
+    PointerInputModifierNode,
+    CompositionLocalConsumerModifierNode {
+    private var tracker = newTracker(target, listener)
+
+    fun update(
+        target: KeyGestureTarget,
+        listener: KeyGestureListener,
+    ) {
+        tracker.cancel()
+        tracker = newTracker(target, listener)
+    }
+
+    private fun newTracker(
+        target: KeyGestureTarget,
+        listener: KeyGestureListener,
+    ) = KeyGestureTracker(target, listener, PrefsKeyGestureConfig, MainGestureClock, ::vibrate)
+
+    private fun vibrate(longPress: Boolean) {
+        if (!isAttached) return
+        InputFeedbackManager.keyPressVibrate(currentValueOf(LocalView), longPress)
+    }
+
+    override fun onPointerEvent(
+        pointerEvent: PointerEvent,
+        pass: PointerEventPass,
+        bounds: IntSize,
+    ) {
+        if (pass != PointerEventPass.Main) return
+        for (change in pointerEvent.changes) {
+            val pointer = change.id.value
+            when {
+                change.changedToDownIgnoreConsumed() -> {
+                    if (tracker.down(pointer, change.position.x, change.position.y)) change.consume()
+                }
+                change.changedToUpIgnoreConsumed() -> {
+                    tracker.up(pointer)
+                    change.consume()
+                }
+                change.pressed && change.positionChangeIgnoreConsumed() != Offset.Zero -> {
+                    tracker.move(pointer, change.position.x, change.position.y)
+                    change.consume()
+                }
+            }
         }
     }
+
+    override fun onCancelPointerInput() = tracker.cancel()
+
+    override fun onDetach() = tracker.cancel()
 }
