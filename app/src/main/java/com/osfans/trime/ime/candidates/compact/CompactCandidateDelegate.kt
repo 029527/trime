@@ -1,71 +1,46 @@
 /*
- * SPDX-FileCopyrightText: 2015 - 2025 Rime community
+ * SPDX-FileCopyrightText: 2015 - 2026 Rime community
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 package com.osfans.trime.ime.candidates.compact
 
 import android.content.Context
-import android.content.res.Configuration
-import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.shapes.RectShape
-import androidx.core.view.updateLayoutParams
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.flexbox.FlexboxLayoutManager
+import android.view.View
+import android.widget.FrameLayout
 import com.osfans.trime.R
-import com.osfans.trime.core.Candidates
-import com.osfans.trime.daemon.RimeSession
-import com.osfans.trime.daemon.launchOnReady
-import com.osfans.trime.data.prefs.AppPrefs
-import com.osfans.trime.data.theme.ColorManager
-import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.bar.InputBarDelegate
 import com.osfans.trime.ime.bar.UnrollButtonStateMachine
-import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
-import com.osfans.trime.ime.candidates.unrolled.decoration.FlexboxVerticalDecoration
+import com.osfans.trime.ime.compose.candidates.CandidateBar
+import com.osfans.trime.ime.compose.candidates.CandidateBarHead
+import com.osfans.trime.ime.compose.candidates.CandidateBarState
+import com.osfans.trime.ime.compose.imeComposeView
 import com.osfans.trime.ime.core.InputView
-import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.dependency.InputDependencyManager
+import com.osfans.trime.ime.session.InputSession
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import org.kodein.di.instance
-import splitties.dimensions.dp
-import splitties.views.dsl.recyclerview.recyclerView
-import kotlin.math.max
+import splitties.views.dsl.core.add
+import splitties.views.dsl.core.lParams
+import splitties.views.dsl.core.matchParent
+import splitties.views.gravityStart
 
-class CompactCandidateDelegate : InputBroadcastReceiver {
+/**
+ * Hosts the Compose candidate bar ([CandidateBar]) and tells the unroll button and the
+ * unrolled grid how much of the list the bar covers.
+ *
+ * The bar scrolls horizontally, so "what the bar shows" is defined at its start position:
+ * the candidates that fit there completely are the bar's head, and the grid continues
+ * after them. Opening the grid scrolls the bar back to the start so the two line up.
+ */
+class CompactCandidateDelegate {
     private val di = InputDependencyManager.getInstance().di
     private val context: Context by di.instance()
-    val service: TrimeInputMethodService by di.instance()
-    val rime: RimeSession by di.instance()
-    val theme: Theme by di.instance()
+    private val session: InputSession by di.instance()
     private val inputView: InputView by di.instance()
-    val bar: InputBarDelegate by di.instance()
-
-    private val fillStyle by AppPrefs.defaultInstance().keyboard.horizontalCandidateMode
-
-    private val maxSpanCountPref by lazy {
-        AppPrefs.defaultInstance().keyboard.run {
-            if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                maxSpanCount
-            } else {
-                maxSpanCountLandscape
-            }
-        }
-    }
-
-    private var layoutMinWidth = 0
-    private var layoutFlexGrow = 0f
-
-    /**
-     * (for [CompactCandidateMode.AUTO_FILL] only)
-     * Second layout pass is needed when:
-     * [^1] total candidates count < maxSpanCount && [^2] RecyclerView cannot display all of them
-     * In that case, displayed candidates should be stretched evenly (by setting flexGrow to 1.0f).
-     */
-    private var secondLayoutPassNeeded = false
-    private var secondLayoutPassDone = false
+    private val bar: InputBarDelegate by di.instance()
 
     private val _unrolledCandidateOffset =
         MutableSharedFlow<Int>(
@@ -73,128 +48,60 @@ class CompactCandidateDelegate : InputBroadcastReceiver {
             onBufferOverflow = BufferOverflow.DROP_OLDEST,
         )
 
+    /**
+     * Global index the unrolled grid starts from, i.e. the size of the bar's head.
+     * -1 when there is no candidate at all, which closes the grid.
+     */
     val unrolledCandidateOffset = _unrolledCandidateOffset.asSharedFlow()
 
-    fun refreshUnrolled(childCount: Int) {
-        _unrolledCandidateOffset.tryEmit(childCount)
+    /** Whether the bar's head is the whole list, so there is nothing to unroll. */
+    var showsAllCandidates = true
+        private set
+
+    private val barState = CandidateBarState(session::loadCandidates)
+
+    private fun onHeadMeasured(head: CandidateBarHead) {
+        showsAllCandidates = head.showsAll
+        _unrolledCandidateOffset.tryEmit(if (head.isEmpty) -1 else head.head)
         bar.unrollButtonStateMachine.push(
             UnrollButtonStateMachine.TransitionEvent.UnrolledCandidatesUpdated,
-            UnrollButtonStateMachine.BooleanKey.UnrolledCandidatesEmpty to
-                (adapter.total == childCount),
+            UnrollButtonStateMachine.BooleanKey.UnrolledCandidatesEmpty to head.showsAll,
         )
     }
 
-    val adapter by lazy {
-        CompactCandidateViewAdapter(theme).apply {
-            setOnItemClickListener { _, _, position ->
-                rime.launchOnReady { it.selectCandidate(position, global = true) }
-            }
-            setOnItemLongClickListener { _, view, position ->
-                inputView.showCandidateActionMenu(position, items[position].text, view, global = true)
-                true
-            }
-        }
-    }
+    /** Back to the start, where the bar's head is what the grid continues from. */
+    fun scrollToStart() = barState.scrollToStart()
 
-    fun updateLayoutParams(minWidth: Int, flexGrow: Float) {
-        layoutMinWidth = minWidth
-        layoutFlexGrow = flexGrow
-    }
+    /**
+     * PopupMenu hangs from a View. The ComposeView itself would put the menu at the bar's
+     * start edge, so this 1px view is moved under the pressed candidate instead.
+     */
+    private val menuAnchor = View(context)
 
-    val layoutManager by lazy {
-        object : FlexboxLayoutManager(context) {
-            override fun canScrollHorizontally(): Boolean = false
-
-            override fun canScrollVertically(): Boolean = false
-
-            override fun onLayoutCompleted(state: RecyclerView.State?) {
-                super.onLayoutCompleted(state)
-                val cnt = this.childCount
-                if (secondLayoutPassNeeded) {
-                    if (cnt < adapter.itemCount) {
-                        // [^2] RecyclerView can't display all candidates
-                        // update LayoutParams in onLayoutCompleted would trigger another
-                        // onLayoutCompleted, skip the second one to avoid infinite loop
-                        if (secondLayoutPassDone) return
-                        secondLayoutPassDone = true
-                        for (i in 0 until cnt) {
-                            getChildAt(i)!!.updateLayoutParams<LayoutParams> {
-                                flexGrow = 1f
-                            }
-                        }
-                    } else {
-                        secondLayoutPassNeeded = false
-                    }
+    val view: View by lazy {
+        val composeView =
+            context
+                .imeComposeView {
+                    CandidateBar(
+                        state = barState,
+                        input = session.state,
+                        onSelect = { session.selectCandidate(it) },
+                        onLongPress = { index, text, x ->
+                            menuAnchor.translationX = x.toFloat()
+                            inputView.showCandidateActionMenu(index, text, menuAnchor, global = true)
+                        },
+                        onHeadMeasured = ::onHeadMeasured,
+                    )
+                }.apply {
+                    id = R.id.candidate_view
+                    isFocusable = false
+                    isFocusableInTouchMode = false
+                    isSoundEffectsEnabled = false
+                    isHapticFeedbackEnabled = false
                 }
-                refreshUnrolled(cnt)
-            }
-        }
-    }
-
-    private val separatorDrawable by lazy {
-        ShapeDrawable(RectShape()).apply {
-            val spacing = theme.generalStyle.candidateSpacing
-            val intrinsicSize = max(spacing, context.dp(spacing)).toInt()
-            intrinsicWidth = intrinsicSize
-            intrinsicHeight = intrinsicSize
-            paint.color = ColorManager.getColor("candidate_separator_color")
-        }
-    }
-
-    val view by lazy {
-        object : RecyclerView(context) {
-            override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-                super.onSizeChanged(w, h, oldw, oldh)
-                if (fillStyle == CompactCandidateMode.AUTO_FILL) {
-                    val maxSpanCount = maxSpanCountPref.getValue()
-                    layoutMinWidth = w / maxSpanCount - separatorDrawable.intrinsicWidth
-                }
-            }
-        }
-        context.recyclerView(R.id.candidate_view) {
-            itemAnimator = null
-            isFocusable = false
-            isFocusableInTouchMode = false
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                defaultFocusHighlightEnabled = false
-            }
-            adapter = this@CompactCandidateDelegate.adapter
-            layoutManager = this@CompactCandidateDelegate.layoutManager
-            addItemDecoration(FlexboxVerticalDecoration(separatorDrawable))
-        }
-    }
-
-    override fun onCandidateListUpdate(data: Candidates.Bulk) {
-        val (total, highlighted, candidates) = data
-
-        val maxSpanCount = maxSpanCountPref.getValue()
-
-        when (fillStyle) {
-            CompactCandidateMode.NEVER_FILL -> {
-                layoutMinWidth = 0
-                layoutFlexGrow = 0f
-                secondLayoutPassNeeded = false
-            }
-            CompactCandidateMode.AUTO_FILL -> {
-                layoutMinWidth = view.width / maxSpanCount - separatorDrawable.intrinsicWidth
-                layoutFlexGrow = if (candidates.size < maxSpanCount) 0f else 1f
-                // [^1] total candidates count < maxSpanCount
-                secondLayoutPassNeeded = candidates.size < maxSpanCount
-                secondLayoutPassDone = false
-            }
-            CompactCandidateMode.ALWAYS_FILL -> {
-                layoutMinWidth = 0
-                layoutFlexGrow = 1f
-                secondLayoutPassNeeded = false
-            }
-        }
-
-        adapter.updateLayoutParams(layoutMinWidth, layoutFlexGrow)
-        adapter.updateCandidates(candidates, total, highlighted)
-
-        // not sure why empty candidates won't trigger `FlexboxLayoutManager#onLayoutCompleted()`
-        if (candidates.isEmpty()) {
-            refreshUnrolled(0)
+        FrameLayout(context).apply {
+            add(composeView, lParams(matchParent, matchParent))
+            add(menuAnchor, lParams(1, matchParent, gravityStart))
         }
     }
 }

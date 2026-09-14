@@ -206,6 +206,8 @@ class InputBarDelegate : InputBroadcastReceiver {
 
     private fun setUnrollButtonToAttach() {
         candidateUi.unrollButton.setOnClickListener {
+            // the grid continues after what the bar shows at its start
+            candidate.scrollToStart()
             windowManager.attachWindow(FlexboxUnrolledCandidateWindow())
         }
         candidateUi.unrollButton.setIcon(R.drawable.ic_baseline_expand_more_24)

@@ -11,7 +11,6 @@ import androidx.annotation.Keep
 import com.osfans.trime.R
 import com.osfans.trime.core.Rime
 import com.osfans.trime.data.sync.DataStorageMode
-import com.osfans.trime.ime.candidates.compact.CompactCandidateMode
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesLayout
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
 import com.osfans.trime.ime.composition.PopupPosition
@@ -169,10 +168,6 @@ class AppPrefs(
             const val HOOK_SHIFT_NUM = "hook_shift_num"
             const val HOOK_SHIFT_SYMBOL = "hook_shift_symbol"
             const val HOOK_SHIFT_ARROW = "hook_shift_arrow"
-
-            const val MAX_SPAN_COUNT = "max_span_count"
-            const val MAX_SPAN_COUNT_LANDSCAPE = "max_span_count_landscape"
-            const val HORIZONTAL_CANDIDATE_MODE = "horizontal_candidate_mode"
         }
 
         enum class LandscapeMode(override val stringRes: Int) : PreferenceDelegateEnum {
@@ -425,32 +420,6 @@ class AppPrefs(
             1,
             100,
             "dp",
-        )
-
-        val horizontalCandidateMode = enum(R.string.horizontal_candidate_style, HORIZONTAL_CANDIDATE_MODE, CompactCandidateMode.NEVER_FILL)
-
-        val maxSpanCount = int(
-            R.string.max_span_count,
-            MAX_SPAN_COUNT,
-            6,
-            1,
-            10,
-            enableUiOn = {
-                shared.getString(HORIZONTAL_CANDIDATE_MODE, null) ==
-                    CompactCandidateMode.AUTO_FILL.name
-            },
-        )
-
-        val maxSpanCountLandscape = int(
-            R.string.max_span_count_landscape,
-            MAX_SPAN_COUNT_LANDSCAPE,
-            8,
-            4,
-            12,
-            enableUiOn = {
-                shared.getString(HORIZONTAL_CANDIDATE_MODE, null) ==
-                    CompactCandidateMode.AUTO_FILL.name
-            },
         )
 
         val hookCtrlA = switch(R.string.hook_ctrl_a, HOOK_CTRL_A, false)
