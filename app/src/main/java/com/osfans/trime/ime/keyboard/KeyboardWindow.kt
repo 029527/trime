@@ -28,6 +28,7 @@ import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.model.TextKeyboard
 import com.osfans.trime.ime.broadcast.EnterKeyDisplayDelegate
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
+import com.osfans.trime.ime.compose.keyboard.ComposeKeyboardView
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
 import com.osfans.trime.ime.popup.PopupDelegate
@@ -93,9 +94,9 @@ class KeyboardWindow :
     private var lastKeyboardId = ""
     private var lastLockKeyboardId = ""
     private var tempAsciiMode: Boolean? = null
-    private val cachedKeyboards = mutableMapOf<String, Pair<Keyboard, KeyboardView>>()
+    private val cachedKeyboards = mutableMapOf<String, Pair<Keyboard, ComposeKeyboardView>>()
     private val currentKeyboard: Keyboard? get() = cachedKeyboards[currentKeyboardId]?.first
-    private val currentKeyboardView: KeyboardView? get() = cachedKeyboards[currentKeyboardId]?.second
+    private val currentKeyboardView: ComposeKeyboardView? get() = cachedKeyboards[currentKeyboardId]?.second
 
     private val keyboardActionListener = commonKeyboardActionListener.listener
 
@@ -189,7 +190,7 @@ class KeyboardWindow :
 
         val config = selectKeyboardConfig(target)
         val keyboard = currentKeyboard ?: Keyboard(context, theme, computeAllowedWidth(), config)
-        val view = currentKeyboardView ?: KeyboardView(context, theme, keyboard, popup, service, keyboardActionListener, enterKeyDisplay)
+        val view = currentKeyboardView ?: ComposeKeyboardView(context, theme, keyboard, popup, service, keyboardActionListener, enterKeyDisplay)
 
         if (currentKeyboard == null) {
             cachedKeyboards[target] = keyboard to view
