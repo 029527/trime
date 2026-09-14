@@ -236,6 +236,8 @@ class KeyInteraction(
         behavior: KeyBehavior = KeyBehavior.CLICK,
     ) {
         if (!popupOnKeyPress) return
+        // function keys answer a press by changing shade (docs/ime-design-system.md), not with a bubble
+        if (key.click?.isFunctional == true) return
         val previewText = key.getPreviewText(behavior).takeIf { it.isNotEmpty() } ?: return
         val content = if (previewText.isIconFont) previewText else String(Character.toChars(previewText.codePointAt(0)))
         popup.listener.onPopupAction(PopupAction.PreviewAction(key.index, content, host.keyBoundsInWindow(key)))
