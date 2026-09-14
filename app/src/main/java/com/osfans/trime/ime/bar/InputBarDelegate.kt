@@ -251,13 +251,7 @@ class InputBarDelegate : InputBroadcastReceiver {
                 } else {
                     View.VISIBLE
                 }
-            background =
-                ColorManager.getDecorDrawable(
-                    "candidate_background",
-                    "candidate_border_color",
-                    dp(theme.generalStyle.candidateBorder),
-                    dp(theme.generalStyle.candidateBorderRound),
-                )
+            background = barBackground()
             add(alwaysUi.root, lParams(matchParent, matchParent))
             add(candidateUi.root, lParams(matchParent, matchParent))
             add(tabUi.root, lParams(matchParent, matchParent))
@@ -266,6 +260,20 @@ class InputBarDelegate : InputBroadcastReceiver {
             ClipboardHelper.addOnUpdateListener(onClipboardUpdateListener)
             syncToolbarOptionStates()
         }
+    }
+
+    private fun barBackground() = ColorManager.getDecorDrawable(
+        "candidate_background",
+        "candidate_border_color",
+        context.dp(theme.generalStyle.candidateBorder),
+        context.dp(theme.generalStyle.candidateBorderRound),
+    )
+
+    override fun onColorTintUpdate() {
+        view.background = barBackground()
+        alwaysUi.refreshColors()
+        candidateUi.unrollButton.refreshColors()
+        tabUi.refreshColors()
     }
 
     override fun onStartInput(info: EditorInfo) {

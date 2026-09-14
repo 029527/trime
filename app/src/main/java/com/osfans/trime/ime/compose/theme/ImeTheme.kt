@@ -85,8 +85,13 @@ fun ImeTheme(
     var colors by remember { mutableStateOf(ImeColors.fromColorManager()) }
     DisposableEffect(Unit) {
         val listener = ColorManager.OnColorChangeListener { colors = ImeColors.fromColorManager() }
+        val tintListener = ColorManager.OnTintChangeListener { colors = ImeColors.fromColorManager() }
         ColorManager.addOnChangedListener(listener)
-        onDispose { ColorManager.removeOnChangedListener(listener) }
+        ColorManager.addOnTintChangedListener(tintListener)
+        onDispose {
+            ColorManager.removeOnChangedListener(listener)
+            ColorManager.removeOnTintChangedListener(tintListener)
+        }
     }
     val fonts = remember { ImeFonts.fromFontManager() }
     CompositionLocalProvider(

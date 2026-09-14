@@ -34,24 +34,38 @@ class LiquidItemUi(
         textSize = theme.generalStyle.keyTextSize
         typeface = FontManager.getTypeface("key_font")
         setPaddingDp(8, 4, 8, 4)
-        setTextColor(ColorManager.getColor("key_text_color"))
+    }
+
+    private val content = constraintLayout {
+        add(
+            mainText,
+            lParams(wrapContent, wrapContent) {
+                centerInParent()
+            },
+        )
     }
 
     override val root = view(::GestureFrame) {
-        val content = constraintLayout {
-            background = ColorManager.getDecorDrawable(
-                "key_back_color",
-                "key_border_color",
-                dp(theme.generalStyle.keyBorder),
-                dp(theme.generalStyle.roundCorner),
-            )
-            add(
-                mainText,
-                lParams(wrapContent, wrapContent) {
-                    centerInParent()
-                },
-            )
-        }
         add(content, lParams(matchParent, matchParent))
+    }
+
+    private var colorRevision = -1
+
+    init {
+        applyColors()
+    }
+
+    /** Cheap when nothing changed, so the adapter can call it on every bind. */
+    fun applyColors() {
+        val revision = ColorManager.revision
+        if (revision == colorRevision) return
+        colorRevision = revision
+        mainText.setTextColor(ColorManager.getColor("key_text_color"))
+        content.background = ColorManager.getDecorDrawable(
+            "key_back_color",
+            "key_border_color",
+            ctx.dp(theme.generalStyle.keyBorder),
+            ctx.dp(theme.generalStyle.roundCorner),
+        )
     }
 }

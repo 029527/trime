@@ -44,6 +44,8 @@ class LiquidLayout(
     theme: Theme,
     commonKeyboardActionListener: CommonKeyboardActionListener,
 ) : ConstraintLayout(context) {
+    private val fixedKeyUis = mutableListOf<LiquidItemUi>()
+
     // TODO: 继承一个键盘视图嵌入到这里，而不是自定义一个视图
     private val fixedKeyBar =
         constraintLayout {
@@ -55,6 +57,7 @@ class LiquidLayout(
                         val presetKeyName = fixedKeys[index]
                         val presetKey = theme.presetKeys[presetKeyName]
                         val ui = LiquidItemUi(context, theme)
+                        fixedKeyUis.add(ui)
                         ui.mainText.text = presetKey?.label ?: ""
                         ui.root.apply {
                             isRepeatable = presetKey?.repeatable ?: false
@@ -130,6 +133,12 @@ class LiquidLayout(
     }
 
     val tabsUi = LiquidTabsUi(context, theme)
+
+    fun refreshColors() {
+        fixedKeyUis.forEach { it.applyColors() }
+        tabsUi.refreshColors()
+        recyclerView.adapter?.let { it.notifyItemRangeChanged(0, it.itemCount) }
+    }
 
     init {
         when (theme.liquidKeyboard.fixedKeyBar.position) {

@@ -180,6 +180,11 @@ class PopupDelegate {
         freeEntryUi.add(popup)
     }
 
+    /** Pooled previews carry the old colours; drop them so the next preview is built afresh. */
+    fun onColorTintUpdate() {
+        freeEntryUi.clear()
+    }
+
     fun dismissAll() {
         // avoid modifying collection while iterating
         dismissJobs.forEach { (_, job) ->

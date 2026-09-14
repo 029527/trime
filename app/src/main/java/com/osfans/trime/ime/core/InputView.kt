@@ -35,6 +35,7 @@ import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.bar.InputBarDelegate
 import com.osfans.trime.ime.broadcast.EnterKeyDisplayDelegate
+import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.broadcast.InputBroadcaster
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
 import com.osfans.trime.ime.composition.PreeditDelegate
@@ -545,6 +546,13 @@ class InputView(
             else -> {}
         }
         broadcastKeyAppearanceUpdate()
+    }
+
+    /** Recolour everything that resolved its colours when it was built; see [InputBroadcastReceiver.onColorTintUpdate]. */
+    fun onColorTintUpdate() {
+        keyboardBackground.imageDrawable = ColorManager.getDrawable("keyboard_background")
+        popup.onColorTintUpdate()
+        broadcaster.onColorTintUpdate()
     }
 
     fun updateSelection(

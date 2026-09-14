@@ -86,6 +86,11 @@ class TabUi(
         titleText.text = title
     }
 
+    fun refreshColors() {
+        backButton.refreshColors()
+        titleText.setTextColor(ColorManager.getColor("key_text_color"))
+    }
+
     fun addExternal(
         view: View,
         showTitle: Boolean,

@@ -123,6 +123,13 @@ class AlwaysUi(
         buttonsUi.updateStyle(option, enabled)
     }
 
+    fun refreshColors() {
+        leftMostButton.refreshColors()
+        hideKeyboardButton.refreshColors()
+        buttonsUi.refreshColors()
+        clipboardUi.refreshColors()
+    }
+
     fun toggleOptions(): Set<String> = buildSet {
         leftMostButton.option?.let { add(it) }
         buttonsUi.firstButton?.option?.let { add(it) }

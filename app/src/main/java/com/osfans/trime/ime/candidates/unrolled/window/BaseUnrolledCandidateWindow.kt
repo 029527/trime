@@ -138,6 +138,14 @@ abstract class BaseUnrolledCandidateWindow :
         }
     }
 
+    override fun onColorTintUpdate() {
+        if (!::candidateLayout.isInitialized) return
+        candidateLayout.refreshColors()
+        separatorDrawable.paint.color = ColorManager.getColor("candidate_separator_color")
+        candidateLayout.recyclerView.invalidateItemDecorations()
+        adapter.notifyItemRangeChanged(0, adapter.itemCount)
+    }
+
     override fun onDetached() {
         bar.unrollButtonStateMachine.push(
             UnrollButtonStateMachine.TransitionEvent.UnrolledCandidatesDetached,
