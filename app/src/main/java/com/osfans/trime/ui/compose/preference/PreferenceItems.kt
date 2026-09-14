@@ -193,6 +193,9 @@ fun DialogPreferenceItem(
  * Inline slider with a tappable value bubble. Dragging is local state; the value is
  * only committed through [onValueChangeFinished], and tapping the bubble opens a
  * precise numeric input that also offers "reset to default".
+ *
+ * [onValueChange], when given, also hears every distinct snapped value while dragging,
+ * for settings whose effect should be seen live. It is not throttled here.
  */
 @Composable
 fun SliderPreferenceItem(
@@ -207,6 +210,7 @@ fun SliderPreferenceItem(
     enabled: Boolean = true,
     defaultValue: Int = value,
     unit: String = "",
+    onValueChange: ((Int) -> Unit)? = null,
 ) {
     var dragging by remember { mutableStateOf<Int?>(null) }
     var showInput by remember { mutableStateOf(false) }
@@ -232,7 +236,13 @@ fun SliderPreferenceItem(
         below = {
             Slider(
                 value = shown.toFloat(),
-                onValueChange = { dragging = snap(it) },
+                onValueChange = {
+                    val snapped = snap(it)
+                    if (snapped != dragging) {
+                        dragging = snapped
+                        onValueChange?.invoke(snapped)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = enabled,
                 valueRange = min.toFloat()..max.toFloat(),

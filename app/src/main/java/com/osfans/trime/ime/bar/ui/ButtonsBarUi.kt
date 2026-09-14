@@ -80,4 +80,9 @@ class ButtonsBarUi(
     fun updateStyle(option: String, enabled: Boolean) {
         root.children.forEach { (it as ToolButton).updateStyle(option, enabled) }
     }
+
+    fun refreshColors() {
+        firstButton?.refreshColors()
+        root.children.forEach { (it as ToolButton).refreshColors() }
+    }
 }

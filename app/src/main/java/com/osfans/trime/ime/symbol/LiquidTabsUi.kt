@@ -12,6 +12,7 @@ import com.chad.library.adapter4.BaseQuickAdapter
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.data.theme.colorCached
 import com.osfans.trime.ime.keyboard.GestureFrame
 import com.osfans.trime.util.roundedRippleDrawable
 import splitties.dimensions.dp
@@ -33,9 +34,9 @@ class LiquidTabsUi(
 ) : Ui {
     inner class TabUi : Ui {
         override val ctx = this@LiquidTabsUi.ctx
-        private val textColor = ColorManager.getColor("candidate_text_color")
-        private val hlTextColor = ColorManager.getColor("hilited_candidate_text_color")
-        private val hlBackColor = ColorManager.getColor("hilited_candidate_back_color")
+        private val textColor by colorCached { ColorManager.getColor("candidate_text_color") }
+        private val hlTextColor by colorCached { ColorManager.getColor("hilited_candidate_text_color") }
+        private val hlBackColor by colorCached { ColorManager.getColor("hilited_candidate_back_color") }
         private val cornerRadius = ctx.dp(theme.generalStyle.candidateCornerRadius)
 
         val text =
@@ -125,6 +126,11 @@ class LiquidTabsUi(
             isVerticalScrollBarEnabled = false
             isHorizontalScrollBarEnabled = false
         }
+
+    /** Tabs pick up the new colours when rebound. */
+    fun refreshColors() {
+        adapter.notifyItemRangeChanged(0, adapter.itemCount)
+    }
 
     fun setTags(tags: List<LiquidData.Tag>) {
         adapter.submitList(tags)

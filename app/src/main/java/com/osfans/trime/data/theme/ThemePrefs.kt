@@ -70,7 +70,8 @@ class ThemePrefs(
     // 默认值 26 / 92 / 90 就是 ios.trime.yaml 现在已经烘焙进颜色里的那套，
     // 换成「未烘焙」的主题时观感不变；三个都拨到中性（0 / 100 / 100）就等于不加滤镜。
 
-    val tintWarm = int(R.string.theme_tint_warm, THEME_TINT_WARM, 26, 0, 300, "%")
+    // 步长 2：0..300 逐 1 有 300 档，超过 256 档会被渲染成输入框而不是滑块，就没法边拖边看了
+    val tintWarm = int(R.string.theme_tint_warm, THEME_TINT_WARM, 26, 0, 300, "%", step = 2)
 
     val tintDim = int(R.string.theme_tint_dim, THEME_TINT_DIM, 92, 50, 150, "%")
 

@@ -92,6 +92,14 @@ class ClipboardSuggestionUi(
         background = rippleDrawable(ColorManager.getColor("hilited_candidate_back_color"))
     }
 
+    fun refreshColors() {
+        val color = ColorManager.getColor("candidate_text_color")
+        icon.drawable?.setTint(color)
+        text.setTextColor(color)
+        dismiss.drawable?.setTint(color)
+        suggestionView.background = rippleDrawable(ColorManager.getColor("hilited_candidate_back_color"))
+    }
+
     override val root =
         constraintLayout {
             add(

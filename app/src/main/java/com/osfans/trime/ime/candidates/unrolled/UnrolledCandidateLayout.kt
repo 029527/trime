@@ -19,7 +19,7 @@ import splitties.views.dsl.recyclerview.recyclerView
 @SuppressLint("ViewConstructor")
 class UnrolledCandidateLayout(
     context: Context,
-    theme: Theme,
+    private val theme: Theme,
 ) : ConstraintLayout(context) {
     val recyclerView =
         recyclerView {
@@ -28,13 +28,7 @@ class UnrolledCandidateLayout(
 
     init {
         id = R.id.unrolled_candidate_view
-        background =
-            ColorManager.getDecorDrawable(
-                "candidate_background",
-                "candidate_border_color",
-                dp(theme.generalStyle.candidateBorder),
-                dp(theme.generalStyle.candidateBorderRound),
-            )
+        refreshColors()
 
         add(
             recyclerView,
@@ -42,6 +36,16 @@ class UnrolledCandidateLayout(
                 centerInParent()
             },
         )
+    }
+
+    fun refreshColors() {
+        background =
+            ColorManager.getDecorDrawable(
+                "candidate_background",
+                "candidate_border_color",
+                dp(theme.generalStyle.candidateBorder),
+                dp(theme.generalStyle.candidateBorderRound),
+            )
     }
 
     fun resetPosition() {

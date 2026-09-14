@@ -15,6 +15,7 @@ import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.data.SymbolHistory
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.model.LiquidKeyboard
+import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.KeyboardWindow
@@ -25,7 +26,8 @@ import org.kodein.di.instance
 
 class LiquidWindow :
     BoardWindow.BarBoardWindow(),
-    ResidentWindow {
+    ResidentWindow,
+    InputBroadcastReceiver {
     override val showTitle = false
 
     private val service: TrimeInputMethodService by di.instance()
@@ -86,6 +88,11 @@ class LiquidWindow :
     }
 
     override fun onCreateBarView() = liquidLayout.tabsUi.root
+
+    override fun onColorTintUpdate() {
+        // the view is only created on first attach
+        if (::liquidLayout.isInitialized) liquidLayout.refreshColors()
+    }
 
     override fun onAttached() {}
 

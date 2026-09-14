@@ -70,11 +70,11 @@ class ToolButton(context: Context) : GestureFrame(context) {
     private var fontSize = 0f
     private var colorStateList: ColorStateList? = null
 
+    /** Null for a plain icon button. */
+    private var config: ToolBar.Button? = null
+
     constructor(context: Context, @DrawableRes icon: Int) : this(context) {
-        val tintList = ColorStateList.valueOf(
-            ColorManager.getColor("candidate_text_color"),
-        )
-        image.imageTintList = tintList
+        image.imageTintList = ColorStateList.valueOf(ColorManager.getColor("candidate_text_color"))
         image.padding = dp(4)
         setIcon(icon)
     }
@@ -102,6 +102,13 @@ class ToolButton(context: Context) : GestureFrame(context) {
 
         label.typeface = FontManager.getTypeface("toolbar_font")
 
+        this.config = config
+        applyColors(config)
+        updateContent()
+    }
+
+    private fun applyColors(config: ToolBar.Button) {
+        val fg = config.foreground
         colorStateList = ColorStateList(
             arrayOf(intArrayOf(android.R.attr.state_pressed), intArrayOf()),
             intArrayOf(
@@ -110,7 +117,6 @@ class ToolButton(context: Context) : GestureFrame(context) {
             ),
         )
         label.setTextColor(colorStateList)
-        updateContent()
 
         val bg = config.background
         background = StateListDrawable().apply {
@@ -123,6 +129,17 @@ class ToolButton(context: Context) : GestureFrame(context) {
                 backgroundStateDrawable(bg, highlight = false),
             )
         }
+    }
+
+    /** Re-read colours after a tint change, keeping the icon, label and toggle state. */
+    fun refreshColors() {
+        val config = config
+        if (config == null) {
+            image.imageTintList = ColorStateList.valueOf(ColorManager.getColor("candidate_text_color"))
+            return
+        }
+        applyColors(config)
+        updateContent()
     }
 
     init {

@@ -35,4 +35,10 @@ interface InputBroadcastReceiver {
     fun onWindowDetached(window: BoardWindow) {}
 
     fun onEnterKeyLabelUpdate(label: String) {}
+
+    /**
+     * The colour tint changed while the scheme did not: re-read colours kept in views,
+     * without rebuilding anything. See [com.osfans.trime.data.theme.ColorManager.OnTintChangeListener].
+     */
+    fun onColorTintUpdate() {}
 }

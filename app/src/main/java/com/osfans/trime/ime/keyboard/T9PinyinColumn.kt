@@ -40,11 +40,27 @@ class T9PinyinColumn(
         fallback: Int,
     ): Int = runCatching { ColorManager.getColor(key) }.getOrDefault(fallback)
 
+    private val keyColor get() = color("key_back_color", Color.WHITE)
+    private val pressedColor get() = color("hilited_key_back_color", Color.LTGRAY)
+    private val textColor get() = color("key_text_color", Color.BLACK)
+
     init {
         isVerticalScrollBarEnabled = false
         overScrollMode = OVER_SCROLL_NEVER
         setBackgroundColor(color("keyboard_back_color", Color.TRANSPARENT))
         addView(list)
+    }
+
+    /** Re-read the colours in place, keeping the syllables and the scroll position. */
+    fun refreshColors() {
+        setBackgroundColor(color("keyboard_back_color", Color.TRANSPARENT))
+        val chipColor = keyColor
+        val chipTextColor = textColor
+        for (i in 0 until list.childCount) {
+            val chip = list.getChildAt(i) as? TextView ?: continue
+            chip.setTextColor(chipTextColor)
+            (chip.background as? GradientDrawable)?.setColor(chipColor)
+        }
     }
 
     /**
@@ -58,9 +74,8 @@ class T9PinyinColumn(
         list.removeAllViews()
         val gapV = dp(4)
         val radius = dp(theme.generalStyle.roundCorner)
-        val keyColor = color("key_back_color", Color.WHITE)
-        val pressedColor = color("hilited_key_back_color", Color.LTGRAY)
-        val textColor = color("key_text_color", Color.BLACK)
+        val chipColor = keyColor
+        val chipTextColor = textColor
         // about half a key tall: the column lists several syllables in the space of four keys
         val height = (dp(theme.generalStyle.keyHeight).takeIf { it > 0 } ?: dp(44)).let { maxOf(it / 2, dp(24)) }
         syllables.forEach { syllable ->
@@ -68,16 +83,17 @@ class T9PinyinColumn(
                 TextView(context).apply {
                     text = syllable
                     gravity = Gravity.CENTER
-                    setTextColor(textColor)
+                    setTextColor(chipTextColor)
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, (theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: 16f) * 0.85f * context.floatingScale())
                     typeface = FontManager.getTypeface("key_font")
                     background =
                         GradientDrawable().apply {
-                            setColor(keyColor)
+                            setColor(chipColor)
                             cornerRadius = radius
                         }
                     setOnClickListener { onSyllable(syllable) }
                     setOnTouchListener { v, event ->
+                        // read at touch time: the tint may have changed since the chip was built
                         (v.background as? GradientDrawable)?.setColor(
                             if (event.action == android.view.MotionEvent.ACTION_DOWN) pressedColor else keyColor,
                         )

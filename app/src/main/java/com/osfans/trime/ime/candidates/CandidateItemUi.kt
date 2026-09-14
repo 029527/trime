@@ -16,6 +16,7 @@ import com.osfans.trime.core.CandidateProto
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.data.theme.colorCached
 import com.osfans.trime.data.theme.model.GeneralStyle
 import com.osfans.trime.ime.core.AutoScaleTextView
 import com.osfans.trime.ime.keyboard.GestureFrame
@@ -56,12 +57,13 @@ class CandidateItemUi(
     private val textFont = FontManager.getTypeface("candidate_font")
     private val commentFont = FontManager.getTypeface("comment_font")
 
-    private val textColor = ColorManager.getColor("candidate_text_color")
-    private val commentColor = ColorManager.getColor("comment_text_color")
+    // re-resolved after a tint change; the adapter rebinds to apply them
+    private val textColor by colorCached { ColorManager.getColor("candidate_text_color") }
+    private val commentColor by colorCached { ColorManager.getColor("comment_text_color") }
 
-    private val hlCommentColor = ColorManager.getColor("hilited_comment_text_color")
-    private val hlTextColor = ColorManager.getColor("hilited_candidate_text_color")
-    private val hlBackColor = ColorManager.getColor("hilited_candidate_back_color")
+    private val hlCommentColor by colorCached { ColorManager.getColor("hilited_comment_text_color") }
+    private val hlTextColor by colorCached { ColorManager.getColor("hilited_candidate_text_color") }
+    private val hlBackColor by colorCached { ColorManager.getColor("hilited_candidate_back_color") }
 
     private val commentPosition = theme.generalStyle.commentPosition
     private val commentVerticalBias = theme.generalStyle.commentVerticalBias
