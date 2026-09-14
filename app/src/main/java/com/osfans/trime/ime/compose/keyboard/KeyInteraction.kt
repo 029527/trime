@@ -236,11 +236,13 @@ class KeyInteraction(
         behavior: KeyBehavior = KeyBehavior.CLICK,
     ) {
         if (!popupOnKeyPress) return
-        // function keys answer a press by changing shade (docs/ime-design-system.md), not with a bubble
-        if (key.click?.isFunctional == true) return
-        val previewText = key.getPreviewText(behavior).takeIf { it.isNotEmpty() } ?: return
-        val content = if (previewText.isIconFont) previewText else String(Character.toChars(previewText.codePointAt(0)))
-        popup.listener.onPopupAction(PopupAction.PreviewAction(key.index, content, host.keyBoundsInWindow(key)))
+        // Only a key about to type one character gets a bubble. Function keys answer a press by
+        // changing shade (docs/ime-design-system.md): icons (shift, backspace), word labels
+        // (123, 换行, 空格) and modifiers. Themes rarely mark keys `functional`, so it is not asked.
+        if (key.getAction(behavior)?.isModifierKey == true) return
+        val previewText = key.getPreviewText(behavior)
+        if (previewText.isEmpty() || previewText.isIconFont || previewText.codePointCount(0, previewText.length) != 1) return
+        popup.listener.onPopupAction(PopupAction.PreviewAction(key.index, previewText, host.keyBoundsInWindow(key)))
     }
 
     private fun dismissPopupPreview(key: Key) {
