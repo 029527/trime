@@ -91,6 +91,9 @@ class CompactCandidateDelegate {
                             inputView.showCandidateActionMenu(index, text, menuAnchor, global = true)
                         },
                         onHeadMeasured = ::onHeadMeasured,
+                        // from session.state, not the broadcast: a rebuilt keyboard gets its
+                        // candidates back through InputSession.restoreFromEngine only
+                        onEmptyChanged = bar::onCandidatesEmptyChanged,
                     )
                 }.apply {
                     id = R.id.candidate_view

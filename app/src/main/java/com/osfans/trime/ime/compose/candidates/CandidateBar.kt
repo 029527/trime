@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
@@ -138,6 +139,7 @@ fun CandidateBar(
     onSelect: (index: Int) -> Unit,
     onLongPress: (index: Int, text: String, x: Int) -> Unit,
     onHeadMeasured: (CandidateBarHead) -> Unit,
+    onEmptyChanged: (isEmpty: Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = state.listState
@@ -147,6 +149,13 @@ fun CandidateBar(
     // collected by the composition, so it stops with the keyboard view it lives in
     LaunchedEffect(state, input) {
         input.collect { state.submit(it) }
+    }
+
+    // not tied to layout: the bar is GONE while the toolbar shows, and this is what brings it back
+    LaunchedEffect(state) {
+        snapshotFlow { state.loaded.items.isEmpty() }
+            .distinctUntilChanged()
+            .collect { onEmptyChanged(it) }
     }
 
     LaunchedEffect(state) {
@@ -160,7 +169,10 @@ fun CandidateBar(
         }
     }
 
-    LaunchedEffect(state) {
+    // a candidate whose text is visible counts as shown even if its trailing padding is clipped,
+    // otherwise the last one in the bar shows up again as the first one in the unrolled grid
+    val clippablePadding = with(LocalDensity.current) { LocalImeTokens.current.candidateHorizontalPadding.roundToPx() }
+    LaunchedEffect(state, clippablePadding) {
         snapshotFlow {
             val current = state.loaded
             val info = listState.layoutInfo
@@ -173,7 +185,7 @@ fun CandidateBar(
                     listState.firstVisibleItemScrollOffset != 0 -> null
                 else -> {
                     val end = info.viewportEndOffset - info.afterContentPadding
-                    val head = info.visibleItemsInfo.count { it.offset + it.size <= end }
+                    val head = info.visibleItemsInfo.count { it.offset + it.size - clippablePadding <= end }
                     CandidateBarHead(
                         state.generation,
                         head,

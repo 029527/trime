@@ -20,7 +20,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.R
-import com.osfans.trime.core.Candidates
 import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
@@ -224,10 +223,11 @@ class InputBarDelegate : InputBroadcastReceiver {
         candidateUi.unrollButton.visibility = if (enabled) View.VISIBLE else View.INVISIBLE
     }
 
-    override fun onCandidateListUpdate(data: Candidates.Bulk) {
+    /** Called by the candidate bar whenever its list turns empty or non-empty. */
+    fun onCandidatesEmptyChanged(isEmpty: Boolean) {
         barStateMachine.push(
             QuickBarStateMachine.TransitionEvent.CandidatesUpdated,
-            QuickBarStateMachine.BooleanKey.CandidateEmpty to data.candidates.isEmpty(),
+            QuickBarStateMachine.BooleanKey.CandidateEmpty to isEmpty,
         )
     }
 
