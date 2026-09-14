@@ -18,19 +18,21 @@ import com.osfans.trime.data.theme.Theme
  * Key state (pressed, on, modifiers) lives in the mutable `Key` / `Keyboard` objects, which
  * Compose cannot observe; whoever changes it calls [invalidate], and the canvas reads
  * [observe] inside its draw lambda, so a key press costs a redraw and never a recomposition.
+ *
+ * Sizes are not here: they come from [com.osfans.trime.ime.compose.theme.ImeTokens]. The theme
+ * only contributes colours, through the keys and the enter-key action colours below.
  */
 @Stable
 class KeyboardRenderState(
-    theme: Theme,
-    /** Key text scales with the floating keyboard size preset; 1 when not floating. */
+    @Suppress("UNUSED_PARAMETER") theme: Theme,
+    /**
+     * Scale for key text, icons and hint insets, following the floating keyboard size preset;
+     * 1 when not floating. Key bodies, gaps and corners are not scaled.
+     */
     val textScale: Float,
     private val enterLabel: () -> String,
     private val enterPrimaryAction: () -> Boolean,
 ) {
-    val keyTextSize = theme.generalStyle.keyTextSize * textScale
-    val keyLongTextSize = (theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: theme.generalStyle.keyTextSize) * textScale
-    val symbolTextSize = (theme.generalStyle.symbolTextSize.takeIf { it > 0 } ?: theme.generalStyle.keyTextSize) * textScale
-
     val hideKeySymbol by AppPrefs.defaultInstance().keyboard.hideKeySymbol
     val hideKeyHint by AppPrefs.defaultInstance().keyboard.hideKeyHint
 
