@@ -191,6 +191,8 @@ class InputView(
     init {
         // MUST call before any operation
         inputDepMgr.start()
+        // rebuilt on every theme / setting change, possibly while librime is composing
+        session.restoreFromEngine(service.lifecycleScope, pagedMode = candidatesMode == PopupCandidatesMode.ALWAYS_SHOW)
 
         // a floating keyboard shows the preedit inside the candidate bar (see InputBarDelegate),
         // unless the preedit already goes inline into the app's text field
@@ -506,6 +508,7 @@ class InputView(
 
     fun updateEnterKeyLabel(info: EditorInfo) {
         enterKeyDisplay.updateLabelOnEditorInfo(info)
+        session.onEnterKey(enterKeyDisplay.keyLabel, enterKeyDisplay.isPrimaryAction)
     }
 
     override fun handleRimeMessage(it: RimeMessage<*>) {
