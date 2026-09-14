@@ -42,6 +42,7 @@ import com.osfans.trime.ime.dependency.InputDependencyManager
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
 import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.popup.PopupDelegate
+import com.osfans.trime.ime.session.DefaultInputSession
 import com.osfans.trime.ime.symbol.LiquidWindow
 import com.osfans.trime.ime.window.BoardWindowManager
 import com.osfans.trime.util.isLandscape
@@ -130,6 +131,7 @@ class InputView(
     private val inputDepMgr = InputDependencyManager.initialize(this, themedContext, theme, service, rime)
     private val di = inputDepMgr.di
     private val broadcaster: InputBroadcaster by di.instance()
+    private val session: DefaultInputSession by di.instance()
     private val popup: PopupDelegate by di.instance()
     private val enterKeyDisplay: EnterKeyDisplayDelegate by di.instance()
     private val preedit: PreeditDelegate by di.instance()
@@ -189,6 +191,8 @@ class InputView(
     init {
         // MUST call before any operation
         inputDepMgr.start()
+        // rebuilt on every theme / setting change, possibly while librime is composing
+        session.restoreFromEngine(service.lifecycleScope, pagedMode = candidatesMode == PopupCandidatesMode.ALWAYS_SHOW)
 
         // a floating keyboard shows the preedit inside the candidate bar (see InputBarDelegate),
         // unless the preedit already goes inline into the app's text field
@@ -495,6 +499,7 @@ class InputView(
         restarting: Boolean = false,
     ) {
         updateEnterKeyLabel(info)
+        session.onStartInput(info)
         broadcaster.onStartInput(info)
         if (!restarting) {
             windowManager.attachWindow(KeyboardWindow)
@@ -503,9 +508,11 @@ class InputView(
 
     fun updateEnterKeyLabel(info: EditorInfo) {
         enterKeyDisplay.updateLabelOnEditorInfo(info)
+        session.onEnterKey(enterKeyDisplay.keyLabel, enterKeyDisplay.isPrimaryAction)
     }
 
     override fun handleRimeMessage(it: RimeMessage<*>) {
+        session.onRimeMessage(it)
         when (it) {
             is RimeMessage.SchemaMessage -> {
                 broadcaster.onRimeSchemaUpdated(it.data)
@@ -529,6 +536,7 @@ class InputView(
                 } else {
                     it.data
                 }
+                session.onComposition(data)
                 broadcaster.onCompositionUpdate(data)
             }
             is RimeMessage.BulkCandidatesMessage -> {
@@ -543,6 +551,7 @@ class InputView(
         start: Int,
         end: Int,
     ) {
+        session.onSelection(start, end)
         broadcaster.onSelectionUpdate(start, end)
     }
 

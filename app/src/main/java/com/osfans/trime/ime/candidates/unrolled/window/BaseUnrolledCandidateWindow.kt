@@ -29,6 +29,7 @@ import com.osfans.trime.ime.candidates.unrolled.UnrolledCandidateLayout
 import com.osfans.trime.ime.core.InputView
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.KeyboardWindow
+import com.osfans.trime.ime.session.InputSession
 import com.osfans.trime.ime.window.BoardWindow
 import com.osfans.trime.ime.window.BoardWindowManager
 import kotlinx.coroutines.Job
@@ -48,6 +49,7 @@ abstract class BaseUnrolledCandidateWindow :
     private val bar: InputBarDelegate by di.instance()
     private val windowManager: BoardWindowManager by di.instance()
     private val compactCandidate: CompactCandidateDelegate by di.instance()
+    private val session: InputSession by di.instance()
 
     private lateinit var lifecycleCoroutineScope: LifecycleCoroutineScope
     private lateinit var candidateLayout: UnrolledCandidateLayout
@@ -89,7 +91,7 @@ abstract class BaseUnrolledCandidateWindow :
             pagingSourceFactory = {
                 CandidatesPagingSource(
                     rime,
-                    total = compactCandidate.adapter.total,
+                    total = session.state.value.candidates.total,
                     offset = adapter.offset,
                 )
             },
@@ -104,13 +106,14 @@ abstract class BaseUnrolledCandidateWindow :
         offsetJob =
             lifecycleCoroutineScope.launch {
                 compactCandidate.unrolledCandidateOffset.collect {
-                    if (it <= 0) {
+                    // -1: no candidates left; 0 is a real offset (the first candidate is wider than the bar)
+                    if (it < 0) {
                         windowManager.attachWindow(KeyboardWindow)
                     } else {
                         candidateLayout.resetPosition()
                         adapter.refreshWith(
                             offset = it,
-                            highlightedIndex = compactCandidate.adapter.highlightedIdx,
+                            highlightedIndex = session.state.value.candidates.highlighted,
                         )
                     }
                 }
@@ -138,8 +141,7 @@ abstract class BaseUnrolledCandidateWindow :
     override fun onDetached() {
         bar.unrollButtonStateMachine.push(
             UnrollButtonStateMachine.TransitionEvent.UnrolledCandidatesDetached,
-            UnrollButtonStateMachine.BooleanKey.UnrolledCandidatesEmpty to
-                (compactCandidate.adapter.total == adapter.offset),
+            UnrollButtonStateMachine.BooleanKey.UnrolledCandidatesEmpty to compactCandidate.showsAllCandidates,
         )
         offsetJob?.cancel()
         candidatesSubmitJob?.cancel()

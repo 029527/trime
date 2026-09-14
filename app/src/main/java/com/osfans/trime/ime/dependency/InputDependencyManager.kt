@@ -19,6 +19,8 @@ import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.popup.PopupDelegate
+import com.osfans.trime.ime.session.DefaultInputSession
+import com.osfans.trime.ime.session.InputSession
 import com.osfans.trime.ime.symbol.LiquidWindow
 import com.osfans.trime.ime.window.BoardWindowManager
 import org.kodein.di.DI
@@ -40,6 +42,8 @@ class InputDependencyManager(
         bindSingleton { service }
         bindSingleton { rime }
         bindSingleton { InputBroadcaster() }
+        bindSingleton { DefaultInputSession(rime) }
+        bindSingleton<InputSession> { instance<DefaultInputSession>() }
         bindSingleton { PopupDelegate() }
         bindSingleton { EnterKeyDisplayDelegate() }
         bindSingleton { PreeditDelegate() }

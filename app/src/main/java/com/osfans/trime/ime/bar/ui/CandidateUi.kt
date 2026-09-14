@@ -16,6 +16,7 @@ import splitties.views.dsl.constraintlayout.centerVertically
 import splitties.views.dsl.constraintlayout.constraintLayout
 import splitties.views.dsl.constraintlayout.endOfParent
 import splitties.views.dsl.constraintlayout.lParams
+import splitties.views.dsl.constraintlayout.matchConstraints
 import splitties.views.dsl.constraintlayout.startOfParent
 import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.core.Ui
@@ -25,7 +26,7 @@ import splitties.views.dsl.core.wrapContent
 class CandidateUi(
     override val ctx: Context,
     theme: Theme,
-    private val compatView: View,
+    private val candidateView: View,
     /** Optional view shown before the candidates, e.g. the preedit of a floating keyboard. */
     private val leading: View? = null,
 ) : Ui {
@@ -54,21 +55,19 @@ class CandidateUi(
                     },
                 )
             }
+            // one candidate row, as tall as the theme's candidate height; it scrolls horizontally
+            // between the start padding and the unroll button
             add(
-                compatView,
-                if (leading != null) {
-                    // one candidate row, pinned to the bottom under the preedit line
-                    lParams(wrapContent, dp(ctx.candidateViewHeight(theme))) {
+                candidateView,
+                lParams(matchConstraints, dp(ctx.candidateViewHeight(theme))) {
+                    if (leading != null) {
+                        // pinned to the bottom, under the preedit line
                         bottomOfParent()
-                        startOfParent(padding)
-                        before(unrollButton)
-                    }
-                } else {
-                    lParams {
+                    } else {
                         centerVertically()
-                        startOfParent(padding)
-                        before(unrollButton)
                     }
+                    startOfParent(padding)
+                    before(unrollButton)
                 },
             )
         }
