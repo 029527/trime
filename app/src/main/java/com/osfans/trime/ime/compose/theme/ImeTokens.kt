@@ -60,6 +60,8 @@ data class ImeTokens(
     val keyTextSize: TextUnit = 22.sp,
     /** Function-key words: `123`, `换行`, `ZH`, `空格`. */
     val keyLabelTextSize: TextUnit = 16.sp,
+    /** A run of letters on a key that types a character: the nine-key `ABC` / `PQRS` keys are letter keys, not controls. */
+    val keyLetterGroupTextSize: TextUnit = 20.sp,
     /** Glyph keys: shift, backspace, globe, mic, emoji. */
     val keyIconSize: Dp = 22.dp,
     /** The swipe-up / long-press hint printed on a key. */
@@ -96,6 +98,7 @@ data class ImeTokens(
             keyVerticalGap = 6.dp,
             keyTextSize = 20.sp,
             keyLabelTextSize = 14.sp,
+            keyLetterGroupTextSize = 18.sp,
             keyIconSize = 20.dp,
             keySymbolTextSize = 9.sp,
             keySymbolInsetTop = 2.dp,

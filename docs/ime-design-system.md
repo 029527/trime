@@ -9,8 +9,9 @@ Trime fork 的键盘外观分成两半：
 目标是把 **iOS 主题的简洁**和 **Trime 内置默认主题的易用**合在一起。下面先写两边各自好在哪、冲突在哪，
 再给出定稿的数值和键位方案。每个数都带理由；想改数值，先改理由。
 
-> 过渡期：键盘还是 View 渲染，尺寸从 yaml 的 `style` 读。用户主题（trime-config 的 `tools/gen_ios_theme.py`）
-> 按本文的值写 yaml，Compose 接手后这些 yaml 字段就不再生效，观感不跳。
+> 过渡期：按键已经由 Compose 画布（`ime/compose/keyboard/KeyboardCanvas.kt`）按本文的 token 绘制，yaml 里和按键尺寸有关的字段
+> 按 §3.1 处理；候选栏、预编辑区等其余部分还以各自的迁移进度为准。用户主题（trime-config 的 `tools/gen_ios_theme.py`）
+> 继续按本文的值写 yaml，新旧渲染观感不跳。
 
 ---
 
@@ -120,12 +121,20 @@ Trime fork 的键盘外观分成两半：
 | `keyboardCornerRadius` | 26dp | 26dp | `keyboard_corner_radius` | 整块键盘顶部圆角，和 iOS 一致，让键盘像一张浮起来的卡片 |
 | `keyTextSize` | 22sp | 20sp | `key_text_size` | 单字符键：字母、`，` `。`、数字。23sp 时 `m` `w` 在 34dp 宽的键里太满 |
 | `keyLabelTextSize` | 16sp | 14sp | `label_text_size`、`key_long_text_size` | 功能键文字（`123` `空格` `换行` `ZH`）。比字母小两级，明确是「控制」 |
+| `keyLetterGroupTextSize` | 20sp | 18sp | 九宫格按键上的 `key_text_size: 20` | 九宫格的 `ABC` `PQRS` 是打字的键，不是控制键；用功能键的 16sp 会和 `分词` `重输` 分不出主次。比单字母小一级，因为一个键上要放四个字母 |
 | `keyIconSize` | 22dp | 20dp | 按键 `key_text_size` | 图标和字母同高，视觉重量相当 |
 | `keySymbolTextSize` | 10sp | 9sp | `symbol_text_size` | 提示是字母的一半不到。9sp 在 420dpi 上笔画发虚 |
 | `keySymbolInsetTop` / `keySymbolInsetEnd` | 3dp / 5dp | 2dp / 4dp | `key_symbol_offset_y: 1` / `key_symbol_offset_x: 10` | **右上角**。放顶部正中会和字母的上沿挤在一条竖线上；右上角是 Gboard / 搜狗的通用位置，手指记忆通用 |
 | `keySymbolAlpha` | 0.5 | 0.5 | 配色 `key_symbol_color` | 字色 × 50%：白键黑字上约 `86868B`（对比度 3.6:1），扫一眼找得到、永远不比字母抢眼。原来的 `B4B7BD`（1.9:1）等于没有 |
 
 **提示内容只允许一个字符或一个图标**。两个汉字的提示在 34dp 宽的键上会挤到字母上方正中，右上角放不下。
+
+**键面字号按内容自动分档**，不看按键上写的 `key_text_size`：`ic@` 图标 → `keyIconSize`；一个字符（按 Unicode 码位数）→ `keyTextSize`；
+会上屏字符的键（点击动作是可打印按键码）上的一串拉丁字母 → `keyLetterGroupTextSize`；其余文字 → `keyLabelTextSize`。
+`label_symbol: ' '` 这种空白提示不画。
+
+**底部提示**（按键的 `hint`）和右上角提示同一套字号和透明度，水平居中，离键身底边 `keySymbolInsetTop`，多行时向上排。
+iOS 主题没有用到它；一个键同时有右上角提示和底部提示时，两者分在上下两端，不会重叠。
 
 #### 功能键与字母键的明暗层次
 
@@ -149,6 +158,10 @@ Trime fork 的键盘外观分成两半：
 
 View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制使用**，不要依赖它做下沉效果。
 
+**功能键按下换亮色由配色表达，代码不强制**：功能键的按下色取 `hilited_off_key_back_color`，或按键上写的 `hilited_key_back_color`，
+主题把它设成字母键底色即可（iOS 主题浅色 / 深色都是这么写的，Compose 版已截图验证）。配色两项都没写时回落到
+`hilited_key_back_color`，也是字母级的按下色，所以不会出现「按下反而更暗」。代码替主题换色会违反「颜色跟 yaml」（§3.1），所以不做。
+
 ### 2.4 横屏和竖屏的差异
 
 | 项 | 竖屏 | 横屏 | 理由 |
@@ -167,7 +180,7 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 **可以配：**
 
 - **配色**：`preset_color_schemes` 里的所有颜色键，浅色 / 深色两套（`default` 里写 `light_scheme` / `dark_scheme` 跟随系统）。
-  包括自定义键名（如 `func_key_back_color`）供按键引用。提示色 `key_symbol_color` 应该按 §2.3 的 50% 规则取值。
+  包括自定义键名（如 `func_key_back_color`）供按键引用。提示色 `key_symbol_color` 只剩 View 渲染在用（按 §2.3 的 50% 规则取值），Compose 画布不读，见 §3.1。
   运行时的暖度 / 亮度 / 不透明度滤镜在 App 里调，主题里保持中性。
 - **字体文件**：`style` 下 `*_font` 列表，文件放用户目录 `fonts/`。加粗靠换字重文件。`latin_font` 必须留空。
 - **键盘布局**：`preset_keyboards` 里有哪些键盘、每个键的动作（`click` / `long_click` / `swipe_*`）、宽度百分比、
@@ -184,6 +197,26 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 - 提示的位置：`key_symbol_offset_*`、`key_hint_offset_*`、`key_text_offset_*`、`key_press_offset_*`。
 - 按下气泡的尺寸：`popup_*`、`preview_*`。
 - 按键上单独写的 `key_text_size` / `symbol_text_size` / `round_corner`（图标键尺寸由 `keyIconSize` 统一）。
+
+### 3.1 yaml 和 token 冲突时听谁的
+
+一条规则：**颜色跟 yaml，尺寸跟 token；token 没有管到的尺寸仍然跟 yaml。** 按键画布逐项这样处理：
+
+| yaml 字段 | Compose 按键画布 | 理由 |
+|---|---|---|
+| 配色：`key_back_color`、`key_text_color`、`hilited_*`、`on_*` / `off_*`、`key_border_color`，以及按键上单独写的这些颜色 | 照旧，经 `Key.getBackgroundDrawable()` / `getTextColor()` / `getBorderColor()` 取色 | 配色是可变的一半 |
+| `enter_key_action_back_color` / `hilited_enter_key_action_back_color` / `enter_key_action_text_color` | 照旧，编辑框要求前往 / 搜索 / 发送 / 完成时回车键用它 | 同上 |
+| `key_symbol_color`（含 `hilited_` / `on_` / `off_` 变体） | **不读**：提示色 = 这个键此刻的文字色 × `keySymbolAlpha` | 颜色类里唯一的例外。§2.3 已经把提示色定义成字色的函数，按下、开关、深色、回车强调色时自动跟着变；单独配一个固定色正是原来提示看不见的原因 |
+| 背景是图片（`.png` / `.9.png`） | 照旧画，不裁圆角 | 图片皮肤自带形状 |
+| `round_corner`（style、键盘、按键上） | 忽略，用 `keyCornerRadius` | 尺寸 |
+| `horizontal_gap` / `vertical_gap`（style、键盘上） | 画键身时忽略，用 `keyHorizontalGap` / `keyVerticalGap` 从触摸格内缩；触摸格本身不变 | 尺寸。键距本来就算触摸区，改键距不影响命中 |
+| `key_text_size` / `key_long_text_size` / `label_text_size`（style、按键上） | 忽略，按键面内容分档（§2.3） | 尺寸 |
+| `symbol_text_size`（style、按键上） | 忽略，用 `keySymbolTextSize` | 尺寸 |
+| `key_text_offset_*` / `key_symbol_offset_*` / `key_hint_offset_*` / `key_press_offset_*` | 忽略；提示位置用 `keySymbolInsetTop` / `keySymbolInsetEnd` | 尺寸 |
+| `key_border`（style、键盘、按键上） | **照旧生效**，宽度按 dp，颜色跟 `key_border_color` | token 里没有描边宽度，也就没有冲突；设计本身不用描边，iOS 主题写的是 0 |
+| `keyboard_height*`、按键 `width`、行 `height`、`hide_in_landscape` | 照旧生效（`Keyboard` 据此算触摸格） | 布局是可变的一半；键盘总高见下 |
+| `key_font` / `symbol_font` | 照旧 | 字体是可变的一半。`label_font` 仍然不读，和 View 版一致 |
+| 浮动键盘缩放（App 设置，不是 yaml） | 字号、图标、提示内边距乘缩放；键距、圆角不缩 | 小窗里字要跟着缩，键距再缩键就挤成一片 |
 
 `keyboard_height` / `keyboard_height_land` 暂时保留可配：键盘总高和屏幕、导航栏、用户习惯都有关，
 等 Compose 版有「键盘高度」设置项之后再收回。
@@ -241,16 +274,19 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 
 ## 5. View 渲染做不到、需要 Kotlin 改动的
 
-| 设计 | View 现状 | 过渡期怎么办 |
-|---|---|---|
-| 提示放右上角（`keySymbolInsetEnd`） | 只能画在键顶**正中** + 统一的横向偏移（sp），不同宽度的键偏移后位置不同 | 所有带提示的键都是等宽字母键，统一偏移 `10`；功能键用 `label_symbol: ' '` 关掉提示 |
-| 提示色 = 字色 × 50%（`keySymbolAlpha`） | 提示色只能从配色读一个固定色 | 主题生成脚本算好等效色写进 `key_symbol_color` |
-| 两字提示改图标 | `label_symbol: ic@...` 已支持（`drawIcon` 按提示字号画） | 直接用 |
-| 功能键按下不弹气泡 | 气泡由「按键弹出预览」全局开关控制，功能键也会弹（显示标签首字） | 暂时接受；Compose 版按键级别区分 |
-| 候选注释间距 2dp（`candidateCommentGap`） | 写死 1dp | 差 1dp，不影响 |
-| 九宫格预编辑字号（`preeditT9TextSize`） | 用注释字号 | 注释改成 14sp 后九宫格拼音也跟着变 14sp，比设计大 1sp |
-| 按下下沉（`key_press_offset_*`） | 字段解析了但没画 | 设计里本来就不用 |
-| 上滑 / 长按出全角标点 | 需要 Shift 的符号（`: ? ! ( ) "`）没有 Android 键码，Trime 按文本模拟按键，实测中文态打出的是半角 | 主题里写 `{text: "？"}` 这类全角字符；Kotlin 侧可以让 `onText` 的 ASCII 分支走 Rime 标点转换，统一中英文键盘的写法 |
-| 候选行 48dp 且不给注释单独留高度 | 候选栏高度 = `candidate_view_height + comment_height` | 过渡期保持 52 + 12，Compose 版改 48 |
-| 横屏字号降一级 | 字号没有 `_land` 版本（除候选栏高度） | 横屏只能跟竖屏同字号；Compose 版按 `Landscape` token |
-| 横屏键距 6dp | 键距没有 `_land` 版本 | 同上 |
+「Compose」一列是按键画布（`KeyboardCanvas`）接手后的状态；标「—」的属于候选栏、预编辑区或按键逻辑，不在画布里做。
+
+| 设计 | View 现状 | 过渡期怎么办 | Compose |
+|---|---|---|---|
+| 提示放右上角（`keySymbolInsetEnd`） | 只能画在键顶**正中** + 统一的横向偏移（sp），不同宽度的键偏移后位置不同 | 所有带提示的键都是等宽字母键，统一偏移 `10`；功能键用 `label_symbol: ' '` 关掉提示 | 已实现：右对齐到键身右边内缩 `keySymbolInsetEnd`、顶边内缩 `keySymbolInsetTop`，和键宽无关；空白提示不画 |
+| 提示色 = 字色 × 50%（`keySymbolAlpha`） | 提示色只能从配色读一个固定色 | 主题生成脚本算好等效色写进 `key_symbol_color` | 已实现：按下、开关、深色时跟着字色变；不再读 `key_symbol_color` |
+| 两字提示改图标 | `label_symbol: ic@...` 已支持（`drawIcon` 按提示字号画） | 直接用 | 已实现：图标边长 = 提示字号，放在同一个角 |
+| 按键字号分档（`keyTextSize` / `keyLabelTextSize` / `keyIconSize`） | 按键上的 `key_text_size` 决定，图标键要逐个写 | 生成脚本逐键写 | 已实现：按键面内容自动分档（§2.3），按键上的尺寸忽略 |
+| 功能键按下不弹气泡 | 气泡由「按键弹出预览」全局开关控制，功能键也会弹（显示标签首字） | 暂时接受；Compose 版按键级别区分 | —（按键逻辑）。按住换亮色由配色实现，已验证 |
+| 候选注释间距 2dp（`candidateCommentGap`） | 写死 1dp | 差 1dp，不影响 | — |
+| 九宫格预编辑字号（`preeditT9TextSize`） | 用注释字号 | 注释改成 14sp 后九宫格拼音也跟着变 14sp，比设计大 1sp | — |
+| 按下下沉（`key_press_offset_*`） | 字段解析了但没画 | 设计里本来就不用 | 不画，字段忽略 |
+| 上滑 / 长按出全角标点 | 需要 Shift 的符号（`: ? ! ( ) "`）没有 Android 键码，Trime 按文本模拟按键，实测中文态打出的是半角 | 主题里写 `{text: "？"}` 这类全角字符；Kotlin 侧可以让 `onText` 的 ASCII 分支走 Rime 标点转换，统一中英文键盘的写法 | — |
+| 候选行 48dp 且不给注释单独留高度 | 候选栏高度 = `candidate_view_height + comment_height` | 过渡期保持 52 + 12，Compose 版改 48 | — |
+| 横屏字号降一级 | 字号没有 `_land` 版本（除候选栏高度） | 横屏只能跟竖屏同字号；Compose 版按 `Landscape` token | 按键已实现：字母 20sp、功能键 14sp、九宫格字母组 18sp、图标 20dp、提示 9sp |
+| 横屏键距 6dp | 键距没有 `_land` 版本 | 同上 | 按键已实现：横屏纵向键距 6dp |
