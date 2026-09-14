@@ -5,6 +5,7 @@
 
 package com.osfans.trime.ui.compose.preference
 
+import android.os.SystemClock
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -19,6 +20,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +33,9 @@ import com.osfans.trime.data.prefs.PreferenceDelegateProvider
 import com.osfans.trime.data.prefs.PreferenceDelegateUi
 import com.osfans.trime.ui.compose.ComposeFragment
 import com.osfans.trime.ui.compose.TrimeScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -53,6 +58,7 @@ fun PreferenceDelegateList(
     suspendClickHandlers: Map<String, suspend () -> Unit> = emptyMap(),
     header: (@Composable () -> Unit)? = null,
     footer: (@Composable () -> Unit)? = null,
+    livePreviewKeys: Set<String> = emptySet(),
 ) {
     // Bumped whenever any preference of this provider changes, so that dependent rows
     // re-evaluate their `enableUiOn` predicate and re-read their value.
@@ -81,6 +87,7 @@ fun PreferenceDelegateList(
                 ui = ui,
                 revision = revision.intValue,
                 onClickOverride = handlers[ui.key],
+                livePreview = ui.key in livePreviewKeys,
             )
         }
         if (footer != null) item("__footer__") { footer() }
@@ -93,6 +100,7 @@ private fun PreferenceDelegateItem(
     ui: PreferenceDelegateUi,
     revision: Int,
     onClickOverride: (() -> Unit)?,
+    livePreview: Boolean = false,
 ) {
     val context = LocalContext.current
     val enabled = remember(revision) { ui.isEnabled() }
@@ -117,6 +125,7 @@ private fun PreferenceDelegateItem(
             val state = rememberDelegateState(delegate, revision)
             val defaultLabel = ui.defaultLabel?.let { stringResource(it) }
             val labelledValue = if (ui.useMinAsDefault) ui.min else ui.defaultValue
+            val liveWrite = if (livePreview) rememberThrottledWrite(delegate::setValue) else null
             SliderPreferenceItem(
                 title = stringResource(ui.title),
                 value = state.value,
@@ -131,7 +140,9 @@ private fun PreferenceDelegateItem(
                 },
                 defaultValue = ui.defaultValue,
                 enabled = enabled,
+                onValueChange = liveWrite?.let { write -> write::offer },
                 onValueChangeFinished = {
+                    liveWrite?.cancel()
                     state.value = it
                     delegate.setValue(it)
                 },
@@ -284,6 +295,63 @@ private fun SelectionRow(
     }
 }
 
+/**
+ * Minimum gap between two live writes of a dragged slider.
+ *
+ * A tint write runs on the main thread the slider itself renders on. Measured on the
+ * emulator (debug build): clearing the colour cache and recolouring the views takes about
+ * 2 ms, and the keyboard's redraw that follows another 10–14 ms, so one write costs roughly
+ * a whole frame. At 80 ms at most one frame in five pays for it and the keyboard still
+ * updates about twelve times a second; much shorter intervals start starving the slider.
+ */
+private const val LIVE_WRITE_INTERVAL_MS = 80L
+
+/**
+ * Leading + trailing throttle: the first value goes out at once, later ones at most every
+ * [LIVE_WRITE_INTERVAL_MS], and the last value of a burst is never dropped.
+ */
+private class ThrottledWrite(
+    private val scope: CoroutineScope,
+    private val write: (Int) -> Unit,
+) {
+    private var lastWriteAt = 0L
+    private var latest = 0
+    private var pending: Job? = null
+
+    fun offer(value: Int) {
+        latest = value
+        if (pending != null) return // the scheduled write will pick up [latest]
+        val wait = lastWriteAt + LIVE_WRITE_INTERVAL_MS - SystemClock.uptimeMillis()
+        if (wait <= 0) {
+            flush()
+        } else {
+            pending = scope.launch {
+                delay(wait)
+                pending = null
+                flush()
+            }
+        }
+    }
+
+    /** Drop a scheduled write; the caller is about to commit the final value itself. */
+    fun cancel() {
+        pending?.cancel()
+        pending = null
+    }
+
+    private fun flush() {
+        lastWriteAt = SystemClock.uptimeMillis()
+        write(latest)
+    }
+}
+
+@Composable
+private fun rememberThrottledWrite(write: (Int) -> Unit): ThrottledWrite {
+    val scope = rememberCoroutineScope()
+    val currentWrite by rememberUpdatedState(write)
+    return remember(scope) { ThrottledWrite(scope) { currentWrite(it) } }
+}
+
 @Suppress("UNCHECKED_CAST")
 private fun <T : Any> PreferenceDelegateProvider.requireDelegate(key: String): PreferenceDelegate<T> = requireNotNull(preferenceDelegates[key]) {
     "no PreferenceDelegate registered for key `$key`"
@@ -310,6 +378,7 @@ fun PreferenceDelegateScreen(
     actions: @Composable RowScope.() -> Unit = {},
     header: (@Composable () -> Unit)? = null,
     footer: (@Composable () -> Unit)? = null,
+    livePreviewKeys: Set<String> = emptySet(),
 ) {
     TrimeScreen(
         title = title,
@@ -323,6 +392,7 @@ fun PreferenceDelegateScreen(
             suspendClickHandlers = suspendClickHandlers,
             header = header,
             footer = footer,
+            livePreviewKeys = livePreviewKeys,
         )
     }
 }
@@ -349,6 +419,12 @@ abstract class PreferenceDelegateComposeFragment(
     @Composable
     protected open fun suspendClickHandlers(): Map<String, suspend () -> Unit> = emptyMap()
 
+    /**
+     * Int sliders whose value is written while dragging (throttled) instead of only on
+     * release, for settings the user should watch take effect.
+     */
+    protected open val livePreviewKeys: Set<String> = emptySet()
+
     /** Extra rows appended after the model-driven ones (e.g. an "export" action). */
     @Composable
     protected open fun Footer() {
@@ -372,6 +448,7 @@ abstract class PreferenceDelegateComposeFragment(
             clickHandlers = clickHandlers(),
             suspendClickHandlers = suspendClickHandlers(),
             footer = { Footer() },
+            livePreviewKeys = livePreviewKeys,
         )
         Dialogs()
     }

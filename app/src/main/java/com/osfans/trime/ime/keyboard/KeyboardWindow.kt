@@ -415,6 +415,13 @@ class KeyboardWindow :
         currentKeyboardView?.invalidateAllKeys()
     }
 
+    override fun onColorTintUpdate() {
+        // every cached layout, not just the visible one: Key re-resolves its colours lazily
+        // on the next draw, but a detached view would otherwise come back with a stale frame
+        cachedKeyboards.values.forEach { (_, view) -> view.renderState.invalidate() }
+        t9Column?.refreshColors()
+    }
+
     override fun onAttached() {
     }
 

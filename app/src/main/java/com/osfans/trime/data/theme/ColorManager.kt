@@ -28,6 +28,8 @@ import com.osfans.trime.util.WeakHashSet
 import com.osfans.trime.util.isNightMode
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 object ColorManager {
     private lateinit var theme: Theme
@@ -92,18 +94,31 @@ object ColorManager {
         return isNightMode
     }
 
+    /**
+     * Bumped every time resolved colours may have changed (scheme switch, theme switch, tint).
+     * Long-lived holders of resolved colours compare against it, see [colorCached].
+     */
+    @Volatile
+    var revision = 0
+        private set
+
     private fun invalidateColors() {
         colorCache.clear()
         cachedTintParams = null
         cachedDarkScheme = null
+        revision++
     }
 
-    /** 拖动配色微调滑块：清缓存并让所有用色的地方重建，不需要重新部署主题。 */
+    /**
+     * 拖动配色微调滑块：清缓存后只通知 [OnTintChangeListener]，不走 [fireChange]。
+     * 配色方案、主题都没变，布局也没变，用色的地方原地重新取色即可，不必重建输入视图
+     * （重建会打断正在进行的输入）。
+     */
     @Keep
     private val onTintChangeListener =
         PreferenceDelegate.OnChangeListener<Any> { _, _ ->
             invalidateColors()
-            if (this::theme.isInitialized) fireChange()
+            if (this::theme.isInitialized) fireTintChange()
         }
 
     init {
@@ -183,6 +198,29 @@ object ColorManager {
 
     private fun fireChange() {
         onChangeListeners.forEach { it.onColorChange(theme) }
+    }
+
+    /**
+     * Only the tint (warmth / brightness / opacity) changed: same scheme, same keys, new
+     * values. Listeners re-read their colours in place instead of rebuilding views.
+     * A scheme or theme switch goes through [OnColorChangeListener] instead, never both.
+     */
+    fun interface OnTintChangeListener {
+        fun onTintChange()
+    }
+
+    private val onTintChangeListeners = WeakHashSet<OnTintChangeListener>()
+
+    fun addOnTintChangedListener(listener: OnTintChangeListener) {
+        onTintChangeListeners.add(listener)
+    }
+
+    fun removeOnTintChangedListener(listener: OnTintChangeListener) {
+        onTintChangeListeners.remove(listener)
+    }
+
+    private fun fireTintChange() {
+        onTintChangeListeners.forEach { it.onTintChange() }
     }
 
     private fun colorScheme(id: String) = theme.colorSchemes.find { it.id == id }
@@ -394,4 +432,31 @@ object ColorManager {
     }
 
     private val SUPPORTED_IMG_FORMATS = arrayOf(".png", ".webp", ".jpg", ".gif")
+}
+
+/**
+ * Like `lazy`, but computed again once [ColorManager.revision] has moved on, so a resolved
+ * colour or drawable kept in a field follows scheme and tint changes on its next read.
+ */
+fun <T> colorCached(compute: () -> T): ReadOnlyProperty<Any?, T> = ColorCached(compute)
+
+private class ColorCached<T>(
+    private val compute: () -> T,
+) : ReadOnlyProperty<Any?, T> {
+    private var revision = -1
+    private var value: T? = null
+
+    override fun getValue(
+        thisRef: Any?,
+        property: KProperty<*>,
+    ): T {
+        val current = ColorManager.revision
+        if (revision != current) {
+            value = compute()
+            // record the revision read before computing: a change in between is picked up next read
+            revision = current
+        }
+        @Suppress("UNCHECKED_CAST")
+        return value as T
+    }
 }

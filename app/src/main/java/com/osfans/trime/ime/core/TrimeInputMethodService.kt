@@ -223,6 +223,20 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             }
         }
 
+    /**
+     * Tint sliders: recolour in place. Rebuilding [InputView] here would restart the input
+     * session mid-composition, which is exactly when the user wants to watch the colours.
+     */
+    @Keep
+    private val onTintChangeListener =
+        ColorManager.OnTintChangeListener {
+            ContextCompat.getMainExecutor(this).execute {
+                inputView?.onColorTintUpdate()
+                extractInputUi?.applyColors(ThemeManager.activeTheme)
+                window.window?.let { navBarManager.evaluate(it, inputDeviceManager.useVirtualKeyboard) }
+            }
+        }
+
     private fun postJob(
         scope: CoroutineScope,
         block: suspend () -> Unit,
@@ -283,6 +297,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 ThemeManager.init(resources.configuration)
                 ThemeManager.addOnChangedListener(onThemeChangeListener)
                 ColorManager.addOnChangedListener(onColorChangeListener)
+                ColorManager.addOnTintChangedListener(onTintChangeListener)
             }
         }
         InputFeedbackManager.init(this)
@@ -409,6 +424,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         prefs.candidates.unregisterOnChangeListener(recreateCandidatesViewListener)
         ThemeManager.removeOnChangedListener(onThemeChangeListener)
         ColorManager.removeOnChangedListener(onColorChangeListener)
+        ColorManager.removeOnTintChangedListener(onTintChangeListener)
         super.onDestroy()
         unregisterReceiver(rimeIntentReceiver)
         RimeDaemon.destroySession(javaClass.name)

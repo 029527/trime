@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.data.theme.colorCached
 
 /**
  * What the key canvas needs besides the [com.osfans.trime.ime.keyboard.Keyboard] model.
@@ -40,14 +41,15 @@ class KeyboardRenderState(
     // Optional colors for the enter key when the editor asks for a primary action
     // (go / search / send / done), like the blue return key on iOS. Only used when the
     // color scheme defines them.
-    val actionKeyBackground: Drawable? by lazy {
+    // Re-resolved after a scheme or tint change, like the per-key colours in Key.
+    val actionKeyBackground: Drawable? by colorCached {
         runCatching { ColorManager.getDrawable("enter_key_action_back_color") }.getOrNull()
     }
-    val hlActionKeyBackground: Drawable? by lazy {
+    val hlActionKeyBackground: Drawable? by colorCached {
         runCatching { ColorManager.getDrawable("hilited_enter_key_action_back_color") }.getOrNull()
             ?: actionKeyBackground
     }
-    val actionKeyTextColor: Int? by lazy {
+    val actionKeyTextColor: Int? by colorCached {
         runCatching { ColorManager.getColor("enter_key_action_text_color") }.getOrNull()
     }
 
