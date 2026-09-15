@@ -59,7 +59,7 @@ class SwitchOptionWindow :
                 SwitchOptionEntry.Static.Type.UpdateConfig,
             ),
             SwitchOptionEntry.Static(
-                context.getString(R.string.virtual_keyboard),
+                context.getString(R.string.keyboard_ui),
                 R.drawable.ic_baseline_keyboard_24,
                 SwitchOptionEntry.Static.Type.Keyboard,
             ),
@@ -107,8 +107,9 @@ class SwitchOptionWindow :
                         Toast.makeText(service, R.string.done, Toast.LENGTH_SHORT).show()
                     }
                 }
+                // 「键盘界面」页：隐藏按键符号、候选窗口、横屏小窗这些
                 SwitchOptionEntry.Static.Type.Keyboard -> AppUtils.launchMainToKeyboard(context)
-                // 主题已内置，没有主题可选；这里改为打开键盘样式设置页（深浅色、配色微调）
+                // 主题已内置，没有主题可选；这里改为打开「配色」页（深浅色、配色微调）
                 SwitchOptionEntry.Static.Type.ThemeList -> AppUtils.launchMainToTheme(context)
             }
             // a switch with a list of options opens its menu instead, see menuFor

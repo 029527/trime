@@ -26,6 +26,7 @@ import com.osfans.trime.R
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.ui.compose.TrimeScreen
 import com.osfans.trime.ui.compose.preference.PreferenceCategoryHeader
+import com.osfans.trime.ui.compose.preference.PreferenceDelegateRow
 import com.osfans.trime.ui.compose.preference.PreferenceRow
 import com.osfans.trime.ui.compose.preference.SingleChoiceDialog
 import com.osfans.trime.ui.compose.preference.SliderPreferenceItem
@@ -153,10 +154,6 @@ fun VoiceInputScreen(
                         revision++
                     },
                 )
-                PreferenceRow(
-                    title = stringResource(R.string.voice_theme_hint),
-                    summary = stringResource(R.string.voice_theme_hint_summary),
-                )
 
                 PreferenceCategoryHeader(stringResource(R.string.voice_credentials))
                 NoteText(stringResource(R.string.voice_credentials_note))
@@ -201,7 +198,7 @@ fun VoiceInputScreen(
                     },
                 )
 
-                PreferenceCategoryHeader(stringResource(R.string.voice_input))
+                PreferenceCategoryHeader(stringResource(R.string.voice_recording))
                 val maxDuration = prefs.maxDuration.getValue()
                 SliderPreferenceItem(
                     title = stringResource(R.string.voice_max_duration),
@@ -304,6 +301,11 @@ fun VoiceInputScreen(
                     },
                 )
 
+                // 按 VOICE_ASSIST 键（不是内置听写的麦克风键）时切到哪个系统语音输入法
+                PreferenceCategoryHeader(stringResource(R.string.voice_system_ime))
+                PreferenceDelegateRow(AppPrefs.defaultInstance().general, AppPrefs.General.PREFERRED_VOICE_INPUT)
+
+                // 词库文件是数据，但云端热词表 ID 跟着识别走，整段留在这里
                 PreferenceCategoryHeader(stringResource(R.string.voice_vocabulary))
                 Column {
                     PreferenceRow(

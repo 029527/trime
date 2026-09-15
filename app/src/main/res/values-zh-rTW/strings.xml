@@ -130,7 +130,7 @@
     <string name="developer">開發者</string>
     <string name="exception_logcat_created">Logcat 行程已建立</string>
     <string name="about">關於</string>
-    <string name="theme">外觀</string>
+    <string name="theme">配色</string>
     <string name="profile">配置</string>
     <string name="virtual_keyboard">虛擬鍵盤</string>
     <string name="storage">儲存</string>
@@ -198,7 +198,7 @@
     <string name="forget_this_word">忘記該詞</string>
     <string name="synchronization">同步</string>
     <string name="periodic_background_sync_interval">後台同步時間間隔（以分鐘為單位）</string>
-    <string name="candidates_window">候选視窗</string>
+    <string name="candidates_window">候選視窗</string>
     <string name="show_candidates_window">顯示候選詞視窗</string>
     <string name="general">常規</string>
     <string name="composing_text">預編輯碼</string>
@@ -323,7 +323,7 @@
     <string name="voice_permission">錄音權限</string>
     <string name="voice_permission_granted">已授予</string>
     <string name="voice_permission_missing">未授予，點這裏去授權</string>
-    <string name="voice_vocabulary">詞庫</string>
+    <string name="voice_vocabulary">識別詞庫</string>
     <string name="voice_vocabulary_path">檔案位置</string>
     <string name="voice_vocabulary_reload">重新載入詞庫</string>
     <string name="voice_vocabulary_create">產生一份範例詞庫</string>
@@ -356,8 +356,6 @@
     <string name="voice_llm_test_summary">用上面的設定發一個很短的請求</string>
     <string name="voice_llm_test_running">測試中…</string>
     <string name="voice_llm_test_ok">連線成功，用時 %d 毫秒</string>
-    <string name="voice_theme_hint">主題裏怎麼寫</string>
-    <string name="voice_theme_hint_summary">preset_keys 裏把麥克風鍵寫成 {command: voice_input}</string>
     <string name="edit_select">選取</string>
     <string name="edit_line_start">行首</string>
     <string name="edit_line_end">行尾</string>
@@ -366,4 +364,23 @@
     <string name="edit_cut">剪下</string>
     <string name="edit_copy">複製</string>
     <string name="edit_paste">貼上</string>
+    <string name="settings_group_input">輸入</string>
+    <string name="settings_group_appearance">外觀</string>
+    <string name="settings_group_data">資料</string>
+    <string name="keys_and_gestures">按鍵與手勢</string>
+    <string name="key_feedback">按鍵回饋</string>
+    <string name="keyboard_ui">鍵盤介面</string>
+    <string name="settings_section_typing">打字</string>
+    <string name="settings_section_landscape">橫屏</string>
+    <string name="settings_section_other">其他</string>
+    <string name="settings_section_touch">觸控</string>
+    <string name="settings_section_shortcuts">快捷鍵</string>
+    <string name="settings_section_sound">聲音</string>
+    <string name="settings_section_vibration">振動</string>
+    <string name="settings_section_speech">朗讀</string>
+    <string name="settings_section_keyboard_display">鍵盤顯示</string>
+    <string name="settings_section_landscape_floating">橫屏與小窗</string>
+    <string name="settings_section_insets">佈局邊距</string>
+    <string name="voice_recording">錄音</string>
+    <string name="voice_system_ime">系統語音輸入法</string>
 </resources>

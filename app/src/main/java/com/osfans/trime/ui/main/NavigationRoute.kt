@@ -10,11 +10,11 @@ import androidx.navigation.NavController
 import androidx.navigation.createGraph
 import androidx.navigation.fragment.fragment
 import com.osfans.trime.R
-import com.osfans.trime.ui.main.settings.AdvancedSettingsFragment
-import com.osfans.trime.ui.main.settings.CandidatesSettingsFragment
 import com.osfans.trime.ui.main.settings.ClipboardSettingsFragment
 import com.osfans.trime.ui.main.settings.GeneralSettingsFragment
+import com.osfans.trime.ui.main.settings.KeyFeedbackSettingsFragment
 import com.osfans.trime.ui.main.settings.KeyboardSettingsFragment
+import com.osfans.trime.ui.main.settings.KeyboardUiSettingsFragment
 import com.osfans.trime.ui.main.settings.ProfileSettingsFragment
 import com.osfans.trime.ui.main.settings.hotwords.HotWordFragment
 import com.osfans.trime.ui.main.settings.schema.SchemaListFragment
@@ -51,20 +51,24 @@ sealed class NavigationRoute : Parcelable {
     @Serializable
     data object General : NavigationRoute()
 
+    /** 按键与手势. Named after the old 虚拟键盘 page; kept because routes travel in intents. */
     @Serializable
     data object VirtualKeyboard : NavigationRoute()
 
+    /** 按键反馈: sound, vibration, read aloud. */
     @Serializable
-    data object CandidatesWindow : NavigationRoute()
+    data object KeyFeedback : NavigationRoute()
 
+    /** 配色 (`ThemePrefs`). */
     @Serializable
     data object Theme : NavigationRoute()
 
+    /** 键盘界面: what the keyboard and the candidates window look like, landscape and floating. */
     @Serializable
-    data object Clipboard : NavigationRoute()
+    data object KeyboardUi : NavigationRoute()
 
     @Serializable
-    data object Advanced : NavigationRoute()
+    data object Clipboard : NavigationRoute()
 
     @Serializable
     data object VoiceInput : NavigationRoute()
@@ -103,19 +107,19 @@ sealed class NavigationRoute : Parcelable {
                 label = ctx.getString(R.string.general)
             }
             fragment<KeyboardSettingsFragment, VirtualKeyboard> {
-                label = ctx.getString(R.string.virtual_keyboard)
+                label = ctx.getString(R.string.keys_and_gestures)
             }
-            fragment<CandidatesSettingsFragment, CandidatesWindow> {
-                label = ctx.getString(R.string.candidates_window)
-            }
-            fragment<ThemeSettingsFragment, Theme> {
-                label = ctx.getString(R.string.theme)
+            fragment<KeyFeedbackSettingsFragment, KeyFeedback> {
+                label = ctx.getString(R.string.key_feedback)
             }
             fragment<ClipboardSettingsFragment, Clipboard> {
                 label = ctx.getString(R.string.clipboard)
             }
-            fragment<AdvancedSettingsFragment, Advanced> {
-                label = ctx.getString(R.string.advanced)
+            fragment<ThemeSettingsFragment, Theme> {
+                label = ctx.getString(R.string.theme)
+            }
+            fragment<KeyboardUiSettingsFragment, KeyboardUi> {
+                label = ctx.getString(R.string.keyboard_ui)
             }
             fragment<VoiceInputSettingsFragment, VoiceInput> {
                 label = ctx.getString(R.string.voice_input)

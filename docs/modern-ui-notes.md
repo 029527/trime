@@ -212,19 +212,65 @@ SharedPreferences 的 key、类型、序列化方式全部照旧。
 
 `enableUiOn`（依赖关系）保持旧行为——**置灰而不是隐藏**。实现方式：页面持有一个
 `revision` 计数，注册 `PreferenceDelegateProvider.OnChangeListener`，任何一项变化就 +1，
-所有行重新求值 `isEnabled()` 并重读自己的值。
+所有行重新求值 `isEnabled()` 并重读自己的值。页面由多个 provider 拼成时，
+同一个监听挂在**每个** provider 上，所以跨 owner 的页面置灰照样刷新。
+
+### 分段和跨 owner 的页面（`PreferencePage`）
+
+`AppPrefs` 里的 owner 是按**谁在读**分的组（`prefs.keyboard` 是键盘视图读的一堆，
+IME 按组监听 `prefs.candidates`），不是用户找设置的方式。所以页面不再等于 owner：
+`data/prefs/PreferencePage.kt` 描述一页 = 若干带标题的段，每段列出 key，
+渲染时在传进来的几个 provider 里按 key 找行（`resolve()`，找不到直接抛异常）。
+
+```kotlin
+class KeyboardUiSettingsFragment :
+    PreferenceDelegateComposeFragment(
+        SettingsPages.KeyboardUi, // 段和 key 的清单
+        AppPrefs.defaultInstance().keyboard,
+        AppPrefs.defaultInstance().candidates,
+        AppPrefs.defaultInstance().advanced,
+    )
+```
+
+- **行搬页不搬 owner**：key、`PreferenceDelegate`、`prefs.keyboard.xxx` 这些调用点、
+  IME 的监听（`recreateInputViewPrefs`、`prefs.candidates` 组监听）一个都不动。
+- 有 `enableUiOn` 依赖的行必须和它依赖的行**在同一页**（`SettingsPagesTest` 检查）。
+- 段标题为 0 就不画标题；只传一个 provider 的老构造函数照旧是「整个 owner、声明顺序、不分段」。
+- 手写页面要画某一个模型行（比如语音页的「首选语音输入法」），用
+  `PreferenceDelegateRow(provider, key)`，样子和对话框跟生成的页面一样。
+
+### 设置的信息架构（2026-09）
+
+首页三张卡，每页只属于一张。哪一行在哪一页以 `ui/main/settings/SettingsPages.kt` 为准，
+`SettingsPagesTest` 保证每行恰好出现在一页、key 没改。
+
+| 卡 | 页（路由） | 段 → 行 |
+| --- | --- | --- |
+| 输入 | 常规（`General`） | 打字：嵌入编码、中英切换提示、内联建议、显示候选词窗口 · 横屏：横屏方案、横屏全屏 · 其他：显示应用图标 |
+| 输入 | 按键与手势（`VirtualKeyboard`） | 触摸：扩大按键区域、滑动距离/速度、长按、重复、双击、滑动步长 · 快捷键：`hook_ctrl_*`、`hook_shift_*` |
+| 输入 | 按键反馈（`KeyFeedback`） | 声音：按键音、音量、自定义音效 · 振动：按下/抬起/重复、效果、时长、强度 · 朗读：按键/上屏朗读 |
+| 输入 | 剪贴板（`Clipboard`） | 整个 `AppPrefs.Clipboard` |
+| 输入 | 语音输入（`VoiceInput`，手写） | 开关/权限 · 火山凭证 · 录音 · LLM 纠错 · 系统语音输入法 · 识别词库 |
+| 外观 | 配色（`Theme`） | 整个 `ThemePrefs` |
+| 外观 | 键盘界面（`KeyboardUi`） | 键盘显示：隐藏输入栏/符号/提示、按键气泡、软光标 · 候选窗口：布局、位置 · 横屏与小窗：横屏模式、分割空格、小窗及尺寸/边距 · 布局边距：刘海区、忽略手势区 |
+| 数据 | 方案、用户词典、热词、配置 | 不变 |
+
+开发者、关于在首页右上角菜单。原来的「候选窗口」「高级」页和它们的路由已删掉（没有深链指向它们）。
+深链：键盘「…」面板的「配色」格 → `Theme`，「键盘界面」格 → `KeyboardUi`
+（`AppUtils.launchMainToKeyboard`）。`VirtualKeyboard` 这个名字是历史遗留，
+路由对象按类名打进 PendingIntent，**别改名**，要换页面内容就换 fragment。
 
 ### 迁一个设置页要写多少代码
 
 绝大多数情况只要一个类：
 
 ```kotlin
-class CandidatesSettingsFragment :
-    PreferenceDelegateComposeFragment(AppPrefs.defaultInstance().candidates)
+class ClipboardSettingsFragment :
+    PreferenceDelegateComposeFragment(AppPrefs.defaultInstance().clipboard)
 ```
 
-标题按这个顺序取：构造参数 `titleRes` → `PreferenceDelegateOwner.title` → 导航图的
-`label`。现有的 provider（含 `ThemeManager.prefs`）都带了 `title`。
+标题按这个顺序取：构造参数 `titleRes`（`PreferencePage` 页取 `page.title`）→
+只有一个 provider 时的 `PreferenceDelegateOwner.title` → 导航图的 `label`。
 
 三个可覆写的槽：
 
@@ -297,12 +343,13 @@ if (loading) LoadingDialog(R.string.hot_word_deploying)
 | 页面 | 路由 / 入口 | 实现 |
 | --- | --- | --- |
 | 首页 | `Main` | `ui/main/MainScreen.kt`（手写） |
-| 通用 | `General` | `PreferenceDelegateComposeFragment` |
-| 虚拟键盘 | `VirtualKeyboard` | 同上 + `Dialogs()`（音效选择器） |
-| 候选窗 | `CandidatesWindow` | 同上 |
-| 主题 | `Theme` | 同上 + `Dialogs()`（主题 / 配色选择器） |
+| 常规 | `General` | `PreferenceDelegateComposeFragment` + `PreferencePage`（跨 4 个 owner） |
+| 按键与手势 | `VirtualKeyboard` | 同上（`PreferencePage`） |
+| 按键反馈 | `KeyFeedback` | 同上 + `Dialogs()`（音效选择器） |
+| 键盘界面 | `KeyboardUi` | 同上（跨 3 个 owner） |
+| 配色 | `Theme` | `PreferenceDelegateComposeFragment`（整个 owner）+ `Footer()` |
 | 剪贴板 | `Clipboard` | 同上 |
-| 高级 | `Advanced` | 同上 |
+| 语音输入 | `VoiceInput` | `VoiceInputScreen.kt`（手写） |
 | 开发者 | `Developer` | `DeveloperScreen.kt`（手写） |
 | 方案列表 | `SchemaList` | `SchemaListScreen.kt`（`ListScreen` + contextual 多选） |
 | 用户词典 | `UserDict` | `UserDictListScreen.kt` |

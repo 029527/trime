@@ -131,7 +131,7 @@
     <string name="developer">Developer</string>
     <string name="profile">Profile</string>
     <string name="virtual_keyboard">Virtual Keyboard</string>
-    <string name="theme">Appearance</string>
+    <string name="theme">Colors</string>
     <string name="about">About</string>
     <string name="storage">Storage</string>
     <string name="data_storage_mode">Data storage mode</string>
@@ -333,7 +333,7 @@
     <string name="voice_permission">Microphone permission</string>
     <string name="voice_permission_granted">Granted</string>
     <string name="voice_permission_missing">Not granted — tap to grant</string>
-    <string name="voice_vocabulary">Vocabulary</string>
+    <string name="voice_vocabulary">Recognition vocabulary</string>
     <string name="voice_vocabulary_path">File location</string>
     <string name="voice_vocabulary_reload">Reload vocabulary</string>
     <string name="voice_vocabulary_create">Create a sample vocabulary file</string>
@@ -342,8 +342,6 @@
     <string name="voice_boosting_table_id">Cloud hotword table ID</string>
     <string name="voice_boosting_table_id_unset">Not set: the hotwords in the vocabulary are sent with each request</string>
     <string name="voice_boosting_table_id_note">A hotword table created in the Volcengine console. When set, it is used instead of the hotwords in the vocabulary file. Confirm an empty value to clear it.</string>
-    <string name="voice_theme_hint">Theme key</string>
-    <string name="voice_theme_hint_summary">Write the mic key as {command: voice_input} in preset_keys</string>
     <string name="voice_auto_stop">Auto stop</string>
     <string name="voice_auto_stop_summary">Stops and types what was heard after 3 seconds without speech</string>
     <string name="voice_debug">Voice input (debug)</string>
@@ -390,4 +388,23 @@
     <string name="edit_cut">Cut</string>
     <string name="edit_copy">Copy</string>
     <string name="edit_paste">Paste</string>
+    <string name="settings_group_input">Input</string>
+    <string name="settings_group_appearance">Appearance</string>
+    <string name="settings_group_data">Data</string>
+    <string name="keys_and_gestures">Keys &amp; gestures</string>
+    <string name="key_feedback">Key feedback</string>
+    <string name="keyboard_ui">Keyboard appearance</string>
+    <string name="settings_section_typing">Typing</string>
+    <string name="settings_section_landscape">Landscape</string>
+    <string name="settings_section_other">Other</string>
+    <string name="settings_section_touch">Touch</string>
+    <string name="settings_section_shortcuts">Shortcuts</string>
+    <string name="settings_section_sound">Sound</string>
+    <string name="settings_section_vibration">Vibration</string>
+    <string name="settings_section_speech">Read aloud</string>
+    <string name="settings_section_keyboard_display">Keyboard display</string>
+    <string name="settings_section_landscape_floating">Landscape &amp; floating</string>
+    <string name="settings_section_insets">Screen edges</string>
+    <string name="voice_recording">Recording</string>
+    <string name="voice_system_ime">System voice input</string>
 </resources>

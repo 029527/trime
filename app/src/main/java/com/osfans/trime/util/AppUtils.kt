@@ -62,7 +62,8 @@ object AppUtils {
 
     fun launchMainToSchemaList(context: Context) = launchMainToDest(context, NavigationRoute.SchemaList)
 
-    fun launchMainToKeyboard(context: Context) = launchMainToDest(context, NavigationRoute.VirtualKeyboard)
+    /** The keyboard's own "keyboard" switch: what the keyboard looks like is what one tweaks from there. */
+    fun launchMainToKeyboard(context: Context) = launchMainToDest(context, NavigationRoute.KeyboardUi)
 
     fun launchMainToTheme(context: Context) = launchMainToDest(context, NavigationRoute.Theme)
 

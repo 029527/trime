@@ -9,7 +9,9 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
@@ -25,6 +27,7 @@ import com.osfans.trime.R
 import com.osfans.trime.ui.compose.TopBarIconButton
 import com.osfans.trime.ui.compose.TrimeScreen
 import com.osfans.trime.ui.compose.preference.PreferenceCard
+import com.osfans.trime.ui.compose.preference.PreferenceCategoryHeader
 import com.osfans.trime.ui.compose.preference.PreferenceRow
 
 private class HomeEntry(
@@ -33,21 +36,42 @@ private class HomeEntry(
     val route: NavigationRoute,
 )
 
-private val DataEntries = listOf(
-    HomeEntry(R.string.schemata, R.drawable.ic_round_view_list_24, NavigationRoute.SchemaList),
-    HomeEntry(R.string.user_dictionary, R.drawable.ic_baseline_book_24, NavigationRoute.UserDict),
-    HomeEntry(R.string.hot_words, R.drawable.ic_baseline_star_24, NavigationRoute.HotWords),
-    HomeEntry(R.string.profile, R.drawable.ic_baseline_snippet_folder_24, NavigationRoute.Profile),
+private class HomeGroup(
+    @StringRes val title: Int,
+    val entries: List<HomeEntry>,
 )
 
-private val SettingsEntries = listOf(
-    HomeEntry(R.string.general, R.drawable.ic_baseline_tune_24, NavigationRoute.General),
-    HomeEntry(R.string.virtual_keyboard, R.drawable.ic_baseline_keyboard_24, NavigationRoute.VirtualKeyboard),
-    HomeEntry(R.string.candidates_window, R.drawable.ic_baseline_list_alt_24, NavigationRoute.CandidatesWindow),
-    HomeEntry(R.string.theme, R.drawable.ic_baseline_color_lens_24, NavigationRoute.Theme),
-    HomeEntry(R.string.clipboard, R.drawable.ic_clipboard_24, NavigationRoute.Clipboard),
-    HomeEntry(R.string.voice_input, R.drawable.ic_baseline_mic_24, NavigationRoute.VoiceInput),
-    HomeEntry(R.string.advanced, R.drawable.ic_baseline_more_horiz_24, NavigationRoute.Advanced),
+/**
+ * Every page belongs to exactly one group: what typing does, what the keyboard looks like,
+ * or the user's data. Which setting sits on which page is in `settings/SettingsPages.kt`.
+ */
+private val HomeGroups = listOf(
+    HomeGroup(
+        R.string.settings_group_input,
+        listOf(
+            HomeEntry(R.string.general, R.drawable.ic_baseline_tune_24, NavigationRoute.General),
+            HomeEntry(R.string.keys_and_gestures, R.drawable.ic_baseline_keyboard_24, NavigationRoute.VirtualKeyboard),
+            HomeEntry(R.string.key_feedback, R.drawable.ic_baseline_vibration_24, NavigationRoute.KeyFeedback),
+            HomeEntry(R.string.clipboard, R.drawable.ic_clipboard_24, NavigationRoute.Clipboard),
+            HomeEntry(R.string.voice_input, R.drawable.ic_baseline_mic_24, NavigationRoute.VoiceInput),
+        ),
+    ),
+    HomeGroup(
+        R.string.settings_group_appearance,
+        listOf(
+            HomeEntry(R.string.theme, R.drawable.ic_baseline_color_lens_24, NavigationRoute.Theme),
+            HomeEntry(R.string.keyboard_ui, R.drawable.ic_baseline_view_comfy_24, NavigationRoute.KeyboardUi),
+        ),
+    ),
+    HomeGroup(
+        R.string.settings_group_data,
+        listOf(
+            HomeEntry(R.string.schemata, R.drawable.ic_round_view_list_24, NavigationRoute.SchemaList),
+            HomeEntry(R.string.user_dictionary, R.drawable.ic_baseline_book_24, NavigationRoute.UserDict),
+            HomeEntry(R.string.hot_words, R.drawable.ic_baseline_star_24, NavigationRoute.HotWords),
+            HomeEntry(R.string.profile, R.drawable.ic_baseline_snippet_folder_24, NavigationRoute.Profile),
+        ),
+    ),
 )
 
 @Composable
@@ -73,12 +97,10 @@ fun MainScreen(
         },
     ) { padding ->
         LazyColumn(contentPadding = padding) {
-            item {
-                EntryCard(DataEntries, onNavigate)
+            items(HomeGroups) { group ->
+                EntryCard(group, onNavigate)
             }
             item {
-                Spacer(Modifier.height(16.dp))
-                EntryCard(SettingsEntries, onNavigate)
                 Spacer(Modifier.height(24.dp))
             }
         }
@@ -87,11 +109,13 @@ fun MainScreen(
 
 @Composable
 private fun EntryCard(
-    entries: List<HomeEntry>,
+    group: HomeGroup,
     onNavigate: (NavigationRoute) -> Unit,
 ) {
+    // the header's own start padding lines its text up with the row titles inside the card
+    PreferenceCategoryHeader(stringResource(group.title), Modifier.padding(start = 16.dp))
     PreferenceCard {
-        entries.forEach { entry ->
+        group.entries.forEach { entry ->
             PreferenceRow(
                 title = stringResource(entry.title),
                 icon = entry.icon,

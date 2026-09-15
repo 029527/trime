@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -31,6 +32,7 @@ import com.osfans.trime.data.prefs.PreferenceDelegate
 import com.osfans.trime.data.prefs.PreferenceDelegateOwner
 import com.osfans.trime.data.prefs.PreferenceDelegateProvider
 import com.osfans.trime.data.prefs.PreferenceDelegateUi
+import com.osfans.trime.data.prefs.PreferencePage
 import com.osfans.trime.ui.compose.ComposeFragment
 import com.osfans.trime.ui.compose.TrimeScreen
 import kotlinx.coroutines.CoroutineScope
@@ -60,14 +62,38 @@ fun PreferenceDelegateList(
     footer: (@Composable () -> Unit)? = null,
     livePreviewKeys: Set<String> = emptySet(),
 ) {
-    // Bumped whenever any preference of this provider changes, so that dependent rows
-    // re-evaluate their `enableUiOn` predicate and re-read their value.
-    val revision = remember { mutableIntStateOf(0) }
-    val listener = remember { PreferenceDelegateProvider.OnChangeListener { revision.intValue++ } }
-    DisposableEffect(provider, listener) {
-        provider.registerOnChangeListener(listener)
-        onDispose { provider.unregisterOnChangeListener(listener) }
-    }
+    PreferenceDelegateList(
+        providers = remember(provider) { listOf(provider) },
+        sections = remember(provider) { PreferencePage.of(provider) },
+        modifier = modifier,
+        contentPadding = contentPadding,
+        clickHandlers = clickHandlers,
+        suspendClickHandlers = suspendClickHandlers,
+        header = header,
+        footer = footer,
+        livePreviewKeys = livePreviewKeys,
+    )
+}
+
+/**
+ * The general form: rows picked from several [providers] (see [PreferencePage]), each
+ * titled section under a [PreferenceCategoryHeader].
+ */
+@Composable
+fun PreferenceDelegateList(
+    providers: List<PreferenceDelegateProvider>,
+    sections: List<PreferencePage.ResolvedSection>,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
+    clickHandlers: Map<String, () -> Unit> = emptyMap(),
+    suspendClickHandlers: Map<String, suspend () -> Unit> = emptyMap(),
+    header: (@Composable () -> Unit)? = null,
+    footer: (@Composable () -> Unit)? = null,
+    livePreviewKeys: Set<String> = emptySet(),
+) {
+    // Bumped whenever a preference of any provider on the page changes, so that dependent
+    // rows re-evaluate their `enableUiOn` predicate and re-read their value.
+    val revision = rememberProvidersRevision(providers)
     // Suspending handlers run in the composition's own scope, so a page no longer has
     // to wrap them in `lifecycleScope.launch { ... }; Unit` by hand.
     val scope = rememberCoroutineScope()
@@ -81,17 +107,51 @@ fun PreferenceDelegateList(
     }
     LazyColumn(modifier = modifier, contentPadding = contentPadding) {
         if (header != null) item("__header__") { header() }
-        items(provider.preferenceDelegatesUi, key = { it.key }) { ui ->
-            PreferenceDelegateItem(
-                provider = provider,
-                ui = ui,
-                revision = revision.intValue,
-                onClickOverride = handlers[ui.key],
-                livePreview = ui.key in livePreviewKeys,
-            )
+        sections.forEachIndexed { index, section ->
+            if (section.title != 0) {
+                item("__section_${index}__") { PreferenceCategoryHeader(stringResource(section.title)) }
+            }
+            items(section.rows, key = { it.ui.key }) { row ->
+                PreferenceDelegateItem(
+                    provider = row.provider,
+                    ui = row.ui,
+                    revision = revision.intValue,
+                    onClickOverride = handlers[row.ui.key],
+                    livePreview = row.ui.key in livePreviewKeys,
+                )
+            }
         }
         if (footer != null) item("__footer__") { footer() }
     }
+}
+
+/** A change counter for a whole page: one listener on each provider, dropped with the composition. */
+@Composable
+private fun rememberProvidersRevision(providers: List<PreferenceDelegateProvider>): MutableIntState {
+    val revision = remember { mutableIntStateOf(0) }
+    val listener = remember { PreferenceDelegateProvider.OnChangeListener { revision.intValue++ } }
+    DisposableEffect(providers, listener) {
+        providers.forEach { it.registerOnChangeListener(listener) }
+        onDispose { providers.forEach { it.unregisterOnChangeListener(listener) } }
+    }
+    return revision
+}
+
+/**
+ * One model-driven row on a hand-written page, drawn exactly like it would be on a generated
+ * one (dialog, "not set" label and all), so a preference can move there without new UI code.
+ */
+@Composable
+fun PreferenceDelegateRow(
+    provider: PreferenceDelegateProvider,
+    key: String,
+) {
+    val providers = remember(provider) { listOf(provider) }
+    val revision = rememberProvidersRevision(providers)
+    val ui = remember(provider, key) {
+        requireNotNull(provider.preferenceDelegatesUi.find { it.key == key }) { "no preference row for key `$key`" }
+    }
+    PreferenceDelegateItem(provider = provider, ui = ui, revision = revision.intValue, onClickOverride = null)
 }
 
 @Composable
@@ -371,7 +431,8 @@ private fun <T : Any> rememberDelegateState(
 @Composable
 fun PreferenceDelegateScreen(
     title: String,
-    provider: PreferenceDelegateProvider,
+    providers: List<PreferenceDelegateProvider>,
+    sections: List<PreferencePage.ResolvedSection>,
     onNavigateUp: (() -> Unit)? = null,
     clickHandlers: Map<String, () -> Unit> = emptyMap(),
     suspendClickHandlers: Map<String, suspend () -> Unit> = emptyMap(),
@@ -386,7 +447,8 @@ fun PreferenceDelegateScreen(
         actions = actions,
     ) { padding ->
         PreferenceDelegateList(
-            provider = provider,
+            providers = providers,
+            sections = sections,
             contentPadding = padding,
             clickHandlers = clickHandlers,
             suspendClickHandlers = suspendClickHandlers,
@@ -405,10 +467,25 @@ fun PreferenceDelegateScreen(
  * row (the model has no click slot, so the key is matched by hand), or
  * [suspendClickHandlers] when that behaviour has to suspend.
  */
-abstract class PreferenceDelegateComposeFragment(
-    protected val provider: PreferenceDelegateProvider,
-    @StringRes private val titleRes: Int = 0,
+abstract class PreferenceDelegateComposeFragment private constructor(
+    private val providers: List<PreferenceDelegateProvider>,
+    private val page: PreferencePage?,
+    @StringRes private val titleRes: Int,
 ) : ComposeFragment() {
+    /** Every row of [provider], in declaration order, without section headers. */
+    constructor(
+        provider: PreferenceDelegateProvider,
+        @StringRes titleRes: Int = 0,
+    ) : this(listOf(provider), null, titleRes)
+
+    /** The rows [page] names, looked up among [providers], under the page's section headers. */
+    constructor(
+        page: PreferencePage,
+        vararg providers: PreferenceDelegateProvider,
+    ) : this(providers.toList(), page, page.title)
+
+    private val sections by lazy { page?.resolve(providers) ?: PreferencePage.of(providers.single()) }
+
     @Composable
     protected open fun clickHandlers(): Map<String, () -> Unit> = emptyMap()
 
@@ -443,7 +520,8 @@ abstract class PreferenceDelegateComposeFragment(
     final override fun Content() {
         PreferenceDelegateScreen(
             title = screenTitle(),
-            provider = provider,
+            providers = providers,
+            sections = sections,
             onNavigateUp = if (showNavigateUp) ({ navigateUp() }) else null,
             clickHandlers = clickHandlers(),
             suspendClickHandlers = suspendClickHandlers(),
@@ -456,7 +534,7 @@ abstract class PreferenceDelegateComposeFragment(
     @Composable
     private fun screenTitle(): String {
         val res = titleRes.takeIf { it != 0 }
-            ?: (provider as? PreferenceDelegateOwner)?.title?.takeIf { it != 0 }
+            ?: (providers.singleOrNull() as? PreferenceDelegateOwner)?.title?.takeIf { it != 0 }
         if (res != null) return stringResource(res)
         return findNavController().currentDestination?.label?.toString()
             ?: stringResource(R.string.trime_app_name)
