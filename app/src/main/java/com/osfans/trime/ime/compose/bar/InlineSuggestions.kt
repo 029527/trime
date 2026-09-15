@@ -16,7 +16,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,10 +25,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.viewinterop.AndroidView
 
 /** Autofill chips inflated by the system, kept as the [InlineContentView]s it hands out. */
@@ -78,13 +82,17 @@ internal fun InlineSuggestions(
                     }
                 }
             }
-            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            // the strip width comes from placement, not BoxWithConstraints: the IME's ConstraintLayout
+            // measures twice with different constraints, which would recompose this every frame
+            var stripWidth by remember { mutableIntStateOf(0) }
+            val density = LocalDensity.current
+            Box(modifier = Modifier.fillMaxSize().onSizeChanged { stripWidth = it.width }) {
                 Row(
                     modifier =
                     Modifier
                         .fillMaxHeight()
                         .horizontalScroll(rememberScrollState())
-                        .widthIn(min = maxWidth),
+                        .widthIn(min = with(density) { stripWidth.toDp() }),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

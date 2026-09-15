@@ -8,7 +8,6 @@ package com.osfans.trime.ime.compose.candidates.unrolled
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +37,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -174,10 +174,14 @@ fun UnrolledCandidates(
         remember(colors) {
             ColorManager.getDecorDrawable("candidate_background", "candidate_border_color", config.borderPx, config.borderRadiusPx)
         }
-    BoxWithConstraints(
+    // the width comes from placement, not from constraints: the IME's ConstraintLayout also measures
+    // with a wider AT_MOST probe, and BoxWithConstraints would recompose (and relayout) every frame
+    var widthPx by remember { mutableIntStateOf(0) }
+    Box(
         modifier =
         modifier
             .fillMaxSize()
+            .onSizeChanged { widthPx = it.width }
             .drawBehind {
                 val d = background ?: return@drawBehind
                 drawIntoCanvas {
@@ -189,7 +193,6 @@ fun UnrolledCandidates(
         val measurer = rememberTextMeasurer(cacheSize = 0)
         val textStyle = remember(fonts, tokens) { TextStyle(fontFamily = fonts.candidate, fontSize = tokens.candidateTextSize) }
         val commentStyle = remember(fonts, tokens) { TextStyle(fontFamily = fonts.comment, fontSize = tokens.candidateCommentTextSize) }
-        val widthPx = constraints.maxWidth
         val items = state.items
         // natural widths only grow with the list, so a loaded page measures just its own items
         val widths = remember(state.generation, widthPx, textStyle) { ArrayList<Int>() }
@@ -208,7 +211,8 @@ fun UnrolledCandidates(
                         widths.add(maxOf(minWidth, w + padding))
                     }
                 }
-                chunkRows(widths, items.size, widthPx)
+                // not placed yet: an empty first frame beats one row per candidate
+                if (widthPx <= 0) emptyList() else chunkRows(widths, items.size, widthPx)
             }
 
         LaunchedEffect(state) {
