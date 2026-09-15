@@ -17,9 +17,9 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.FirstPage
 import androidx.compose.material.icons.outlined.HighlightAlt
+import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LastPage
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.SelectAll
@@ -43,14 +43,14 @@ import androidx.compose.ui.unit.dp
  * |---|---|---|
  * | `backspace-outline` | Backspace (auto-mirrored) | backspace key |
  * | `apple-keyboard-shift` | [Shift], an outlined arrow drawn here | shift key |
- * | `web` | Language | globe key |
+ * | `keyboard-outline` | Keyboard | bottom row: schema menu |
  * | `emoticon-outline` | EmojiEmotions | emoji key |
  * | `microphone-outline` | Mic | voice key |
  * | `select-all` | SelectAll | hint on `a` |
  * | `content-cut` / `content-copy` / `content-paste` | ContentCut / ContentCopy / ContentPaste | hints on `x` `c` `v` |
  * | `menu-down` | KeyboardArrowDown | toolbar: hide keyboard |
- * | `cursor-text` | Edit | toolbar: edit panel |
- * | `clipboard-outline` | ContentPaste | toolbar: clipboard |
+ * | `cursor-text` | Edit | toolbar and bottom row: edit panel |
+ * | `clipboard-outline` | ContentPaste | toolbar and bottom row: clipboard |
  * | `arrow-left` | ArrowBack (auto-mirrored) | back button of a panel's bar |
  */
 object ImeIcons {
@@ -97,7 +97,7 @@ object ImeIcons {
     fun vector(name: String): ImageVector? = when (name.removePrefix(PREFIX).replace('_', '-')) {
         "backspace-outline" -> Icons.AutoMirrored.Outlined.Backspace
         "apple-keyboard-shift" -> Shift
-        "web" -> Icons.Outlined.Language
+        "keyboard-outline" -> Icons.Outlined.Keyboard
         "emoticon-outline" -> Icons.Outlined.EmojiEmotions
         "microphone-outline" -> Icons.Outlined.Mic
         "select-all" -> SelectAll

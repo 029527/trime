@@ -37,11 +37,33 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
   - `commit("[")`：不经 Rime，直接上屏，键面显示同样的字，可以用 `label =` 另给键面文字；
   - `text("：")`：按键序列经 Rime 发送（可以写 `{Left}` 这种 keysym），同样可以带 `label`。
 - 功能键底色写 `keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK`。
-- `bottomBar` 是竖屏最底下那行（地球 / emoji / 麦克风），好几个键盘共用，改一处全都生效。
+- `bottomBar` 是竖屏最底下那行，好几个键盘共用，改一处全都生效，见下一节。
 - 键盘 id 不能随便改：输入方案会按 id 选键盘，`select = "symbols"` 这类预设键也按 id 切换；`t9_land` 靠
   「同名 + `_land`」在横屏自动替换 `t9`。
 
 加新的预设键就在 `BuiltinKeys.kt` 里加一条 `"名字" to PresetKey(...)`，字段和原来 yaml 的 `preset_keys` 一样，只是改成了驼峰命名。
+
+## 底行按钮
+
+`BuiltinKeyboards.kt` 的 `bottomBar`，接在 `default`、`english`、`t9`、`symbols`、`symbols2`、`symbols_en`、`symbols2_en`、
+`number` 的最后。`t9_land` 没有这一行。一行 44（其余行 53），透明底只画图标，按下时叠功能键的按下色；
+每个键都带 `hideInLandscape`，横屏整行不排版。
+
+| 位置 | 宽度 | 预设键 | 点击 | 长按 | 图标 |
+| --- | --- | --- | --- | --- | --- |
+| 左下角 | 12 | `ios_schema` | 发 `MENU`：弹出方案选单（已启用的方案单选，外加「其他输入法」按钮） | `IME_switch`：系统输入法选择器 | `ic@keyboard-outline` → Keyboard |
+| 空白 | 8 | — | | | |
+| 中间 | 20 | `ios_emoji` | 表情面板 | — | `ic@emoticon-outline` → EmojiEmotions |
+| 中间 | 20 | `ios_clipboard` | 命令 `clipboard_window`：剪贴板窗口 | — | `ic@clipboard-outline` → ContentPaste |
+| 中间 | 20 | `ios_edit` | 命令 `edit_panel`：编辑面板（方向键、选择、行首行尾、全选剪切复制粘贴） | — | `ic@cursor-text` → Edit（铅笔，和工具栏同一个） |
+| 空白 | 8 | — | | | |
+| 右下角 | 12 | `ios_mic` | 语音输入（按住说话） | — | `ic@microphone-outline` → Mic |
+
+- 两个角保留原来地球 / 麦克风的 12% 格子，图标位置不变；中间三个等宽 20%（竖屏约 82dp 宽），和两角之间各空 8%，
+  五个图标的间距是 24 / 20 / 20 / 24%，看起来均匀，每个触摸区都比 44dp 大。
+- 剪贴板和编辑面板用单独的 `ios_clipboard` / `ios_edit`，不直接写 `clipboard_window` / `edit_panel`：那两个预设键的
+  `label` 是文字，写在按键上的 `label` 在英文（ascii）状态下会被预设键的文字顶掉，键面就从图标变成「剪贴」「编辑」。
+- 原来的 `ios_globe`（`Control+Shift+1` 轮换方案）已删除：方案多于两个时轮换不如直接选。
 
 ## 改工具栏
 

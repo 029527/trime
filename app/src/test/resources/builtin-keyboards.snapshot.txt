@@ -1,4 +1,4 @@
-# default width=10.0 height=53.0 ascii=english keys=40
+# default width=10.0 height=53.0 ascii=english keys=43
 0 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=q) SWIPE_UP=Plain(token=1) LONG_CLICK=Plain(token=1)
 1 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=w) SWIPE_UP=Plain(token=2) LONG_CLICK=Plain(token=2)
 2 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=e) SWIPE_UP=Plain(token=3) LONG_CLICK=Plain(token=3)
@@ -35,11 +35,14 @@
 33 w=10.0 h=0.0 label="。" symbol="" hint="" CLICK=Plain(token=.)
 34 w=12.0 h=0.0 label="" symbol=" " hint="" CLICK=Plain(token=ios_to_en) LONG_CLICK=Plain(token=Menu)
 35 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
-36 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
-37 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
-38 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
-39 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
-# english width=10.0 height=53.0 ascii=english keys=40
+36 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_schema) LONG_CLICK=Plain(token=IME_switch)
+37 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+38 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+39 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_clipboard)
+40 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_edit)
+41 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+42 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# english width=10.0 height=53.0 ascii=english keys=43
 0 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=q) SWIPE_UP=Plain(token=1) LONG_CLICK=Plain(token=1)
 1 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=w) SWIPE_UP=Plain(token=2) LONG_CLICK=Plain(token=2)
 2 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=e) SWIPE_UP=Plain(token=3) LONG_CLICK=Plain(token=3)
@@ -76,11 +79,14 @@
 33 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=., text=null, label=.))
 34 w=12.0 h=0.0 label="" symbol=" " hint="" CLICK=Plain(token=ios_to_zh) LONG_CLICK=Plain(token=Menu)
 35 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
-36 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
-37 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
-38 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
-39 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
-# number width=25.0 height=53.0 ascii= keys=20
+36 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_schema) LONG_CLICK=Plain(token=IME_switch)
+37 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+38 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+39 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_clipboard)
+40 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_edit)
+41 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+42 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# number width=25.0 height=53.0 ascii= keys=23
 0 w=0.0 h=0.0 label="1" symbol="" hint="" CLICK=Plain(token=KP_1)
 1 w=0.0 h=0.0 label="2" symbol="" hint="" CLICK=Plain(token=KP_2)
 2 w=0.0 h=0.0 label="3" symbol="" hint="" CLICK=Plain(token=KP_3)
@@ -97,11 +103,14 @@
 13 w=0.0 h=0.0 label="0" symbol="" hint="" CLICK=Plain(token=KP_0)
 14 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=,, text=null, label=,))
 15 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
-16 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
-17 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
-18 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
-19 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
-# symbols width=10.0 height=53.0 ascii= keys=35
+16 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_schema) LONG_CLICK=Plain(token=IME_switch)
+17 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+18 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+19 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_clipboard)
+20 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_edit)
+21 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+22 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# symbols width=10.0 height=53.0 ascii= keys=38
 0 w=0.0 h=0.0 label="1" symbol="" hint="" CLICK=Plain(token=KP_1)
 1 w=0.0 h=0.0 label="2" symbol="" hint="" CLICK=Plain(token=KP_2)
 2 w=0.0 h=0.0 label="3" symbol="" hint="" CLICK=Plain(token=KP_3)
@@ -133,11 +142,14 @@
 28 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_abc)
 29 w=66.0 h=0.0 label="空格" symbol="" hint="" CLICK=Plain(token=ios_space)
 30 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
-31 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
-32 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
-33 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
-34 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
-# symbols2 width=10.0 height=53.0 ascii= keys=34
+31 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_schema) LONG_CLICK=Plain(token=IME_switch)
+32 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+33 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+34 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_clipboard)
+35 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_edit)
+36 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+37 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# symbols2 width=10.0 height=53.0 ascii= keys=37
 0 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=[, text=null, label=[))
 1 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=], text=null, label=]))
 2 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit={, text=null, label={))
@@ -168,11 +180,14 @@
 27 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_abc)
 28 w=66.0 h=0.0 label="空格" symbol="" hint="" CLICK=Plain(token=ios_space)
 29 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
-30 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
-31 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
-32 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
-33 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
-# symbols2_en width=10.0 height=53.0 ascii= keys=34
+30 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_schema) LONG_CLICK=Plain(token=IME_switch)
+31 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+32 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+33 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_clipboard)
+34 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_edit)
+35 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+36 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# symbols2_en width=10.0 height=53.0 ascii= keys=37
 0 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=[, text=null, label=[))
 1 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=], text=null, label=]))
 2 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit={, text=null, label={))
@@ -203,11 +218,14 @@
 27 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_abc)
 28 w=66.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_space)
 29 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
-30 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
-31 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
-32 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
-33 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
-# symbols_en width=10.0 height=53.0 ascii= keys=34
+30 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_schema) LONG_CLICK=Plain(token=IME_switch)
+31 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+32 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+33 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_clipboard)
+34 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_edit)
+35 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+36 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# symbols_en width=10.0 height=53.0 ascii= keys=37
 0 w=0.0 h=0.0 label="1" symbol="" hint="" CLICK=Plain(token=KP_1)
 1 w=0.0 h=0.0 label="2" symbol="" hint="" CLICK=Plain(token=KP_2)
 2 w=0.0 h=0.0 label="3" symbol="" hint="" CLICK=Plain(token=KP_3)
@@ -238,11 +256,14 @@
 27 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_abc)
 28 w=66.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_space)
 29 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
-30 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
-31 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
-32 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
-33 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
-# t9 width=20.0 height=53.0 ascii=english keys=24
+30 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_schema) LONG_CLICK=Plain(token=IME_switch)
+31 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+32 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+33 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_clipboard)
+34 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_edit)
+35 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+36 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# t9 width=20.0 height=53.0 ascii=english keys=28
 0 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=,)
 1 w=22.0 h=0.0 label="分词" symbol="" hint="" CLICK=Plain(token=')
 2 w=22.0 h=0.0 label="ABC" symbol="" hint="" CLICK=Plain(token=2)
@@ -264,9 +285,13 @@
 18 w=30.0 h=0.0 label="空格" symbol="" hint="" CLICK=Plain(token=ios_space)
 19 w=14.0 h=0.0 label="ZH" symbol="" hint="" CLICK=Plain(token=ios_to_en)
 20 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
-21 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
-22 w=76.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
-23 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+21 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_schema) LONG_CLICK=Plain(token=IME_switch)
+22 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+23 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+24 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_clipboard)
+25 w=20.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_edit)
+26 w=8.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+27 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
 # t9_land width=20.0 height=53.0 ascii=english keys=35
 0 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=+, text=null, label=+))
 1 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=1, text=null, label=1))
@@ -395,12 +420,14 @@ preset cut_all label="全挪" send="" command="" option="" select=""
 preset edit_panel label="编辑" send="FUNCTION" command="edit_panel" option="" select=""
 preset ios_abc label="ABC" send="Eisu_toggle" command="" option="" select=".last_lock"
 preset ios_backspace label="ic@backspace-outline" send="BackSpace" command="" option="" select=""
+preset ios_clipboard label="ic@clipboard-outline" send="FUNCTION" command="clipboard_window" option="0" select=""
+preset ios_edit label="ic@cursor-text" send="FUNCTION" command="edit_panel" option="" select=""
 preset ios_emoji label="ic@emoticon-outline" send="FUNCTION" command="liquid_keyboard" option="emoji" select=""
-preset ios_globe label="ic@web" send="Control+Shift+1" command="" option="" select=""
 preset ios_kaomoji label="^_^" send="FUNCTION" command="liquid_keyboard" option="yanwenzi" select=""
 preset ios_mic label="ic@microphone-outline" send="" command="voice_input" option="" select=""
 preset ios_number label="123" send="Eisu_toggle" command="" option="" select="number"
 preset ios_return label="enter_labels" send="Return" command="" option="" select=""
+preset ios_schema label="ic@keyboard-outline" send="MENU" command="" option="" select=""
 preset ios_shift label="ic@apple-keyboard-shift" send="Shift_L" command="" option="" select=""
 preset ios_space label="space" send="space" command="" option="" select=""
 preset ios_symbols label="123" send="Eisu_toggle" command="" option="" select="symbols"

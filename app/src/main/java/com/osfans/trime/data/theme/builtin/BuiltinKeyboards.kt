@@ -22,12 +22,21 @@ private const val FUNC_KEY_HILITED_BACK = "func_key_hilited_back_color"
  * Action slots take [key] (preset key name, keysym or text), [commit] or [text].
  */
 object BuiltinKeyboards {
-    /** Last row shared by `default`, `english`, `symbols`, `symbols2`, `symbols_en`, `symbols2_en`, `number`. */
+    /**
+     * Last row shared by `default`, `english`, `t9`, `symbols`, `symbols2`, `symbols_en`, `symbols2_en`, `number`;
+     * portrait only. Corners keep the old globe / mic cells, the middle three share the rest evenly.
+     */
     private val bottomBar =
         listOf(
-            TextKey(click = key("ios_globe"), labelSymbol = " ", longClick = key("IME_switch"), width = 12f, height = 44f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
-            TextKey(click = key("ios_emoji"), width = 12f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
-            TextKey(width = 64f, hideInLandscape = true),
+            // 左下角：方案选单，长按选系统输入法
+            TextKey(click = key("ios_schema"), labelSymbol = " ", longClick = key("IME_switch"), width = 12f, height = 44f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
+            TextKey(width = 8f, hideInLandscape = true),
+            // 中间：表情、剪贴板、编辑面板（方向键）
+            TextKey(click = key("ios_emoji"), width = 20f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
+            TextKey(click = key("ios_clipboard"), width = 20f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
+            TextKey(click = key("ios_edit"), width = 20f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
+            TextKey(width = 8f, hideInLandscape = true),
+            // 右下角：语音
             TextKey(click = key("ios_mic"), width = 12f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
         )
 
@@ -177,11 +186,7 @@ object BuiltinKeyboards {
                 TextKey(click = key("ios_space"), label = "空格", width = 30f),
                 TextKey(click = key("ios_to_en"), label = "ZH", width = 14f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
                 TextKey(click = key("ios_return"), width = 14f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                // 第 5 行：ios_globe _ ios_mic
-                TextKey(click = key("ios_globe"), labelSymbol = " ", longClick = key("IME_switch"), width = 12f, height = 44f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
-                TextKey(width = 76f, hideInLandscape = true),
-                TextKey(click = key("ios_mic"), width = 12f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
-            ),
+            ) + bottomBar,
         )
 
     private val t9Land =
