@@ -40,9 +40,8 @@ class KeyboardRenderState(
     val labelEnter: String get() = enterLabel()
     val isEnterPrimaryAction: Boolean get() = enterPrimaryAction()
 
-    // Optional colors for the enter key when the editor asks for a primary action
-    // (go / search / send / done), like the blue return key on iOS. Only used when the
-    // color scheme defines them.
+    // The enter key always wears the accent (enter_key_action_*), whatever the editor asks for;
+    // when a scheme does not define them the key keeps its own colours.
     // Re-resolved after a scheme or tint change, like the per-key colours in Key.
     val actionKeyBackground: Drawable? by colorCached {
         runCatching { ColorManager.getDrawable("enter_key_action_back_color") }.getOrNull()

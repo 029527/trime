@@ -326,6 +326,7 @@ private fun SymbolBarKeyView(
                 val back = when {
                     !pressed -> if (key.functional) colors.functionKeyBack else colors.keyBack
                     key.functional && tokens.keyPressedFunctionSwap -> colors.keyBack
+                    key.functional -> colors.highlightedFunctionKeyBack
                     else -> colors.highlightedKeyBack
                 }
                 drawKeyBody(back, tokens.keyCornerRadius, insetX, insetY)

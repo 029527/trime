@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -30,6 +31,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -44,6 +46,7 @@ import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.KeyActionManager
 import com.osfans.trime.data.theme.model.ToolBar
 import com.osfans.trime.ime.compose.theme.ImeColors
+import com.osfans.trime.ime.compose.theme.ImeIcons
 import com.osfans.trime.ime.compose.theme.LocalImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeFonts
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
@@ -183,11 +186,12 @@ private fun ConfiguredButton(
         remember(style, colors) {
             when {
                 IMAGE_PATTERN.matches(style) -> ColorManager.getDrawable(style)?.let { ButtonImage(it, tinted = false) }
-                style.startsWith(ICON_PREFIX) ->
+                style.startsWith(ICON_PREFIX) && ImeIcons.vector(style) == null ->
                     ButtonImage(IconicsDrawable(context, style.toIconName()).apply { sizeDp = fg.fontSize.toInt() }, tinted = true)
                 else -> null
             }
         }
+    val vector = remember(style) { ImeIcons.vector(style) }
     val foreground = if (isPressed) palette.pressedForeground else palette.foreground
     container {
         Box(
@@ -213,7 +217,14 @@ private fun ConfiguredButton(
                 }.padding(fg.padding.dp),
             contentAlignment = Alignment.Center,
         ) {
-            if (image != null) {
+            if (vector != null) {
+                Image(
+                    painter = rememberVectorPainter(vector),
+                    contentDescription = null,
+                    modifier = Modifier.size(fg.fontSize.dp),
+                    colorFilter = ColorFilter.tint(foreground),
+                )
+            } else if (image != null) {
                 Image(
                     painter = remember(image) { DrawablePainter(image.drawable) },
                     contentDescription = null,

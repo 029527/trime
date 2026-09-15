@@ -33,9 +33,12 @@ data class ImeTokens(
     val candidateHorizontalPadding: Dp = 12.dp,
     /** Gap between a candidate's text and its comment. */
     val candidateCommentGap: Dp = 2.dp,
-    /** The highlighted candidate's block hugs the text, this much on every side. */
-    val candidateHighlightPadding: Dp = 4.dp,
-    val candidateHighlightCornerRadius: Dp = 6.dp,
+    /** The highlighted candidate's pill hugs the text: this much beside it... */
+    val candidateHighlightPaddingHorizontal: Dp = 8.dp,
+    /** ...and this much above and below. */
+    val candidateHighlightPaddingVertical: Dp = 4.dp,
+    /** More than half the block's height, so the block is a pill whatever the text size. */
+    val candidateHighlightCornerRadius: Dp = 50.dp,
     /** Height of the candidate row itself (a landscape bar may add a preedit line above it). */
     val candidateBarHeight: Dp = 48.dp,
     // preedit
@@ -44,16 +47,17 @@ data class ImeTokens(
     val preeditT9TextSize: TextUnit = 13.sp,
     val preeditHorizontalPadding: Dp = 8.dp,
     val preeditVerticalPadding: Dp = 2.dp,
-    val preeditCornerRadius: Dp = 6.dp,
+    val preeditCornerRadius: Dp = 12.dp,
     // keyboard frame
-    /** Top corners of the whole keyboard window (candidate bar included). */
-    val keyboardCornerRadius: Dp = 26.dp,
+    /** Corners of a floating keyboard window. A docked keyboard is flat, edge to edge, like Gboard. */
+    val keyboardCornerRadius: Dp = 16.dp,
     /** Left / right inset of the key grid from the window edge. */
     val keyboardHorizontalPadding: Dp = 3.dp,
     /** Row pitch, gap included: key body = keyRowHeight - keyVerticalGap. */
     val keyRowHeight: Dp = 53.dp,
     // keys
-    val keyCornerRadius: Dp = 6.dp,
+    /** Rounder than a small square, not a pill: a 34dp-wide key stays a key. */
+    val keyCornerRadius: Dp = 10.dp,
     /** Gap between keys in a row; drawn as padding, so it stays part of the touch target. */
     val keyHorizontalGap: Dp = 6.dp,
     val keyVerticalGap: Dp = 8.dp,
@@ -63,10 +67,12 @@ data class ImeTokens(
     val keyLabelTextSize: TextUnit = 16.sp,
     /** A run of letters on a key that types a character: the nine-key `ABC` / `PQRS` keys are letter keys, not controls. */
     val keyLetterGroupTextSize: TextUnit = 20.sp,
-    /** Glyph keys: shift, backspace, globe, mic, emoji. */
-    val keyIconSize: Dp = 22.dp,
+    /** Glyph keys: shift, backspace, globe, mic, emoji. A Material glyph fills about 20 of its 24dp. */
+    val keyIconSize: Dp = 24.dp,
     /** The swipe-up / long-press hint printed on a key. */
     val keySymbolTextSize: TextUnit = 10.sp,
+    /** A glyph hint (select all, cut, copy, paste) in the top-end corner; a little larger than the text hint, for the glyph's padding. */
+    val keySymbolIconSize: Dp = 13.dp,
     /** Hints sit in the top-end corner, out of the letter's way. */
     val keySymbolInsetTop: Dp = 3.dp,
     val keySymbolInsetEnd: Dp = 5.dp,
@@ -98,14 +104,19 @@ data class ImeTokens(
     val keyPreviewWidth: Dp = 44.dp,
     val keyPreviewHeight: Dp = 56.dp,
     val keyPreviewTextSize: TextUnit = 30.sp,
-    /** Function keys get no bubble; while held they swap to the letter-key shade instead. */
-    val keyPressedFunctionSwap: Boolean = true,
+    /**
+     * Function keys get no bubble. While held they take their own pressed tone (a state layer), not
+     * the letter-key shade: panels that draw function keys themselves read this.
+     */
+    val keyPressedFunctionSwap: Boolean = false,
+    /** The enter key is a pill in the accent colour, the one key that is not a rounded rectangle. */
+    val enterKeyPill: Boolean = true,
     // key preview bubble and popup keyboard
-    // Looks follow iOS: a light rounded block with a soft shadow, sitting just above the key.
+    // Material surfaces: a rounded block with a low elevation, sitting just above the key.
     /** Space between the top of the key body and the bottom of the bubble / popup keyboard. */
     val popupAnchorGap: Dp = 2.dp,
-    /** Rounder than a key (6dp): the bubble is taller and floats over the app. */
-    val popupPreviewCornerRadius: Dp = 8.dp,
+    /** Rounder than a key: the bubble is taller and floats over the app. */
+    val popupPreviewCornerRadius: Dp = 14.dp,
     /** Just enough to lift the bubble off same-coloured keys. */
     val popupShadowElevation: Dp = 3.dp,
     /** Cells of the long-press keyboard are as wide as the bubble, so a held key reads the same. */
@@ -113,9 +124,9 @@ data class ImeTokens(
     val popupKeyboardCellHeight: Dp = 48.dp,
     val popupKeyboardTextSize: TextUnit = 24.sp,
     val popupKeyboardPadding: Dp = 4.dp,
-    val popupKeyboardCornerRadius: Dp = 10.dp,
-    /** Focused cell's block; same radius as a key. */
-    val popupKeyboardHighlightCornerRadius: Dp = 6.dp,
+    val popupKeyboardCornerRadius: Dp = 16.dp,
+    /** Focused cell's block, in the accent colour; as round as a key. */
+    val popupKeyboardHighlightCornerRadius: Dp = 10.dp,
     // symbol panel
     // Corners, gaps, and type sizes come from the key group, so a cell looks like a key.
     /** Narrowest single cell when the source gives none; wide enough for one 22sp emoji plus gaps. */
@@ -138,6 +149,8 @@ data class ImeTokens(
     val panelSwitchCellMinWidth: Dp = 88.dp,
     val panelSwitchCellHeight: Dp = 96.dp,
     val panelSwitchTileSize: Dp = 48.dp,
+    /** A Material quick-settings tile: rounder than a key. */
+    val panelSwitchTileCornerRadius: Dp = 16.dp,
     val panelSwitchIconSize: Dp = 24.dp,
     val panelSwitchGlyphTextSize: TextUnit = 20.sp,
     val panelSwitchLabelTextSize: TextUnit = 12.sp,
@@ -159,14 +172,14 @@ data class ImeTokens(
     val barUnrollButtonWidth: Dp = 40.dp,
     /** Plain icon buttons (hide keyboard, unroll, back) leave this much around the glyph. */
     val barIconButtonPadding: Dp = 4.dp,
-    /** Pressed plain icon buttons get a rounded block of the highlight colour. */
-    val barIconButtonCornerRadius: Dp = 8.dp,
+    /** Pressed plain icon buttons get a round block of the highlight colour. */
+    val barIconButtonCornerRadius: Dp = 20.dp,
     val barClipboardIconSize: Dp = 20.dp,
     val barClipboardSpacing: Dp = 4.dp,
     val barClipboardMaxTextWidth: Dp = 220.dp,
     /** The clipboard suggestion chip keeps this much off the top and bottom of the bar. */
     val barClipboardVerticalMargin: Dp = 4.dp,
-    val barClipboardCornerRadius: Dp = 8.dp,
+    val barClipboardCornerRadius: Dp = 20.dp,
     /** Characters of the clip shown in the suggestion; the rest is cut before measuring. */
     val barClipboardPreviewLength: Int = 42,
     val barInlinePinnedHorizontalMargin: Dp = 10.dp,
@@ -180,10 +193,10 @@ data class ImeTokens(
     val editPanelCommandColumnFraction: Float = 0.28f,
     /** Width of the up / select / down column against the left and right arrows at 1 each. */
     val editPanelCenterColumnWeight: Float = 1.4f,
-    /** The arrows show only a glyph, so it is as large as a key's icon plus a little. */
-    val editPanelArrowIconSize: Dp = 26.dp,
+    /** The arrows show only a chevron, which fills half of its box: larger than a key's icon. */
+    val editPanelArrowIconSize: Dp = 30.dp,
     /** Glyph of a cell that also has a label. */
-    val editPanelIconSize: Dp = 20.dp,
+    val editPanelIconSize: Dp = 22.dp,
     val editPanelLabelTextSize: TextUnit = 14.sp,
     val editPanelIconLabelGap: Dp = 2.dp,
     /** Label beside the glyph instead of under it: a landscape row is too short for both stacked. */
@@ -195,21 +208,23 @@ data class ImeTokens(
             candidateTextSize = 18.sp,
             candidateCommentTextSize = 12.sp,
             candidateHorizontalPadding = 10.dp,
-            candidateHighlightPadding = 3.dp,
-            candidateHighlightCornerRadius = 5.dp,
+            candidateHighlightPaddingHorizontal = 6.dp,
+            candidateHighlightPaddingVertical = 3.dp,
             candidateBarHeight = 32.dp,
             preeditTextSize = 14.sp,
             preeditT9TextSize = 12.sp,
             preeditHorizontalPadding = 6.dp,
             preeditVerticalPadding = 1.dp,
-            preeditCornerRadius = 5.dp,
+            preeditCornerRadius = 10.dp,
             keyboardHorizontalPadding = 40.dp,
             keyRowHeight = 40.dp,
+            keyCornerRadius = 8.dp,
             keyVerticalGap = 6.dp,
             keyTextSize = 20.sp,
             keyLabelTextSize = 14.sp,
             keyLetterGroupTextSize = 18.sp,
-            keyIconSize = 20.dp,
+            keyIconSize = 22.dp,
+            keySymbolIconSize = 12.dp,
             keySymbolTextSize = 9.sp,
             keySymbolInsetTop = 2.dp,
             keySymbolInsetEnd = 4.dp,
@@ -217,8 +232,8 @@ data class ImeTokens(
             keyPreviewTextSize = 26.sp,
             popupKeyboardCellHeight = 40.dp,
             popupKeyboardTextSize = 22.sp,
-            editPanelArrowIconSize = 22.dp,
-            editPanelIconSize = 18.dp,
+            editPanelArrowIconSize = 26.dp,
+            editPanelIconSize = 20.dp,
             editPanelIconLabelGap = 6.dp,
             editPanelLabelBesideIcon = true,
         )

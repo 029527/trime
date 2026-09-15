@@ -21,7 +21,7 @@ object BuiltinStyle {
             candidateTextVerticalBias = 0.5f,
             candidateViewHeight = 52,
             candidateViewHeightLand = 32,
-            candidateCornerRadius = 6f,
+            candidateCornerRadius = 12f,
             hilitedCandidatePadding = 4f,
             commentTextSize = 14f,
             horizontalGap = 6,
@@ -40,13 +40,13 @@ object BuiltinStyle {
             labelTextSize = 16f,
             keyboardHeight = 256,
             keyboardHeightLand = 160,
-            keyboardCornerRadius = 26f,
+            keyboardCornerRadius = 16f,
             popupBottomMargin = 62,
             popupWidth = 44,
             popupHeight = 56,
             popupKeyHeight = 48,
             popupTextSize = 30f,
-            roundCorner = 6f,
+            roundCorner = 10f,
             symbolTextSize = 10f,
             verticalGap = 8,
             enterLabel = GeneralStyle.EnterLabel(
@@ -63,8 +63,8 @@ object BuiltinStyle {
     /** Inline preedit bar above the candidates. */
     val preedit =
         Preedit(
-            topStartRadius = 6f,
-            topEndRadius = 6f,
+            topStartRadius = 12f,
+            topEndRadius = 12f,
             alpha = 1f,
         )
 

@@ -64,10 +64,12 @@ class DayNightMigrationTest :
             DayNightMigration.resolve(null, "ios_light") shouldBe DayNightMode.LIGHT
         }
 
-        test("内置配色的深浅按底色判断") {
+        test("内置配色的深浅按底色判断，旧方案 id 也认") {
             DayNightMigration.isBuiltinDarkScheme("ios_dark") shouldBe true
             DayNightMigration.isBuiltinDarkScheme("ios_light") shouldBe false
             DayNightMigration.isBuiltinDarkScheme("no_such_scheme") shouldBe false
+            DayNightMigration.isBuiltinDarkScheme("dark") shouldBe true
+            DayNightMigration.isBuiltinDarkScheme("light") shouldBe false
         }
     })
 

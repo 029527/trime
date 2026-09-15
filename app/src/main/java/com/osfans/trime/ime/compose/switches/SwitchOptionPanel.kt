@@ -95,7 +95,7 @@ private fun SwitchOptionCell(
                 modifier =
                 Modifier
                     .size(tokens.panelSwitchTileSize)
-                    .clip(RoundedCornerShape(tokens.keyCornerRadius))
+                    .clip(RoundedCornerShape(tokens.panelSwitchTileCornerRadius))
                     .background(if (pressed) colors.highlightedKeyBack else colors.keyBack),
                 contentAlignment = Alignment.Center,
             ) {

@@ -85,7 +85,7 @@ private fun SymbolTab(
         modifier = Modifier
             .fillMaxHeight()
             .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = (tokens.candidateHorizontalPadding - tokens.candidateHighlightPadding).coerceAtLeast(0.dp)),
+            .padding(horizontal = (tokens.candidateHorizontalPadding - tokens.candidateHighlightPaddingHorizontal).coerceAtLeast(0.dp)),
         contentAlignment = Alignment.Center,
     ) {
         BasicText(
@@ -96,7 +96,7 @@ private fun SymbolTab(
                         val radius = tokens.candidateHighlightCornerRadius.toPx()
                         drawRoundRect(colors.highlightedCandidateBack, cornerRadius = CornerRadius(radius, radius))
                     }
-                }.padding(tokens.candidateHighlightPadding),
+                }.padding(horizontal = tokens.candidateHighlightPaddingHorizontal, vertical = tokens.candidateHighlightPaddingVertical),
             style = style,
             color = { if (isSelected()) colors.highlightedCandidateText else colors.candidateText },
             maxLines = 1,

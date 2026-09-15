@@ -326,7 +326,8 @@ private fun GridItem(
 ) {
     val colors = LocalImeColors.current
     val tokens = LocalImeTokens.current
-    val highlightPadding = tokens.candidateHighlightPadding
+    val highlightPaddingX = tokens.candidateHighlightPaddingHorizontal
+    val highlightPaddingY = tokens.candidateHighlightPaddingVertical
     val coordinates = remember { arrayOfNulls<LayoutCoordinates>(1) }
     Box(
         modifier =
@@ -348,7 +349,7 @@ private fun GridItem(
                     onLongPress(bounds)
                 },
                 onClick = onClick,
-            ).padding(horizontal = (tokens.candidateHorizontalPadding - highlightPadding).coerceAtLeast(0.dp)),
+            ).padding(horizontal = (tokens.candidateHorizontalPadding - highlightPaddingX).coerceAtLeast(0.dp)),
         contentAlignment = Alignment.Center,
     ) {
         Row(
@@ -359,7 +360,7 @@ private fun GridItem(
                         val r = tokens.candidateHighlightCornerRadius.toPx()
                         drawRoundRect(colors.highlightedCandidateBack, cornerRadius = CornerRadius(r, r))
                     }
-                }.padding(highlightPadding),
+                }.padding(horizontal = highlightPaddingX, vertical = highlightPaddingY),
         ) {
             BasicText(
                 text = candidate.text,

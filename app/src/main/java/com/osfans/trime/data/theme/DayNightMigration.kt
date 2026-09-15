@@ -55,9 +55,10 @@ object DayNightMigration {
         }
     }
 
-    /** Whether the built-in scheme [id] has a dark background; unknown ids are light. */
+    /** Whether the built-in scheme [id] (a current or [legacy][BuiltinColors.legacyIds] id) has a dark background; unknown ids are light. */
     fun isBuiltinDarkScheme(id: String): Boolean {
-        val colors = BuiltinColors.schemes.find { it.id == id }?.colors ?: return false
+        val current = BuiltinColors.legacyIds[id] ?: id
+        val colors = BuiltinColors.schemes.find { it.id == current }?.colors ?: return false
         for (key in arrayOf("back_color", "keyboard_back_color", "key_back_color")) {
             val color = parseHexColor(colors[key] ?: continue) ?: continue
             return ColorTint.isDarkColor(color)

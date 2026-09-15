@@ -263,12 +263,10 @@ class InputView(
                 )
             }
 
-        // round the top corners of the whole keyboard area (candidate bar + keyboard),
-        // like iOS; the bottom edge is extended so only the top corners are clipped.
-        // A floating keyboard is rounded on all four corners.
+        // a docked keyboard is flat, edge to edge; a floating one is a card rounded on all four corners
         val cornerRadius = dp(theme.generalStyle.keyboardCornerRadius)
-        if (cornerRadius > 0f) {
-            val roundAll = isFloating
+        if (cornerRadius > 0f && isFloating) {
+            val roundAll = true
             keyboardView.outlineProvider =
                 object : ViewOutlineProvider() {
                     override fun getOutline(

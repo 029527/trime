@@ -52,10 +52,12 @@ data class ImeColors(
     /** Function keys (shift, backspace, 123...), `off_key_*` in the theme. */
     val functionKeyBack: Color,
     val functionKeyText: Color,
+    /** Function keys while pressed: a state layer over [functionKeyBack], `hilited_off_key_back_color`. */
+    val highlightedFunctionKeyBack: Color,
     /** Toggled-on keys (shift lock), `on_key_*` in the theme. */
     val onKeyBack: Color,
     val onKeyText: Color,
-    /** The one accent: the return key when the editor asks to go / search / send, and panel toggles that are on. */
+    /** The one accent: the enter key, toggles that are on, the focused cell of a long-press keyboard. */
     val accentBack: Color,
     val accentText: Color,
     val border: Color,
@@ -94,6 +96,7 @@ data class ImeColors(
                 highlightedKeyText = color("hilited_key_text_color"),
                 functionKeyBack = color("off_key_back_color"),
                 functionKeyText = color("off_key_text_color"),
+                highlightedFunctionKeyBack = color("hilited_off_key_back_color"),
                 onKeyBack = color("on_key_back_color"),
                 onKeyText = color("on_key_text_color"),
                 accentBack = color("enter_key_action_back_color"),

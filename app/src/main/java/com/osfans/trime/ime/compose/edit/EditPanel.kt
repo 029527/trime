@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -40,6 +43,7 @@ import com.osfans.trime.R
 import com.osfans.trime.ime.compose.bar.DrawablePainter
 import com.osfans.trime.ime.compose.symbol.barKeyGestures
 import com.osfans.trime.ime.compose.symbol.drawKeyBody
+import com.osfans.trime.ime.compose.theme.ImeIcons
 import com.osfans.trime.ime.compose.theme.LocalImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeFonts
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
@@ -81,7 +85,7 @@ fun EditPanel(
                 Column(Modifier.weight(tokens.editPanelCenterColumnWeight).fillMaxHeight()) {
                     KeyCell(EditKey.Up, onKey, Modifier.weight(1f).fillMaxWidth())
                     EditCell(
-                        icon = "select",
+                        icon = ImeIcons.EditSelect,
                         label = stringResource(R.string.edit_select),
                         level = if (selecting) CellLevel.On else CellLevel.Function,
                         repeatable = false,
@@ -121,12 +125,12 @@ private fun KeyCell(
 ) {
     val (icon, label) =
         when (key) {
-            EditKey.Up -> "arrow-up" to null
-            EditKey.Down -> "arrow-down" to null
-            EditKey.Left -> "arrow-left" to null
-            EditKey.Right -> "arrow-right" to null
-            EditKey.LineStart -> "page-first" to stringResource(R.string.edit_line_start)
-            EditKey.LineEnd -> "page-last" to stringResource(R.string.edit_line_end)
+            EditKey.Up -> ImeIcons.EditUp to null
+            EditKey.Down -> ImeIcons.EditDown to null
+            EditKey.Left -> ImeIcons.EditLeft to null
+            EditKey.Right -> ImeIcons.EditRight to null
+            EditKey.LineStart -> ImeIcons.EditLineStart to stringResource(R.string.edit_line_start)
+            EditKey.LineEnd -> ImeIcons.EditLineEnd to stringResource(R.string.edit_line_end)
         }
     EditCell(
         icon = icon,
@@ -146,10 +150,10 @@ private fun CommandCell(
 ) {
     val (icon, label) =
         when (command) {
-            EditCommand.SelectAll -> "select-all" to R.string.edit_select_all
-            EditCommand.Cut -> "content-cut" to R.string.edit_cut
-            EditCommand.Copy -> "content-copy" to R.string.edit_copy
-            EditCommand.Paste -> "content-paste" to R.string.edit_paste
+            EditCommand.SelectAll -> ImeIcons.SelectAll to R.string.edit_select_all
+            EditCommand.Cut -> ImeIcons.Cut to R.string.edit_cut
+            EditCommand.Copy -> ImeIcons.Copy to R.string.edit_copy
+            EditCommand.Paste -> ImeIcons.Paste to R.string.edit_paste
         }
     EditCell(
         icon = icon,
@@ -167,7 +171,7 @@ private fun CommandCell(
  */
 @Composable
 private fun EditCell(
-    icon: String,
+    icon: ImageVector,
     label: String?,
     level: CellLevel,
     repeatable: Boolean,
@@ -187,7 +191,7 @@ private fun EditCell(
     val currentTrigger by rememberUpdatedState(onTrigger)
     val trigger = remember { { currentTrigger() } }
     val iconSize: Dp = if (label == null) tokens.editPanelArrowIconSize else tokens.editPanelIconSize
-    val painter = remember(icon, iconSize) { DrawablePainter(IconicsDrawable(context, "cmd_$icon").apply { sizeDp = iconSize.value.toInt() }) }
+    val painter = rememberVectorPainter(icon)
     val foreground: Color =
         when (level) {
             CellLevel.Letter -> colors.keyText
@@ -206,7 +210,7 @@ private fun EditCell(
                             when {
                                 !pressed -> colors.functionKeyBack
                                 tokens.keyPressedFunctionSwap -> colors.keyBack
-                                else -> colors.highlightedKeyBack
+                                else -> colors.highlightedFunctionKeyBack
                             }
                     }
                 drawKeyBody(back, tokens.keyCornerRadius, insetX, insetY)
@@ -219,7 +223,8 @@ private fun EditCell(
                 Image(
                     painter = painter,
                     contentDescription = label,
-                    contentScale = ContentScale.Inside,
+                    modifier = Modifier.size(iconSize),
+                    contentScale = ContentScale.Fit,
                     colorFilter = ColorFilter.tint(foreground),
                 )
             }

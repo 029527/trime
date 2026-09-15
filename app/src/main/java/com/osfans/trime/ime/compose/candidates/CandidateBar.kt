@@ -245,7 +245,8 @@ private fun CandidateItem(
     val colors = LocalImeColors.current
     val fonts = LocalImeFonts.current
     val tokens = LocalImeTokens.current
-    val highlightPadding = tokens.candidateHighlightPadding
+    val highlightPaddingX = tokens.candidateHighlightPaddingHorizontal
+    val highlightPaddingY = tokens.candidateHighlightPaddingVertical
     // the weight is a layout input, so it is read in composition; derived, so only the two items
     // whose highlight flips recompose when it moves
     val highlighted by remember(isHighlighted) { derivedStateOf(isHighlighted) }
@@ -267,7 +268,7 @@ private fun CandidateItem(
                 hapticFeedbackEnabled = false,
                 onLongClick = onLongClick,
                 onClick = onClick,
-            ).padding(horizontal = (tokens.candidateHorizontalPadding - highlightPadding).coerceAtLeast(0.dp)),
+            ).padding(horizontal = (tokens.candidateHorizontalPadding - highlightPaddingX).coerceAtLeast(0.dp)),
         contentAlignment = Alignment.Center,
     ) {
         // the highlight is drawn, not composed: moving it only redraws the two items involved
@@ -279,7 +280,7 @@ private fun CandidateItem(
                         val radius = tokens.candidateHighlightCornerRadius.toPx()
                         drawRoundRect(colors.highlightedCandidateBack, cornerRadius = CornerRadius(radius, radius))
                     }
-                }.padding(highlightPadding),
+                }.padding(horizontal = highlightPaddingX, vertical = highlightPaddingY),
         ) {
             BasicText(
                 text = candidate.text,
