@@ -413,7 +413,12 @@ suspend fun withLoadingState(
     }
 }
 
-/** Free text input dialog, the replacement for `EditTextPreference`'s dialog. */
+/**
+ * Free text input dialog, the replacement for `EditTextPreference`'s dialog.
+ *
+ * @param password masks the input, for secrets
+ * @param singleLine false for long free text such as a prompt
+ */
 @Composable
 fun TextInputDialog(
     title: String,
@@ -421,6 +426,8 @@ fun TextInputDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
     message: String? = null,
+    password: Boolean = false,
+    singleLine: Boolean = true,
 ) {
     var text by remember { mutableStateOf(initialValue) }
     AlertDialog(
@@ -438,7 +445,14 @@ fun TextInputDialog(
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
-                    singleLine = true,
+                    singleLine = singleLine,
+                    maxLines = if (singleLine) 1 else 10,
+                    visualTransformation = if (password) {
+                        androidx.compose.ui.text.input.PasswordVisualTransformation()
+                    } else {
+                        androidx.compose.ui.text.input.VisualTransformation.None
+                    },
+                    keyboardOptions = if (password) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

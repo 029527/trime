@@ -584,9 +584,36 @@ class AppPrefs(
             const val DEBUG_SIMULATE_RECOGNITION = "voice__debug_simulate_recognition"
             const val DEBUG_SIMULATE_MICROPHONE = "voice__debug_simulate_microphone"
             const val DEBUG_SIMULATED_SPEECH = "voice__debug_simulated_speech"
+            const val LLM_ENABLED = "voice__llm_enabled"
+            const val LLM_PRESET = "voice__llm_preset"
+            const val LLM_BASE_URL = "voice__llm_base_url"
+            const val LLM_MODEL = "voice__llm_model"
+            const val LLM_PROMPT = "voice__llm_prompt"
+            const val LLM_SHORT_TEXT_THRESHOLD = "voice__llm_short_text_threshold"
+            const val DEBUG_SIMULATE_CORRECTION = "voice__debug_simulate_correction"
+            const val DEBUG_SIMULATED_CORRECTION = "voice__debug_simulated_correction"
 
             const val PROVIDER_VOLCANO = "volcano"
         }
+
+        /**
+         * LLM 纠错。默认关；地址、模型、提示词都不是密钥，放普通偏好里。
+         * **API Key 不在这里**，走 `VoiceCredentialStore.KEY_LLM_API_KEY`。
+         */
+        val llmEnabled = bool(LLM_ENABLED, false)
+        val llmPreset = string(LLM_PRESET, "ark")
+
+        /** 只有服务商选「自定义」时才用。 */
+        val llmBaseUrl = string(LLM_BASE_URL, "")
+        val llmModel = string(LLM_MODEL, "")
+
+        /** 留空表示用内置提示词。 */
+        val llmPrompt = string(LLM_PROMPT, "")
+        val llmShortTextThreshold = int(LLM_SHORT_TEXT_THRESHOLD, 4)
+
+        /** 调试：用 `FakeTranscriptCorrector` 代替真服务，结果是 success / failure / timeout。同样要再判 `BuildConfig.DEBUG`。 */
+        val debugSimulateCorrection = bool(DEBUG_SIMULATE_CORRECTION, false)
+        val debugSimulatedCorrection = string(DEBUG_SIMULATED_CORRECTION, "success")
 
         val enabled = bool(ENABLED, false)
         val provider = string(PROVIDER, PROVIDER_VOLCANO)

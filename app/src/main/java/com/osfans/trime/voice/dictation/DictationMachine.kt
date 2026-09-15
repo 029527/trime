@@ -21,6 +21,11 @@ sealed interface DictationState {
         val text: String,
     ) : DictationState
 
+    /** Recognition is over; [text] stays composing while a language model corrects it. */
+    data class Correcting(
+        val text: String,
+    ) : DictationState
+
     /** Shown briefly in the dictation pill, then back to [Idle]. */
     data class Failed(
         val message: String,
@@ -52,6 +57,14 @@ sealed interface DictationEvent {
     /** The recogniser's event stream ended. */
     data object Completed : DictationEvent
 
+    /** The recogniser's event stream ended, and the pending text should be corrected before it is committed. */
+    data object CompletedForCorrection : DictationEvent
+
+    /** The correction is back: [text] is what to commit (the corrected text, or the original when the result was unusable). */
+    data class Corrected(
+        val text: String,
+    ) : DictationEvent
+
     data object ErrorDismissed : DictationEvent
 }
 
@@ -62,8 +75,13 @@ sealed interface DictationEffect {
     /** Close the microphone; the recogniser keeps running to deliver its final result. */
     data object StopAudio : DictationEffect
 
-    /** Tear the session down: cancel the recogniser, close the microphone, stop watching the cursor. */
+    /** Tear the session down: cancel the recogniser and any correction, close the microphone, stop watching the cursor. */
     data object EndSession : DictationEffect
+
+    /** Send [text] for correction; the answer comes back as [DictationEvent.Corrected] or [DictationEvent.Failure]. */
+    data class BeginCorrection(
+        val text: String,
+    ) : DictationEffect
 
     data class SetComposing(
         val text: String,
@@ -86,13 +104,17 @@ data class DictationTransition(
 )
 
 /**
- * The dictation state machine, free of Android: `Idle → Listening → Finishing → Idle`, with
- * `Failed` as a short-lived branch.
+ * The dictation state machine, free of Android: `Idle → Listening → Finishing → (Correcting →) Idle`,
+ * with `Failed` as a short-lived branch.
  *
  * One rule for text: **whatever was recognised is kept**. Ending gracefully (tap the mic again,
  * silence, time limit) waits for the final result and commits it; ending abruptly (another key,
  * the cursor moving away, the keyboard closing, an error) commits the pending text as shown at
  * once. Nothing is ever discarded, and nothing is left as composing text.
+ *
+ * Correction follows the same rule: while [DictationState.Correcting] the recognised text is already
+ * in the editor as composing text, so an interruption or a failed correction just commits it as shown,
+ * and only a correction that arrives in time replaces it.
  */
 object DictationMachine {
     fun reduce(
@@ -129,14 +151,14 @@ object DictationMachine {
         }
 
         DictationEvent.Interrupt -> when (state) {
-            is DictationState.Listening, is DictationState.Finishing ->
+            is DictationState.Listening, is DictationState.Finishing, is DictationState.Correcting ->
                 DictationTransition(DictationState.Idle, keepPending(state) + DictationEffect.EndSession)
             is DictationState.Failed -> DictationTransition(DictationState.Idle)
             DictationState.Idle -> DictationTransition(state)
         }
 
         is DictationEvent.Failure -> when (state) {
-            is DictationState.Listening, is DictationState.Finishing ->
+            is DictationState.Listening, is DictationState.Finishing, is DictationState.Correcting ->
                 DictationTransition(
                     DictationState.Failed(event.message),
                     keepPending(state) + DictationEffect.EndSession + DictationEffect.ScheduleErrorDismiss,
@@ -148,6 +170,28 @@ object DictationMachine {
         DictationEvent.Completed -> when (state) {
             is DictationState.Listening, is DictationState.Finishing ->
                 DictationTransition(DictationState.Idle, keepPending(state) + DictationEffect.EndSession)
+            else -> DictationTransition(state)
+        }
+
+        // the recogniser is done either way: end its session first, then start the correction
+        DictationEvent.CompletedForCorrection -> when (state) {
+            is DictationState.Listening, is DictationState.Finishing -> {
+                val text = pendingText(state)
+                if (text.isEmpty()) {
+                    DictationTransition(DictationState.Idle, listOf(DictationEffect.EndSession))
+                } else {
+                    DictationTransition(
+                        DictationState.Correcting(text),
+                        listOf(DictationEffect.EndSession, DictationEffect.BeginCorrection(text)),
+                    )
+                }
+            }
+            else -> DictationTransition(state)
+        }
+
+        is DictationEvent.Corrected -> when (state) {
+            is DictationState.Correcting ->
+                DictationTransition(DictationState.Idle, listOf(DictationEffect.Commit(event.text), DictationEffect.EndSession))
             else -> DictationTransition(state)
         }
 
@@ -168,14 +212,15 @@ object DictationMachine {
         composingEnd: Int,
     ): Boolean = composingStart >= 0 && composingEnd >= 0 && (selStart != selEnd || selEnd != composingEnd)
 
-    private fun keepPending(state: DictationState): List<DictationEffect> {
-        val text = when (state) {
-            is DictationState.Listening -> state.text
-            is DictationState.Finishing -> state.text
-            else -> ""
-        }
-        return if (text.isEmpty()) emptyList() else listOf(DictationEffect.FinishComposing)
+    /** The text shown as composing in [state]. */
+    fun pendingText(state: DictationState): String = when (state) {
+        is DictationState.Listening -> state.text
+        is DictationState.Finishing -> state.text
+        is DictationState.Correcting -> state.text
+        else -> ""
     }
+
+    private fun keepPending(state: DictationState): List<DictationEffect> = if (pendingText(state).isEmpty()) emptyList() else listOf(DictationEffect.FinishComposing)
 }
 
 /**

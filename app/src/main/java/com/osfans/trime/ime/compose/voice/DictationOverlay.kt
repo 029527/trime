@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.runtime.Composable
@@ -73,6 +74,7 @@ import kotlin.math.sin
 object DictationGlyphs {
     val Mic: ImageVector get() = Icons.Filled.Mic
     val MicOff: ImageVector get() = Icons.Filled.MicOff
+    val Correcting: ImageVector get() = Icons.Filled.AutoFixHigh
 }
 
 /**
@@ -84,7 +86,7 @@ object DictationGlyphs {
  */
 @Stable
 class DictationIndicator {
-    enum class Phase { HIDDEN, LISTENING, FINISHING, ERROR }
+    enum class Phase { HIDDEN, LISTENING, FINISHING, CORRECTING, ERROR }
 
     var phase by mutableStateOf(Phase.HIDDEN)
     var message by mutableStateOf("")
@@ -102,8 +104,8 @@ class DictationIndicator {
     var caretBottom by mutableFloatStateOf(Float.NaN)
         private set
 
-    /** The mic key wears the accent from the first tap until the text is final. */
-    val keyActive: Boolean get() = phase == Phase.LISTENING || phase == Phase.FINISHING
+    /** The mic key wears the accent from the first tap until the text is committed, correction included. */
+    val keyActive: Boolean get() = phase == Phase.LISTENING || phase == Phase.FINISHING || phase == Phase.CORRECTING
 
     fun setCaret(
         x: Float,
@@ -271,18 +273,25 @@ private fun DictationPill(
 ) {
     val content = colors.accentText.copy(alpha = 1f)
     val error = phase == DictationIndicator.Phase.ERROR
+    val correcting = phase == DictationIndicator.Phase.CORRECTING
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(tokens.voicePillContentGap),
     ) {
         Image(
-            painter = rememberVectorPainter(if (error) DictationGlyphs.MicOff else DictationGlyphs.Mic),
+            painter = rememberVectorPainter(
+                when {
+                    error -> DictationGlyphs.MicOff
+                    correcting -> DictationGlyphs.Correcting
+                    else -> DictationGlyphs.Mic
+                },
+            ),
             contentDescription = null,
             colorFilter = ColorFilter.tint(content),
             modifier = Modifier.size(tokens.voicePillIconSize),
         )
-        if (error) {
+        if (error || correcting) {
             BasicText(
                 text = message,
                 style = TextStyle(
@@ -294,23 +303,27 @@ private fun DictationPill(
                 maxLines = tokens.voicePillMessageMaxLines,
                 overflow = TextOverflow.Ellipsis,
             )
-        } else {
-            LevelBars(indicator, listening = phase == DictationIndicator.Phase.LISTENING, color = content, tokens = tokens)
+        }
+        if (!error) {
+            LevelBars(indicator, phase = phase, color = content, tokens = tokens)
         }
     }
 }
 
 /**
  * Three bars that ripple gently and grow with the voice. Flat and barely moving while the text is
- * being finalised. The level and the ripple are read while drawing, so only this spacer redraws.
+ * being finalised; a pulse running through them while the text is being corrected. The level and
+ * the ripple are read while drawing, so only this spacer redraws.
  */
 @Composable
 private fun LevelBars(
     indicator: DictationIndicator,
-    listening: Boolean,
+    phase: DictationIndicator.Phase,
     color: Color,
     tokens: ImeTokens,
 ) {
+    val listening = phase == DictationIndicator.Phase.LISTENING
+    val correcting = phase == DictationIndicator.Phase.CORRECTING
     val ripple = rememberInfiniteTransition(label = "dictation-ripple")
         .animateFloat(0f, 1f, infiniteRepeatable(tween(RIPPLE_MS, easing = LinearEasing)), label = "dictation-ripple-phase")
     val barWidth = tokens.voiceLevelBarWidth
@@ -328,10 +341,11 @@ private fun LevelBars(
                 for (i in 0 until BARS) {
                     val wave = 0.5f + 0.5f * sin(2 * PI * (t + i / BARS.toFloat())).toFloat()
                     val amount =
-                        if (listening) {
-                            (IDLE_RIPPLE * wave + level * (0.55f + 0.45f * wave)).coerceIn(0f, 1f)
-                        } else {
-                            FINISHING_RIPPLE * wave
+                        when {
+                            listening -> (IDLE_RIPPLE * wave + level * (0.55f + 0.45f * wave)).coerceIn(0f, 1f)
+                            // a sharpened wave: one bar peaks at a time and the peak runs across, like a thinking indicator
+                            correcting -> CORRECTING_RIPPLE_FLOOR + (1 - CORRECTING_RIPPLE_FLOOR) * wave * wave * wave
+                            else -> FINISHING_RIPPLE * wave
                         }
                     val h = minH + (maxH - minH) * amount
                     drawRoundRect(color, Offset(i * (w + g), (maxH - h) / 2), Size(w, h), CornerRadius(w / 2))
@@ -349,3 +363,6 @@ private const val BARS = 3
 /** Listening but quiet still ripples clearly, so it never looks like the flat bars of finalising. */
 private const val IDLE_RIPPLE = 0.5f
 private const val FINISHING_RIPPLE = 0.12f
+
+/** Correcting never drops to the flat bars of finalising: the running peak says work is going on. */
+private const val CORRECTING_RIPPLE_FLOOR = 0.15f

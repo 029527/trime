@@ -31,6 +31,9 @@ object VoiceCredentialStore {
     const val KEY_API_KEY = "volc_api_key"
     const val KEY_APP_KEY = "volc_app_key"
     const val KEY_ACCESS_KEY = "volc_access_key"
+
+    /** LLM 纠错服务的 API Key（`Authorization: Bearer`）。不在 [clearAll] 里：那个按钮只管火山凭证。 */
+    const val KEY_LLM_API_KEY = "llm_api_key"
     private const val KEY_UID = "volc_uid"
 
     /** Keystore 坏掉时的兜底：留在内存里，至少这次会话能用，不至于把输入法弄崩。 */

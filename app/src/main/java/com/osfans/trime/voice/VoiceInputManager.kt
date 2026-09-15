@@ -27,6 +27,12 @@ import com.osfans.trime.voice.dictation.StopReason
 import com.osfans.trime.voice.dictation.TranscriptSegmenter
 import com.osfans.trime.voice.dictation.VoiceActivityDetector
 import com.osfans.trime.voice.dictation.pcm16RmsDbfs
+import com.osfans.trime.voice.llm.FakeTranscriptCorrector
+import com.osfans.trime.voice.llm.LlmCorrectionConfig
+import com.osfans.trime.voice.llm.LlmCorrectionSettings
+import com.osfans.trime.voice.llm.OpenAiCompatibleCorrector
+import com.osfans.trime.voice.llm.TranscriptCorrector
+import com.osfans.trime.voice.postprocess.CorrectionOutcome
 import com.osfans.trime.voice.postprocess.TranscriptPipeline
 import com.osfans.trime.voice.postprocess.VocabularyMappingProcessor
 import com.osfans.trime.voice.provider.FakeVoiceRecognitionProvider
@@ -38,6 +44,7 @@ import com.osfans.trime.voice.vocab.VoiceVocabularyStore
 import com.osfans.trime.voice.volc.VolcConfig
 import com.osfans.trime.voice.volc.VolcRequestOptions
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
@@ -51,9 +58,11 @@ import kotlin.math.abs
  * 语音听写的总调度，交互照 iOS：点麦克风键开始，再点一下结束，3 秒没声音自动结束。
  *
  * - 状态怎么走由纯逻辑的 [DictationMachine] 决定，这里只负责执行它给出的副作用
- *   （开关麦克风和识别、写 `InputConnection`）并把状态画到 [indicator] 上；
+ *   （开关麦克风和识别、发纠错请求、写 `InputConnection`）并把状态画到 [indicator] 上；
  * - 识别中的文字是输入框里的待定文字（`setComposingText`），定稿时 commit；
  *   **语音文本完全不经过 Rime**，开始前先把 Rime 里没上屏的编码按首选上屏再清空；
+ * - 开了 LLM 纠错时，识别结束后原文先留作待定文字，纠错回来再整段替换上屏；
+ *   纠错中按了别的键、收了键盘、再点麦克风，都立刻按原文上屏；
  * - 什么时候结束、已识别的字怎么处理，规则都写在 [DictationMachine] 的 KDoc 里。
  *
  * 挂在 [TrimeInputMethodService] 上，跟输入法进程同生命周期；所有入口都在主线程执行。
@@ -77,6 +86,7 @@ class VoiceInputManager(
     /** 每开一次会话加一；会话里发出来的事件带着自己的编号，过期的直接丢。 */
     private var sessionId = 0
     private var sessionJob: Job? = null
+    private var correctionJob: Job? = null
 
     @Volatile
     private var stopAudio = false
@@ -88,6 +98,20 @@ class VoiceInputManager(
     private var vocabulary: VoiceVocabulary = VoiceVocabulary.EMPTY
     private val pipeline = TranscriptPipeline.of(VocabularyMappingProcessor { vocabulary })
     private val segmenter = TranscriptSegmenter()
+
+    /** 这一次会话怎么纠错；null 表示不纠错（没开、没配好），跟以前一样直接上屏。开始时定下来。 */
+    private class CorrectionPlan(
+        val corrector: TranscriptCorrector,
+        val shortTextThreshold: Int,
+    )
+
+    private var correctionPlan: CorrectionPlan? = null
+
+    /**
+     * 要纠错时，会话中途定稿的句子**不上屏**，攒在这里，跟后面的字一起当待定文字，
+     * 最后整段纠错 —— 已经上屏的字没法再替换，模型也需要完整的上下文。
+     */
+    private var heldText = ""
 
     private val matrixValues = FloatArray(9)
     private val mappedPoint = FloatArray(2)
@@ -102,24 +126,31 @@ class VoiceInputManager(
     private val simulateMicrophone: Boolean
         get() = simulateRecognition && prefs.debugSimulateMicrophone.getValue()
 
-    /** 麦克风开着，或者在等定稿。 */
+    private val simulateCorrection: Boolean
+        get() = BuildConfig.DEBUG && prefs.debugSimulateCorrection.getValue()
+
+    /** 麦克风开着、在等定稿，或者在等纠错：输入框里的待定文字归听写管。 */
     val isActive: Boolean
-        get() = state is DictationState.Listening || state is DictationState.Finishing
+        get() = state is DictationState.Listening || state is DictationState.Finishing || state is DictationState.Correcting
 
     // MARK: - 入口
 
-    /** 麦克风键：没在听就开始，正在听就结束（等定稿）。在等定稿时再点不做什么。 */
+    /**
+     * 麦克风键：没在听就开始，正在听就结束（等定稿）。在等定稿时再点不做什么；
+     * 在等纠错时再点就不等了，原文上屏。
+     */
     fun toggle() = onMain {
         when (state) {
             is DictationState.Listening -> dispatch(DictationEvent.Stop(StopReason.USER))
             is DictationState.Finishing -> Unit
+            is DictationState.Correcting -> dispatch(DictationEvent.Interrupt)
             else -> start()
         }
     }
 
     /**
-     * 打断：点了别的键、键盘收起、输入框结束、服务销毁。已识别的字立刻上屏，错误提示收起。
-     * 输入框结束时必须在 `InputConnection` 换掉之前调，所以在主线程上是同步执行的。
+     * 打断：点了别的键、键盘收起、输入框结束、服务销毁。已识别的字立刻上屏，错误提示收起，
+     * 正在进行的纠错请求取消。输入框结束时必须在 `InputConnection` 换掉之前调，所以在主线程上是同步执行的。
      */
     fun interrupt() {
         if (engaged) onMain { dispatch(DictationEvent.Interrupt) }
@@ -201,6 +232,7 @@ class VoiceInputManager(
             } else {
                 VoiceAudioSource.pcmFlow()
             }
+        correctionPlan = createCorrectionPlan()
         dispatch(DictationEvent.Start)
     }
 
@@ -226,6 +258,7 @@ class VoiceInputManager(
                 handler.postDelayed(finalizeTimeout, FINALIZE_TIMEOUT_MS)
             }
             DictationEffect.EndSession -> endSession()
+            is DictationEffect.BeginCorrection -> beginCorrection(effect.text)
             is DictationEffect.SetComposing -> service.currentInputConnection?.setComposingText(effect.text, 1)
             is DictationEffect.Commit -> service.currentInputConnection?.run {
                 beginBatchEdit()
@@ -247,6 +280,10 @@ class VoiceInputManager(
                 DictationState.Idle -> DictationIndicator.Phase.HIDDEN
                 is DictationState.Listening -> DictationIndicator.Phase.LISTENING
                 is DictationState.Finishing -> DictationIndicator.Phase.FINISHING
+                is DictationState.Correcting -> {
+                    indicator.message = CORRECTING_LABEL
+                    DictationIndicator.Phase.CORRECTING
+                }
                 is DictationState.Failed -> {
                     indicator.message = s.message
                     DictationIndicator.Phase.ERROR
@@ -265,6 +302,7 @@ class VoiceInputManager(
         val id = ++sessionId
         stopAudio = false
         segmenter.reset()
+        heldText = ""
         handler.removeCallbacks(dismissError)
         indicator.clearCaret()
         service.setVoiceCursorMonitor(true)
@@ -279,7 +317,7 @@ class VoiceInputManager(
                         clearComposition()
                     }.join()
                     provider.recognize(monitored(audio, id)).collect { if (id == sessionId) onRecognition(it) }
-                    if (id == sessionId) dispatch(DictationEvent.Completed)
+                    if (id == sessionId) onRecognitionCompleted()
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -326,16 +364,63 @@ class VoiceInputManager(
     private fun onRecognition(event: VoiceRecognitionEvent) {
         when (event) {
             // 中间结果也过词库映射：边说边出的字就已经是对的，定稿时不会突然跳变
-            is VoiceRecognitionEvent.Partial ->
-                dispatch(DictationEvent.Partial(pipeline.process(segmenter.partial(event.text), isFinal = false)))
-            is VoiceRecognitionEvent.Final ->
-                dispatch(DictationEvent.Final(pipeline.process(segmenter.final(event.text), isFinal = true)))
+            is VoiceRecognitionEvent.Partial -> {
+                val text = pipeline.process(segmenter.partial(event.text), isFinal = false)
+                dispatch(DictationEvent.Partial(heldText + text))
+            }
+            is VoiceRecognitionEvent.Final -> {
+                val text = pipeline.process(segmenter.final(event.text), isFinal = true)
+                if (correctionPlan == null) {
+                    dispatch(DictationEvent.Final(text))
+                } else {
+                    // 要纠错：这一句先不上屏，跟后面的字一起留作待定文字
+                    heldText += text
+                    dispatch(DictationEvent.Partial(heldText))
+                }
+            }
             is VoiceRecognitionEvent.Failure -> {
                 Timber.w(event.cause, "语音识别失败: ${event.message}")
                 dispatch(DictationEvent.Failure(event.message))
             }
-            VoiceRecognitionEvent.Completed -> dispatch(DictationEvent.Completed)
+            VoiceRecognitionEvent.Completed -> onRecognitionCompleted()
         }
+    }
+
+    /** 识别结束：够长又开了纠错就去纠错，否则照旧上屏。 */
+    private fun onRecognitionCompleted() {
+        val plan = correctionPlan
+        val text = DictationMachine.pendingText(state)
+        if (plan != null && LlmCorrectionConfig.shouldCorrect(text, plan.shortTextThreshold)) {
+            dispatch(DictationEvent.CompletedForCorrection)
+        } else {
+            dispatch(DictationEvent.Completed)
+        }
+    }
+
+    /**
+     * 发纠错请求。结果投回主线程（不在当前 dispatch 里同步回来），编号过期（被打断了）就丢掉。
+     * 失败、超时、结果不可用都由 [TranscriptPipeline.correct] 兜成原文，这里不会拿到异常。
+     */
+    private fun beginCorrection(text: String) {
+        val corrector = correctionPlan?.corrector
+        val id = sessionId
+        correctionJob =
+            service.lifecycleScope.launch(Dispatchers.Main) {
+                val outcome = if (corrector == null) CorrectionOutcome.Corrected(text) else pipeline.correct(text, corrector)
+                if (id != sessionId) return@launch
+                when (outcome) {
+                    is CorrectionOutcome.Corrected -> dispatch(DictationEvent.Corrected(outcome.text))
+                    is CorrectionOutcome.Rejected -> {
+                        // 只记原因，不记文字
+                        Timber.i("纠错结果没通过校验（${outcome.reason}），上屏原文")
+                        dispatch(DictationEvent.Corrected(outcome.text))
+                    }
+                    is CorrectionOutcome.Failed -> {
+                        Timber.w("纠错失败，上屏原文：${outcome.message}")
+                        dispatch(DictationEvent.Failure(outcome.message))
+                    }
+                }
+            }
     }
 
     private fun endSession() {
@@ -344,6 +429,9 @@ class VoiceInputManager(
         stopAudio = true
         sessionJob?.cancel()
         sessionJob = null
+        // 取消纠错会连带取消 HTTP 请求
+        correctionJob?.cancel()
+        correctionJob = null
         handler.removeCallbacks(finalizeTimeout)
         handler.removeCallbacks(maxDurationReached)
         service.setVoiceCursorMonitor(false)
@@ -365,6 +453,19 @@ class VoiceInputManager(
             configProvider = ::volcConfigOrNull,
             optionsProvider = { options },
         )
+    }
+
+    /** 没开纠错、或者没配好（缺 key / 模型 / 地址）就返回 null，听写跟没有这个功能时一模一样。 */
+    private fun createCorrectionPlan(): CorrectionPlan? {
+        if (!prefs.llmEnabled.getValue()) return null
+        if (simulateCorrection) {
+            val threshold = prefs.llmShortTextThreshold.getValue().coerceIn(0, LlmCorrectionConfig.MAX_SHORT_TEXT_THRESHOLD)
+            val outcome = FakeTranscriptCorrector.Outcome.of(prefs.debugSimulatedCorrection.getValue())
+            return CorrectionPlan(FakeTranscriptCorrector(outcome), threshold)
+        }
+        val config = LlmCorrectionSettings.current()
+        if (!config.isComplete) return null
+        return CorrectionPlan(OpenAiCompatibleCorrector(config, vocabulary.recognitionHotwords), config.shortTextThreshold)
     }
 
     private fun volcConfigOrNull(): VolcConfig? {
@@ -404,6 +505,8 @@ class VoiceInputManager(
         private const val FINALIZE_TIMEOUT_MS = 8000L
 
         private const val FINALIZE_TIMEOUT_MESSAGE = "识别超时，已保留识别出的文字"
+
+        private const val CORRECTING_LABEL = "纠错中"
 
         /** 音量变化小于这个就不更新界面。 */
         private const val LEVEL_STEP = 0.05f

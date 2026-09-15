@@ -82,8 +82,10 @@ fun DeveloperScreen(
 /**
  * Debug builds only. Simulated recognition replaces Volcengine with the scripted
  * `FakeVoiceRecognitionProvider`; the simulated microphone talks for a set time and then stays
- * silent, which drives the automatic stop on an emulator. `VoiceInputManager` checks
- * `BuildConfig.DEBUG` again, so leftover values do nothing in a release build.
+ * silent, which drives the automatic stop on an emulator. Simulated correction replaces the LLM
+ * with `FakeTranscriptCorrector`, which answers after 1.2 s, fails, or never answers (the timeout
+ * path). `VoiceInputManager` checks `BuildConfig.DEBUG` again, so leftover values do nothing in a
+ * release build.
  */
 @Composable
 private fun VoiceDebugSection() {
@@ -91,6 +93,14 @@ private fun VoiceDebugSection() {
     var simulateRecognition by remember { mutableStateOf(prefs.debugSimulateRecognition.getValue()) }
     var simulateMicrophone by remember { mutableStateOf(prefs.debugSimulateMicrophone.getValue()) }
     var speechSeconds by remember { mutableIntStateOf(prefs.debugSimulatedSpeechSeconds.getValue()) }
+    var simulateCorrection by remember { mutableStateOf(prefs.debugSimulateCorrection.getValue()) }
+    var correctionOutcome by remember { mutableStateOf(prefs.debugSimulatedCorrection.getValue()) }
+    val outcomeIds = listOf("success", "failure", "timeout")
+    val outcomeLabels = listOf(
+        stringResource(R.string.voice_debug_correction_success),
+        stringResource(R.string.voice_debug_correction_failure),
+        stringResource(R.string.voice_debug_correction_timeout),
+    )
     PreferenceCategoryHeader(stringResource(R.string.voice_debug))
     SwitchPreferenceItem(
         title = stringResource(R.string.voice_debug_simulate_recognition),
@@ -124,6 +134,27 @@ private fun VoiceDebugSection() {
         onValueChangeFinished = {
             prefs.debugSimulatedSpeechSeconds.setValue(it)
             speechSeconds = it
+        },
+    )
+    SwitchPreferenceItem(
+        title = stringResource(R.string.voice_debug_simulate_correction),
+        summary = stringResource(R.string.voice_debug_simulate_correction_summary),
+        checked = simulateCorrection,
+        onCheckedChange = {
+            prefs.debugSimulateCorrection.setValue(it)
+            simulateCorrection = it
+        },
+    )
+    // tap to cycle through the outcomes: success → failure → timeout
+    val outcomeIndex = outcomeIds.indexOf(correctionOutcome).coerceAtLeast(0)
+    PreferenceRow(
+        title = stringResource(R.string.voice_debug_simulated_correction),
+        summary = outcomeLabels[outcomeIndex],
+        enabled = simulateCorrection,
+        onClick = {
+            val next = outcomeIds[(outcomeIndex + 1) % outcomeIds.size]
+            prefs.debugSimulatedCorrection.setValue(next)
+            correctionOutcome = next
         },
     )
 }

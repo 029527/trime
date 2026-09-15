@@ -161,4 +161,54 @@ class DictationMachineTest :
             segmenter.partial("第二") shouldBe "第二"
             segmenter.final("第二句。") shouldBe "第二句。"
         }
+
+        // MARK: - LLM 纠错
+
+        test("识别结束要纠错：先结束识别会话，原文留作待定文字，开始纠错") {
+            run(Finishing("我用克劳德"), DictationEvent.CompletedForCorrection) shouldBe
+                DictationTransition(
+                    DictationState.Correcting("我用克劳德"),
+                    listOf(EndSession, DictationEffect.BeginCorrection("我用克劳德")),
+                )
+            run(Listening("我用克劳德"), DictationEvent.CompletedForCorrection).state shouldBe DictationState.Correcting("我用克劳德")
+        }
+
+        test("没识别出字就不纠错") {
+            run(Finishing(""), DictationEvent.CompletedForCorrection) shouldBe DictationTransition(Idle, listOf(EndSession))
+        }
+
+        test("纠错回来：替换待定文字并上屏") {
+            run(DictationState.Correcting("我用克劳德"), DictationEvent.Corrected("我用 Claude。")) shouldBe
+                DictationTransition(Idle, listOf(Commit("我用 Claude。"), EndSession))
+        }
+
+        test("纠错中被打断（按键、收键盘、换输入框、再点麦克风）：原文立刻上屏，取消纠错") {
+            run(DictationState.Correcting("我用克劳德"), DictationEvent.Interrupt) shouldBe
+                DictationTransition(Idle, listOf(FinishComposing, EndSession))
+        }
+
+        test("纠错失败或超时：原文上屏，显示错误") {
+            run(DictationState.Correcting("我用克劳德"), DictationEvent.Failure("纠错超时，已保留原文")) shouldBe
+                DictationTransition(Failed("纠错超时，已保留原文"), listOf(FinishComposing, EndSession, ScheduleErrorDismiss))
+        }
+
+        test("纠错中不理识别的迟到事件，也不重新开始") {
+            val correcting = DictationState.Correcting("原文")
+            for (event in listOf(
+                DictationEvent.Start,
+                DictationEvent.Partial("迟到"),
+                DictationEvent.Final("迟到"),
+                DictationEvent.Stop(StopReason.USER),
+                DictationEvent.Completed,
+                DictationEvent.CompletedForCorrection,
+                DictationEvent.ErrorDismissed,
+            )) {
+                run(correcting, event) shouldBe DictationTransition(correcting)
+            }
+        }
+
+        test("打断之后迟到的纠错结果被忽略") {
+            run(Idle, DictationEvent.Corrected("迟到")) shouldBe DictationTransition(Idle)
+            run(Listening("新的"), DictationEvent.Corrected("迟到")) shouldBe DictationTransition(Listening("新的"))
+        }
     })
