@@ -14,19 +14,25 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.NinePatchDrawable
+import android.os.Build
 import androidx.annotation.ColorInt
 import androidx.annotation.Keep
+import androidx.annotation.RequiresApi
 import androidx.collection.LruCache
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.math.MathUtils
 import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.data.prefs.PreferenceDelegate
 import com.osfans.trime.data.theme.ThemePrefs.DayNightMode
 import com.osfans.trime.data.theme.builtin.BuiltinColors
+import com.osfans.trime.data.theme.builtin.KeyboardColorRoles
 import com.osfans.trime.data.theme.model.ColorScheme
 import com.osfans.trime.util.ColorUtils
 import com.osfans.trime.util.NinePatchBitmapFactory
 import com.osfans.trime.util.WeakHashSet
+import com.osfans.trime.util.appContext
 import com.osfans.trime.util.isNightMode
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
@@ -118,10 +124,10 @@ object ColorManager {
             if (this::theme.isInitialized) fireTintChange()
         }
 
-    /** 设置页切了深浅色：换成对应的配色方案，走 [fireChange] 重建键盘。 */
+    /** 设置页切了深浅色或跟随壁纸取色：换成对应的配色方案，走 [fireChange] 重建键盘。 */
     @Keep
-    private val onDayNightModeChangeListener =
-        PreferenceDelegate.OnChangeListener<DayNightMode> { _, _ ->
+    private val onColorSourceChangeListener =
+        PreferenceDelegate.OnChangeListener<Any> { _, _ ->
             if (this::theme.isInitialized) activeColorScheme = evaluateActiveColorScheme()
         }
 
@@ -129,7 +135,8 @@ object ColorManager {
         listOf(prefs.tintWarm, prefs.tintDim, prefs.tintAlpha).forEach {
             it.registerOnChangeListener(onTintChangeListener)
         }
-        prefs.dayNightMode.registerOnChangeListener(onDayNightModeChangeListener)
+        prefs.dayNightMode.registerOnChangeListener(onColorSourceChangeListener)
+        prefs.followWallpaper.registerOnChangeListener(onColorSourceChangeListener)
     }
 
     private val BuiltinFallbackColors =
@@ -251,7 +258,25 @@ object ColorManager {
         activeColorScheme = evaluateActiveColorScheme()
     }
 
+    /**
+     * Picks the wallpaper palette up again when it may have changed: a new wallpaper arrives as a
+     * resources change, possibly while the keyboard is hidden, so the input method calls this when
+     * its configuration changes, when it builds its input view and when its window is shown.
+     * Nothing happens unless the colours really differ, see [activeColorScheme].
+     */
+    fun refreshWallpaperColors() {
+        if (!this::theme.isInitialized || !prefs.isFollowingWallpaper) return
+        activeColorScheme = evaluateActiveColorScheme()
+    }
+
     private fun evaluateActiveColorScheme(): ColorScheme {
+        // the wallpaper palette has a light and a dark version; which one follows the system, like Material You
+        if (prefs.isFollowingWallpaper && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            runCatching { wallpaperScheme(isNightMode) }
+                .onFailure { Timber.w(it, "No wallpaper colours, using the built-in scheme") }
+                .getOrNull()
+                ?.let { return it }
+        }
         val dark = when (dayNightMode) {
             DayNightMode.FOLLOW_SYSTEM -> isNightMode
             DayNightMode.LIGHT -> false
@@ -259,6 +284,16 @@ object ColorManager {
         }
         val id = if (dark) BuiltinColors.DARK_SCHEME else BuiltinColors.LIGHT_SCHEME
         return colorScheme(id) ?: theme.colorSchemes.first()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun wallpaperScheme(dark: Boolean): ColorScheme {
+        val context = appContext
+        val material = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        return ColorScheme(
+            id = if (dark) WALLPAPER_DARK_SCHEME else WALLPAPER_LIGHT_SCHEME,
+            colors = KeyboardColorRoles.fromMaterial(material, dark).colors(if (dark) "壁纸深色" else "壁纸浅色"),
+        )
     }
 
     /** 拿到主题后调用一次，初始化配色 */
@@ -412,6 +447,9 @@ object ColorManager {
     }
 
     private val SUPPORTED_IMG_FORMATS = arrayOf(".png", ".webp", ".jpg", ".gif")
+
+    private const val WALLPAPER_LIGHT_SCHEME = "wallpaper_light"
+    private const val WALLPAPER_DARK_SCHEME = "wallpaper_dark"
 }
 
 /**

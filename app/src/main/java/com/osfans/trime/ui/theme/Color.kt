@@ -18,8 +18,9 @@ import androidx.compose.ui.graphics.Color
  * background — near-black controls on white, near-white controls on black. The only
  * saturated colour in the whole set is the destructive red.
  *
- * That is also why Material You dynamic colour is off by default (see [TrimeTheme]):
- * wallpaper-derived purples and blues are exactly what this palette exists to avoid.
+ * That is also why Material You dynamic colour is opt-in (`ThemePrefs.followWallpaper`, see
+ * [TrimeTheme]): this palette is the default, the wallpaper palette replaces it only when asked,
+ * for the keyboard and this app together.
  *
  * Values are shadcn's zinc scale:
  * 50 `#FAFAFA` · 100 `#F4F4F5` · 200 `#E4E4E7` · 300 `#D4D4D8` · 400 `#A1A1AA` ·

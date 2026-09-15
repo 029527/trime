@@ -6,6 +6,7 @@
 package com.osfans.trime.data.theme
 
 import android.content.SharedPreferences
+import androidx.appcompat.app.AppCompatDelegate
 import com.osfans.trime.data.theme.DayNightMigration.FOLLOW_SYSTEM_DAY_NIGHT
 import com.osfans.trime.data.theme.DayNightMigration.NORMAL_MODE_COLOR
 import com.osfans.trime.data.theme.DayNightMigration.SELECTED_THEME
@@ -62,6 +63,33 @@ class DayNightMigrationTest :
             DayNightMigration.resolve(true, "ios_light") shouldBe DayNightMode.FOLLOW_SYSTEM
             DayNightMigration.resolve(false, "ios_dark") shouldBe DayNightMode.DARK
             DayNightMigration.resolve(null, "ios_light") shouldBe DayNightMode.LIGHT
+        }
+
+        test("App 的 ui_mode 并入深浅色：只删旧 key，不改键盘已有的深浅色") {
+            val prefs = prefsOf(ThemePrefs.DAY_NIGHT_MODE to "LIGHT", DayNightMigration.UI_MODE to "DARK").migrated()
+            prefs.values shouldBe mapOf(ThemePrefs.DAY_NIGHT_MODE to "LIGHT")
+        }
+
+        test("只存过 ui_mode → 跟随系统（默认值），什么都不写") {
+            prefsOf(DayNightMigration.UI_MODE to "DARK").migrated().values shouldBe emptyMap()
+        }
+
+        test("升级后：深浅色保留，跟随壁纸取色默认关闭且不写入") {
+            val prefs = prefsOf(ThemePrefs.DAY_NIGHT_MODE to "DARK", DayNightMigration.UI_MODE to "AUTO")
+            val theme = ThemePrefs(prefs)
+            theme.dayNightMode.getValue() shouldBe DayNightMode.DARK
+            theme.followWallpaper.getValue() shouldBe false
+            theme.isFollowingWallpaper shouldBe false
+            prefs.contains(DayNightMigration.UI_MODE) shouldBe false
+            prefs.contains(ThemePrefs.FOLLOW_WALLPAPER) shouldBe false
+        }
+
+        test("App 的深浅色：跟随壁纸时跟随系统，否则跟键盘的选择") {
+            ThemePrefs.appNightMode(true, DayNightMode.LIGHT) shouldBe AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            ThemePrefs.appNightMode(true, DayNightMode.DARK) shouldBe AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            ThemePrefs.appNightMode(false, DayNightMode.LIGHT) shouldBe AppCompatDelegate.MODE_NIGHT_NO
+            ThemePrefs.appNightMode(false, DayNightMode.DARK) shouldBe AppCompatDelegate.MODE_NIGHT_YES
+            ThemePrefs.appNightMode(false, DayNightMode.FOLLOW_SYSTEM) shouldBe AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
         }
 
         test("内置配色的深浅按底色判断，旧方案 id 也认") {

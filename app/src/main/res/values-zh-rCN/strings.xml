@@ -224,6 +224,8 @@
     <string name="navbar_bkg_full">键盘背景图片</string>
     <string name="day_night_mode">深浅色</string>
     <string name="day_night_follow_system">跟随系统</string>
+    <string name="follow_wallpaper_colors">跟随壁纸取色</string>
+    <string name="follow_wallpaper_colors_summary">键盘和设置页的颜色取自壁纸，深浅色跟随系统</string>
     <string name="day_night_light">浅色</string>
     <string name="day_night_dark">深色</string>
     <string name="undo">撤销</string>

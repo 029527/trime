@@ -25,13 +25,13 @@ Trime fork 的键盘外观分成两半：
 
 | 角色 | 用在哪 | 浅色（zinc） | 深色（zinc） | 跟随壁纸时的 Material 角色 |
 |---|---|---|---|---|
-| `surface` | 键盘底、候选栏、面板底 | `E8E8EC` | `18181B` | surfaceContainer |
-| `key` | 字母键、空格、气泡、剪贴板条目 | `FFFFFF` | `3F3F46` | surfaceBright |
-| `functionKey` | 功能键、首选候选的胶囊 | `D4D4D8` | `323238` | secondaryContainer |
-| `preedit` | 预编辑条 | `F4F4F5` | `27272A` | surfaceContainerHigh |
+| `surface` | 键盘底、候选栏、面板底 | `E8E8EC` | `18181B` | 浅 surfaceContainerHigh / 深 surfaceContainerLowest |
+| `key` | 字母键、空格、气泡、剪贴板条目 | `FFFFFF` | `3F3F46` | 浅 surfaceContainerLowest / 深 surfaceBright |
+| `functionKey` | 功能键、首选候选的胶囊 | `D4D4D8` | `323238` | 浅 secondaryContainer / 深 surfaceContainerHigh |
+| `preedit` | 预编辑条 | `F4F4F5` | `27272A` | 浅 surfaceContainerLow / 深 surfaceContainerHigh |
 | `onSurface` | 键面文字、候选 | `18181B` | `FAFAFA` | onSurface |
 | `onSurfaceVariant` | 注释、提示 | `71717A` | `A1A1AA` | onSurfaceVariant |
-| `onFunctionKey` | 功能键文字 | `18181B` | `FAFAFA` | onSecondaryContainer |
+| `onFunctionKey` | 功能键文字 | `18181B` | `FAFAFA` | 浅 onSecondaryContainer / 深 onSurface |
 | `accent` | 回车键、开着的开关键、长按小键盘的焦点格 | `18181B` | `FAFAFA` | primary |
 | `onAccent` | 强调色上的文字和图标 | `FAFAFA` | `18181B` | onPrimary |
 
@@ -41,6 +41,10 @@ Trime fork 的键盘外观分成两半：
   浅色下近黑、深色下近白，和设置页主按钮一致，不引入品牌色。
 - 对比度由 `KeyboardColorRolesTest` 检查：键面文字、功能键文字、回车文字 ≥ 4.5:1，注释 ≥ 3:1。
 - 配色微调滑块（暖度 / 亮度 / 不透明度）照常叠加在最终颜色上，壁纸取色也一样。
+- **跟随壁纸取色**（Android 12+）：`ColorManager` 用 `dynamicLightColorScheme` / `dynamicDarkColorScheme` 取系统调色板，
+  经 `KeyboardColorRoles.fromMaterial()` 变成角色（浅色和深色取不同的 surface 角色，见上表最后一列和 KDoc），深浅由系统 uiMode 决定。
+  输入法在 `onConfigurationChanged`、`onCreateInputView`、`onWindowShown` 时调用 `ColorManager.refreshWallpaperColors()`，
+  颜色真的变了才重建键盘。
 
 ### 0.2 形状
 

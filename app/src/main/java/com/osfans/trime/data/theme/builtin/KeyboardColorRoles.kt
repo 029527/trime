@@ -6,6 +6,8 @@
 package com.osfans.trime.data.theme.builtin
 
 import androidx.annotation.ColorInt
+import androidx.compose.material3.ColorScheme
+import androidx.compose.ui.graphics.toArgb
 import kotlin.math.roundToInt
 
 /**
@@ -16,6 +18,9 @@ import kotlin.math.roundToInt
  * built from roles, so every scheme keeps the same hierarchy: letter keys stand off the keyboard
  * surface, function keys sit a tone apart, and the accent is kept for the enter key, toggles that
  * are on, and the focused cell of a long-press keyboard.
+ *
+ * [fromMaterial] is the wallpaper (Material You) side of the mapping: which Material colour role
+ * fills each keyboard role, so both halves of the mapping live in this file.
  *
  * Pressed colours are not a role of their own: they are the matching "on" colour laid over the
  * base at [PRESSED_ALPHA], Material's pressed state layer.
@@ -167,6 +172,55 @@ data class KeyboardColorRoles(
                 accent = 0xFFFAFAFA.toInt(),
                 onAccent = 0xFF18181B.toInt(),
             )
+
+        /**
+         * Roles from a Material colour scheme, i.e. the wallpaper palette from `dynamicLightColorScheme` /
+         * `dynamicDarkColorScheme`. Light and dark pick different surface roles, because Material's
+         * surface ramp runs the other way in dark mode: the letter keys must stay the lightest surface
+         * in light mode and the brightest in dark mode, with function keys between them and the keyboard.
+         *
+         * | Keyboard role | Light scheme | Dark scheme |
+         * |---|---|---|
+         * | surface | surfaceContainerHigh (T92) | surfaceContainerLowest (T4) |
+         * | key | surfaceContainerLowest (T100) | surfaceBright (T24) |
+         * | functionKey | secondaryContainer (T90, tinted) | surfaceContainerHigh (T17) |
+         * | preedit | surfaceContainerLow | surfaceContainerHigh |
+         * | onSurface | onSurface | onSurface |
+         * | onSurfaceVariant | onSurfaceVariant | onSurfaceVariant |
+         * | onFunctionKey | onSecondaryContainer | onSurface |
+         * | accent | primary | primary |
+         * | onAccent | onPrimary | onPrimary |
+         */
+        fun fromMaterial(
+            scheme: ColorScheme,
+            dark: Boolean,
+        ): KeyboardColorRoles = if (dark) {
+            KeyboardColorRoles(
+                // T4 / T17 / T24: the same spacing as the neutral dark scheme, so function keys
+                // still read as keys; on surfaceContainer (T12) they vanished into the keyboard
+                surface = scheme.surfaceContainerLowest.toArgb(),
+                key = scheme.surfaceBright.toArgb(),
+                functionKey = scheme.surfaceContainerHigh.toArgb(),
+                preedit = scheme.surfaceContainerHigh.toArgb(),
+                onSurface = scheme.onSurface.toArgb(),
+                onSurfaceVariant = scheme.onSurfaceVariant.toArgb(),
+                onFunctionKey = scheme.onSurface.toArgb(),
+                accent = scheme.primary.toArgb(),
+                onAccent = scheme.onPrimary.toArgb(),
+            )
+        } else {
+            KeyboardColorRoles(
+                surface = scheme.surfaceContainerHigh.toArgb(),
+                key = scheme.surfaceContainerLowest.toArgb(),
+                functionKey = scheme.secondaryContainer.toArgb(),
+                preedit = scheme.surfaceContainerLow.toArgb(),
+                onSurface = scheme.onSurface.toArgb(),
+                onSurfaceVariant = scheme.onSurfaceVariant.toArgb(),
+                onFunctionKey = scheme.onSecondaryContainer.toArgb(),
+                accent = scheme.primary.toArgb(),
+                onAccent = scheme.onPrimary.toArgb(),
+            )
+        }
 
         /** [on] at [PRESSED_ALPHA] over [base]; opaque when [base] is. */
         @ColorInt

@@ -5,6 +5,9 @@
 
 package com.osfans.trime.ui.main.settings.theme
 
+import android.os.Bundle
+import androidx.annotation.Keep
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
@@ -29,6 +32,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.osfans.trime.R
+import com.osfans.trime.data.prefs.PreferenceDelegate
 import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.data.theme.ThemePrefs
 import com.osfans.trime.ui.compose.preference.PreferenceDelegateComposeFragment
@@ -36,9 +40,40 @@ import com.osfans.trime.ui.compose.preference.PreferenceRow
 
 /**
  * Keyboard style page. The theme itself is built in; what is left to set is the day / night
- * mode, the navigation bar background and the colour tint sliders, all plain preference rows.
+ * mode and the wallpaper colours (both also apply to this app), the navigation bar background
+ * and the colour tint sliders, all plain preference rows.
  */
 class ThemeSettingsFragment : PreferenceDelegateComposeFragment(ThemeManager.prefs) {
+    private val prefs = ThemeManager.prefs
+
+    /**
+     * The same two preferences decide the settings app's look: light / dark goes through
+     * `AppCompatDelegate` (which recreates the activity itself when the mode changes), and turning
+     * the wallpaper colours on or off needs a recreate to swap the colour scheme.
+     */
+    @Keep
+    private val onDayNightModeChange = PreferenceDelegate.OnChangeListener<ThemePrefs.DayNightMode> { _, _ ->
+        AppCompatDelegate.setDefaultNightMode(prefs.appNightMode)
+    }
+
+    @Keep
+    private val onFollowWallpaperChange = PreferenceDelegate.OnChangeListener<Boolean> { _, _ ->
+        AppCompatDelegate.setDefaultNightMode(prefs.appNightMode)
+        activity?.recreate()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        prefs.dayNightMode.registerOnChangeListener(onDayNightModeChange)
+        prefs.followWallpaper.registerOnChangeListener(onFollowWallpaperChange)
+    }
+
+    override fun onDestroy() {
+        prefs.dayNightMode.unregisterOnChangeListener(onDayNightModeChange)
+        prefs.followWallpaper.unregisterOnChangeListener(onFollowWallpaperChange)
+        super.onDestroy()
+    }
+
     // 三个配色微调滑块边拖边写（节流），键盘原地重新上色
     override val livePreviewKeys = setOf(
         ThemePrefs.THEME_TINT_WARM,

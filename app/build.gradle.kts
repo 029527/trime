@@ -109,9 +109,10 @@ android {
     }
 
     // Stored uncompressed so Typeface can map it straight from the APK; a compressed font would
-    // be inflated into memory once per weight.
+    // be inflated into memory once per weight. Matched by file name (a path suffix), not by
+    // extension: other .ttf in the APK, like the Iconics glyph font, stay compressed.
     androidResources {
-        noCompress += "ttf"
+        noCompress += "NotoSansSC-VF.ttf"
     }
 
     packaging {

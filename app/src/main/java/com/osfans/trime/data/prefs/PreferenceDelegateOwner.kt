@@ -73,6 +73,10 @@ abstract class PreferenceDelegateOwner(
         return pref
     }
 
+    /**
+     * [visible] false keeps the preference but leaves it off the settings page, e.g. on an Android version
+     * that cannot use it. [enableUiOn] stays last, so callers can keep passing it as a trailing lambda.
+     */
     protected fun switch(
         @StringRes
         title: Int,
@@ -80,12 +84,13 @@ abstract class PreferenceDelegateOwner(
         defaultValue: Boolean,
         @StringRes
         summary: Int? = null,
+        visible: Boolean = true,
         enableUiOn: (() -> Boolean)? = null,
     ): PreferenceDelegate<Boolean> {
         val pref = PreferenceDelegate(sharedPreferences, key, defaultValue)
         val ui = PreferenceDelegateUi.Switch(title, key, defaultValue, summary, enableUiOn)
         pref.register()
-        ui.registerUi()
+        if (visible) ui.registerUi()
         return pref
     }
 

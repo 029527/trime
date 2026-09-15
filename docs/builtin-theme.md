@@ -99,6 +99,27 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 
 `ColorManager` 监听这个偏好和系统夜间模式，切换后重建键盘视图。
 
+### 跟随壁纸取色
+
+偏好 `ThemePrefs.followWallpaper`（key `theme_follow_wallpaper`，默认关），在「深浅色」下面，只在 Android 12+ 显示。
+
+- 打开后键盘不用 `light` / `dark`，改用壁纸调色板生成的 `wallpaper_light` / `wallpaper_dark`
+  （Material 角色到键盘角色的对照在 `KeyboardColorRoles.fromMaterial`）；用浅色还是深色版由**系统**深浅色决定，
+  所以「深浅色」三选一在设置页里置灰。配色微调滑块照常叠加。
+- 换壁纸或系统切深浅色时，输入法在 `onConfigurationChanged`、`onCreateInputView`、`onWindowShown` 重新取色，颜色变了才重建。
+
+### App 界面和键盘用同一套设置
+
+设置 App（`TrimeTheme`）不再有自己的「用户界面模式」：
+
+| 设置 | 键盘 | App |
+| --- | --- | --- |
+| 跟随壁纸取色 开 | 壁纸配色，深浅跟随系统 | Material You 动态配色，深浅跟随系统 |
+| 关，深浅色 = 跟随系统 / 浅色 / 深色 | `light` / `dark` 按选择 | zinc 中性配色，深浅按同一个选择 |
+
+App 的深浅色由 `ThemePrefs.appNightMode` 经 `AppCompatDelegate.setDefaultNightMode` 设置（`MainActivity` 启动时和主题设置页改动时）。
+原来「高级」里的 `ui_mode` 已删除：迁移时只删这个 key，不拿它改键盘的深浅色，升级后 App 跟着键盘原有的选择走。
+
 ### 旧偏好迁移
 
 `DayNightMigration` 在 `ThemePrefs` 创建时执行一次：
