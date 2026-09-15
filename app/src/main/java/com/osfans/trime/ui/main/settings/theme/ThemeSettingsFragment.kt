@@ -33,17 +33,12 @@ import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.data.theme.ThemePrefs
 import com.osfans.trime.ui.compose.preference.PreferenceDelegateComposeFragment
 import com.osfans.trime.ui.compose.preference.PreferenceRow
-import com.osfans.trime.ui.main.settings.ColorPickerDialog
 
+/**
+ * Keyboard style page. The theme itself is built in; what is left to set is the day / night
+ * mode, the navigation bar background and the colour tint sliders, all plain preference rows.
+ */
 class ThemeSettingsFragment : PreferenceDelegateComposeFragment(ThemeManager.prefs) {
-    private var showColorPicker by mutableStateOf(false)
-
-    @Composable
-    override fun clickHandlers(): Map<String, () -> Unit> = mapOf(
-        // Not a plain preference write: ColorManager has to load the colour scheme.
-        ThemePrefs.NORMAL_MODE_COLOR to { showColorPicker = true },
-    )
-
     // 三个配色微调滑块边拖边写（节流），键盘原地重新上色
     override val livePreviewKeys = setOf(
         ThemePrefs.THEME_TINT_WARM,
@@ -93,11 +88,6 @@ class ThemeSettingsFragment : PreferenceDelegateComposeFragment(ThemeManager.pre
             summary = stringResource(R.string.theme_tint_reset_summary),
             onClick = { ThemeManager.prefs.resetTint() },
         )
-    }
-
-    @Composable
-    override fun Dialogs() {
-        if (showColorPicker) ColorPickerDialog.ColorSelectionDialog { showColorPicker = false }
     }
 
     private companion object {

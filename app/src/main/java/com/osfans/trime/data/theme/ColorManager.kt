@@ -21,6 +21,8 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.math.MathUtils
 import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.data.prefs.PreferenceDelegate
+import com.osfans.trime.data.theme.ThemePrefs.DayNightMode
+import com.osfans.trime.data.theme.builtin.BuiltinColors
 import com.osfans.trime.data.theme.model.ColorScheme
 import com.osfans.trime.util.ColorUtils
 import com.osfans.trime.util.NinePatchBitmapFactory
@@ -34,8 +36,7 @@ import kotlin.reflect.KProperty
 object ColorManager {
     private lateinit var theme: Theme
     private val prefs = ThemeManager.prefs
-    private var normalModeColor by prefs.normalModeColor
-    private val followSystemDayNight by prefs.followSystemDayNight
+    private val dayNightMode by prefs.dayNightMode
     private val backgroundFolder get() = theme.generalStyle.backgroundFolder
 
     private var isNightMode = false
@@ -50,10 +51,6 @@ object ColorManager {
             invalidateColors()
             fireChange()
         }
-
-    private var lightModeColorScheme: ColorScheme? = null
-
-    private var darkModeColorScheme: ColorScheme? = null
 
     // ------------------------------------------------ 运行时配色微调，见 [ColorTint]
 
@@ -75,7 +72,7 @@ object ColorManager {
 
     /**
      * 当前配色是深色配色吗（决定用 BASE_DARK + lift 还是 BASE_LIGHT）。
-     * 按方案自己的底色亮度判断，而不是看系统深浅色：用户可以在浅色模式下手动选深色配色。
+     * 按方案自己的底色亮度判断，而不是看系统深浅色：深浅色偏好可以把系统浅色模式下的键盘固定成深色。
      */
     private val isDarkScheme: Boolean
         get() = cachedDarkScheme ?: evaluateDarkScheme().also { cachedDarkScheme = it }
@@ -121,10 +118,18 @@ object ColorManager {
             if (this::theme.isInitialized) fireTintChange()
         }
 
+    /** 设置页切了深浅色：换成对应的配色方案，走 [fireChange] 重建键盘。 */
+    @Keep
+    private val onDayNightModeChangeListener =
+        PreferenceDelegate.OnChangeListener<DayNightMode> { _, _ ->
+            if (this::theme.isInitialized) activeColorScheme = evaluateActiveColorScheme()
+        }
+
     init {
         listOf(prefs.tintWarm, prefs.tintDim, prefs.tintAlpha).forEach {
             it.registerOnChangeListener(onTintChangeListener)
         }
+        prefs.dayNightMode.registerOnChangeListener(onDayNightModeChangeListener)
     }
 
     private val BuiltinFallbackColors =
@@ -246,47 +251,22 @@ object ColorManager {
         activeColorScheme = evaluateActiveColorScheme()
     }
 
-    private fun evaluateActiveColorScheme(): ColorScheme = when {
-        followSystemDayNight -> {
-            val defaultModeScheme = if (isNightMode) darkModeColorScheme else lightModeColorScheme
-
-            fun resolveScheme(id: String?) = id?.let { colorScheme(it) } ?: defaultModeScheme
-
-            colorScheme(normalModeColor)?.let { userScheme ->
-                val lightSchemeId = userScheme.colors["light_scheme"]
-                val darkSchemeId = userScheme.colors["dark_scheme"]
-
-                when {
-                    lightSchemeId != null && darkSchemeId != null ->
-                        // 如果两者都指定了，根据当前模式选择对应的配色
-                        resolveScheme(if (isNightMode) darkSchemeId else lightSchemeId)
-                    lightSchemeId != null ->
-                        // 如果只指定了light_scheme，说明是暗色方案
-                        if (isNightMode) userScheme else resolveScheme(lightSchemeId)
-                    darkSchemeId != null ->
-                        // 如果只指定了dark_scheme，说明是亮色方案
-                        if (isNightMode) resolveScheme(darkSchemeId) else userScheme
-                    else -> defaultModeScheme
-                }
-            } ?: defaultModeScheme
+    private fun evaluateActiveColorScheme(): ColorScheme {
+        val dark = when (dayNightMode) {
+            DayNightMode.FOLLOW_SYSTEM -> isNightMode
+            DayNightMode.LIGHT -> false
+            DayNightMode.DARK -> true
         }
-        else -> colorScheme(normalModeColor)
-    } ?: colorScheme("default") ?: theme.colorSchemes.first()
+        val id = if (dark) BuiltinColors.DARK_SCHEME else BuiltinColors.LIGHT_SCHEME
+        return colorScheme(id) ?: theme.colorSchemes.first()
+    }
 
-    /** 每次切换主题后，都要调用此函数，初始化配色 */
+    /** 拿到主题后调用一次，初始化配色 */
     fun switchTheme(theme: Theme) {
         bitmapCache?.evictAll()
         invalidateColors()
         this.theme = theme
-        val defaultScheme = colorScheme("default") ?: theme.colorSchemes.first()
-        lightModeColorScheme = defaultScheme.colors["light_scheme"]?.let { colorScheme(it) }
-        darkModeColorScheme = defaultScheme.colors["dark_scheme"]?.let { colorScheme(it) }
         activeColorScheme = evaluateActiveColorScheme()
-    }
-
-    fun setColorScheme(scheme: ColorScheme) {
-        activeColorScheme = scheme
-        normalModeColor = scheme.id
     }
 
     @ColorInt

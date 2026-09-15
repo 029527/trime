@@ -13,6 +13,12 @@ import com.osfans.trime.data.theme.model.ColorScheme
  * the fallback chain in `ColorManager`.
  */
 object BuiltinColors {
+    /** Scheme for light mode; which one is active follows `ThemePrefs.dayNightMode`. */
+    const val LIGHT_SCHEME = "ios_light"
+
+    /** Scheme for dark mode. */
+    const val DARK_SCHEME = "ios_dark"
+
     val schemes =
         listOf(
             ColorScheme(
