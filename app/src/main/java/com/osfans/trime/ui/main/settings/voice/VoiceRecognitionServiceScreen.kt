@@ -6,6 +6,9 @@
 package com.osfans.trime.ui.main.settings.voice
 
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -43,6 +46,7 @@ fun VoiceRecognitionServiceScreen(onNavigateUp: () -> Unit) {
     val prefs = AppPrefs.defaultInstance().voice
     var revision by remember { mutableIntStateOf(0) }
     var dialog by remember { mutableStateOf<RecognitionDialog?>(null) }
+    var confirmClear by remember { mutableStateOf(false) }
 
     @Suppress("UNUSED_EXPRESSION")
     revision
@@ -106,13 +110,35 @@ fun VoiceRecognitionServiceScreen(onNavigateUp: () -> Unit) {
                 }
                 PreferenceRow(
                     title = stringResource(R.string.voice_clear_credentials),
-                    onClick = {
-                        VoiceCredentialStore.clearAll()
-                        revision++
-                    },
+                    // 清掉就得重新去控制台抄一遍，先确认
+                    onClick = { confirmClear = true },
                 )
             }
         }
+    }
+
+    if (confirmClear) {
+        AlertDialog(
+            onDismissRequest = { confirmClear = false },
+            title = { Text(stringResource(R.string.voice_clear_credentials)) },
+            text = { Text(stringResource(R.string.voice_clear_credentials_confirm)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmClear = false
+                        VoiceCredentialStore.clearAll()
+                        revision++
+                    },
+                ) {
+                    Text(stringResource(R.string.voice_clear_credentials_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmClear = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 
     val closeDialog = {

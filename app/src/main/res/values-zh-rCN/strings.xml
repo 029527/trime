@@ -327,6 +327,8 @@
     <string name="voice_resource_big">流式语音识别大模型（bigasr）</string>
     <string name="voice_credential_unset">未填写</string>
     <string name="voice_clear_credentials">清空凭证</string>
+    <string name="voice_clear_credentials_confirm">要清空已保存的火山凭证吗？清空后要重新填写才能使用语音输入。</string>
+    <string name="voice_clear_credentials_action">清空</string>
     <string name="voice_max_duration">单次最长录音（秒）</string>
     <string name="voice_permission">录音权限</string>
     <string name="voice_permission_granted">已授予</string>

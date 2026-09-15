@@ -283,6 +283,36 @@ object PunctuationFormatter {
  * 最后一道加工：按 [optionsProvider] 整理标点。每次现取，所以改完设置下一次听写就生效。
  * 中间结果和最终结果一样处理（[isFinal] 不影响结果）。
  */
+
+/**
+ * 两次分开的听写之间补的分隔符。
+ *
+ * 「空格」「不加」「去掉句末句号」这类设置会把上一次听写末尾的句号去掉，下一次听写接着说时
+ * 两句就粘在一起了。[tail] 是上一次听写上屏后留在光标前的文字（调用方负责确认光标没动过、
+ * 中间没打别的字），返回的分隔符等于「这两句在同一次听写里说出来」时句号会变成的样子。
+ *
+ * - 默认组合（中文句号、保留标点）一个字都不补，跟没有这个功能时一样；
+ * - [tail] 末尾是空白，或是中文标点（`。` `？` `」` ……）：不补；
+ * - 末尾是英文标点（`.` `?` `,` ……）：补一个空格；
+ * - 末尾是字：按当前设置算出句号的样子（英文句点是 `. `，空格是 ` `，不加是空，挨着英文字母数字时留一个空格）。
+ */
+fun PunctuationFormatter.separatorAfter(
+    tail: String,
+    options: PunctuationOptions,
+): String {
+    if (options.isIdentity) return ""
+    val last = tail.lastOrNull() ?: return ""
+    if (last.isWhitespace()) return ""
+    if (last in ASCII_PUNCTUATION) return " "
+    if (!last.isLetterOrDigit()) return ""
+    val stub = if (last.code < 0x80) "a" else "字"
+    val probe = format(stub + "。字", options)
+    if (!probe.startsWith(stub) || !probe.endsWith("字") || probe.length < stub.length + 1) return ""
+    return probe.substring(stub.length, probe.length - 1)
+}
+
+private const val ASCII_PUNCTUATION = ".?!,;:"
+
 class PunctuationProcessor(
     private val optionsProvider: () -> PunctuationOptions,
 ) : TranscriptProcessor {
@@ -313,13 +343,25 @@ class TranscriptJoiner(
     private var rawCommitted = ""
     private var shownCommitted = ""
 
-    fun reset() {
+    /** 这次听写第一段上屏前补的分隔符，见 [separatorAfter]；只加在第一段前面，不参与整段格式化。 */
+    private var leading = ""
+
+    fun reset(leading: String = "") {
         rawCommitted = ""
         shownCommitted = ""
+        this.leading = leading
+    }
+
+    private fun withLeading(body: String): String = when {
+        rawCommitted.isNotEmpty() || body.isEmpty() || leading.isEmpty() -> body
+        leading.last().isWhitespace() -> leading + body.trimStart()
+        else -> leading + body
     }
 
     /** [raw] 是还没上屏的原文（已映射、未整理标点），返回该显示成待定文字的样子。 */
-    fun display(raw: String): String {
+    fun display(raw: String): String = withLeading(body(raw))
+
+    private fun body(raw: String): String {
         val whole = format(rawCommitted + raw)
         if (rawCommitted.isEmpty()) return whole
         val continued = format(rawCommitted + CONTINUATION).removeSuffix(CONTINUATION)
@@ -330,9 +372,10 @@ class TranscriptJoiner(
 
     /** 上屏 [raw]，返回实际上屏的文字。 */
     fun commit(raw: String): String {
-        val shown = display(raw)
+        val body = body(raw)
+        val shown = withLeading(body)
         rawCommitted += raw
-        shownCommitted += shown
+        shownCommitted += body
         return shown
     }
 

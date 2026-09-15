@@ -329,6 +329,8 @@
     <string name="voice_resource_big">Streaming ASR large model (bigasr)</string>
     <string name="voice_credential_unset">Not set</string>
     <string name="voice_clear_credentials">Clear credentials</string>
+    <string name="voice_clear_credentials_confirm">Clear the saved Volcengine credentials? You will need to enter them again before voice input works.</string>
+    <string name="voice_clear_credentials_action">Clear</string>
     <string name="voice_max_duration">Max recording length (seconds)</string>
     <string name="voice_permission">Microphone permission</string>
     <string name="voice_permission_granted">Granted</string>

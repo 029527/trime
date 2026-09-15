@@ -190,6 +190,27 @@ class PunctuationFormatterTest :
                 joiner.commit("我们出去走走吧。") shouldBe shown
             }
 
+            test("两次听写之间补的分隔符") {
+                PunctuationFormatter.separatorAfter("今天天气不错", PunctuationOptions(ZH, KEEP)) shouldBe ""
+                PunctuationFormatter.separatorAfter("今天天气不错", PunctuationOptions(EN, KEEP)) shouldBe ". "
+                PunctuationFormatter.separatorAfter("今天天气不错", PunctuationOptions(SP, KEEP)) shouldBe " "
+                PunctuationFormatter.separatorAfter("今天天气不错", PunctuationOptions(NO, KEEP)) shouldBe ""
+                PunctuationFormatter.separatorAfter("我用 Claude", PunctuationOptions(NO, KEEP)) shouldBe " "
+                PunctuationFormatter.separatorAfter("今天天气不错", PunctuationOptions(ZH, END_PERIOD)) shouldBe "。"
+                PunctuationFormatter.separatorAfter("今天天气不错.", PunctuationOptions(EN, KEEP)) shouldBe " "
+                PunctuationFormatter.separatorAfter("要不要出去走走？", PunctuationOptions(SP, KEEP)) shouldBe ""
+                PunctuationFormatter.separatorAfter("今天天气不错 ", PunctuationOptions(SP, KEEP)) shouldBe ""
+                PunctuationFormatter.separatorAfter("", PunctuationOptions(SP, KEEP)) shouldBe ""
+            }
+
+            test("分隔符只加在这次听写的第一段前面") {
+                val joiner = TranscriptJoiner { PunctuationFormatter.format(it, PunctuationOptions(SP, KEEP)) }
+                joiner.reset(leading = " ")
+                joiner.display("我们出去走走吧。") shouldBe " 我们出去走走吧"
+                joiner.commit("我们出去走走吧。") shouldBe " 我们出去走走吧"
+                joiner.commit("好啊。") shouldBe " 好啊"
+            }
+
             test("对不上时退回单独格式化，开头不留空白") {
                 // 前一段末尾的 "." 在后一段接上数字后就不是句号了
                 val joiner = TranscriptJoiner { PunctuationFormatter.format(it, PunctuationOptions(SP, KEEP)) }

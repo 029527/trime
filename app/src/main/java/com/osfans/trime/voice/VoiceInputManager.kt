@@ -34,12 +34,14 @@ import com.osfans.trime.voice.llm.OpenAiCompatibleCorrector
 import com.osfans.trime.voice.llm.TranscriptCorrector
 import com.osfans.trime.voice.postprocess.CorrectionOutcome
 import com.osfans.trime.voice.postprocess.PeriodStyle
+import com.osfans.trime.voice.postprocess.PunctuationFormatter
 import com.osfans.trime.voice.postprocess.PunctuationOptions
 import com.osfans.trime.voice.postprocess.PunctuationProcessor
 import com.osfans.trime.voice.postprocess.PunctuationRule
 import com.osfans.trime.voice.postprocess.TranscriptJoiner
 import com.osfans.trime.voice.postprocess.TranscriptPipeline
 import com.osfans.trime.voice.postprocess.VocabularyMappingProcessor
+import com.osfans.trime.voice.postprocess.separatorAfter
 import com.osfans.trime.voice.provider.FakeVoiceRecognitionProvider
 import com.osfans.trime.voice.provider.VoiceRecognitionEvent
 import com.osfans.trime.voice.provider.VoiceRecognitionProvider
@@ -112,6 +114,14 @@ class VoiceInputManager(
 
     /** 标点整理对整段做：分段上屏时减掉已经上屏的部分，接缝处的句号/空格才对。 */
     private val joiner = TranscriptJoiner { pipeline.format(it, isFinal = true) }
+
+    /**
+     * 上一次听写上屏后光标前的文字（最多 [TAIL_LENGTH] 个字）和它所在的输入框。下一次听写开始时光标前
+     * 还是这段字，说明是接着上一次说的，按标点设置补分隔符（[separatorAfter]）；打过别的字、挪过光标、
+     * 换了输入框就对不上，不补。
+     */
+    private var lastTail: String? = null
+    private var lastTailField: String? = null
 
     /** 这一次会话怎么纠错；null 表示不纠错（没开、没配好），跟以前一样直接上屏。开始时定下来。 */
     private class CorrectionPlan(
@@ -283,13 +293,19 @@ class VoiceInputManager(
             DictationEffect.EndSession -> endSession()
             is DictationEffect.BeginCorrection -> beginCorrection(effect.text)
             is DictationEffect.SetComposing -> service.currentInputConnection?.setComposingText(effect.text, 1)
-            is DictationEffect.Commit -> service.currentInputConnection?.run {
-                beginBatchEdit()
-                if (effect.text.isNotEmpty()) setComposingText(effect.text, 1)
-                finishComposingText()
-                endBatchEdit()
+            is DictationEffect.Commit -> {
+                service.currentInputConnection?.run {
+                    beginBatchEdit()
+                    if (effect.text.isNotEmpty()) setComposingText(effect.text, 1)
+                    finishComposingText()
+                    endBatchEdit()
+                }
+                rememberTail()
             }
-            DictationEffect.FinishComposing -> service.currentInputConnection?.finishComposingText()
+            DictationEffect.FinishComposing -> {
+                service.currentInputConnection?.finishComposingText()
+                rememberTail()
+            }
             DictationEffect.ScheduleErrorDismiss -> {
                 handler.removeCallbacks(dismissError)
                 handler.postDelayed(dismissError, ERROR_DISPLAY_MS)
@@ -325,7 +341,7 @@ class VoiceInputManager(
         val id = ++sessionId
         stopAudio = false
         segmenter.reset()
-        joiner.reset()
+        joiner.reset(leading = separatorForContinuation())
         heldText = ""
         pendingRaw = ""
         handler.removeCallbacks(dismissError)
@@ -456,6 +472,24 @@ class VoiceInputManager(
             }
     }
 
+    private fun currentFieldKey(): String? = service.currentInputEditorInfo?.let { "${it.packageName}#${it.fieldId}" }
+
+    private fun rememberTail() {
+        val ic = service.currentInputConnection ?: return
+        lastTail = ic.getTextBeforeCursor(TAIL_LENGTH, 0)?.toString()?.takeIf { it.isNotEmpty() }
+        lastTailField = currentFieldKey()
+    }
+
+    /** 接着上一次听写说时要补的分隔符；不是接着说的（或默认标点设置）就是空。 */
+    private fun separatorForContinuation(): String {
+        val tail = lastTail ?: return ""
+        if (lastTailField != currentFieldKey()) return ""
+        val ic = service.currentInputConnection ?: return ""
+        if (!ic.getSelectedText(0).isNullOrEmpty()) return ""
+        if (ic.getTextBeforeCursor(tail.length, 0)?.toString() != tail) return ""
+        return PunctuationFormatter.separatorAfter(tail, punctuation)
+    }
+
     private fun endSession() {
         // 先让编号过期，被取消的协程里再冒出来的事件就都丢了
         sessionId++
@@ -532,6 +566,8 @@ class VoiceInputManager(
     }
 
     companion object {
+        private const val TAIL_LENGTH = 16
+
         private const val ERROR_DISPLAY_MS = 2500L
 
         /** 关麦之后最多再等服务端多久给最终结果。 */
