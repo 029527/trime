@@ -36,6 +36,10 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        # 默认会装已下线的旧 `tools` 包，新版 sdkmanager（cmdline-tools 16）找不到它直接失败；
+        # CMake 和 SDK Platform 在下面单独装，这里只要 platform-tools
+        with:
+          packages: platform-tools
 
       - name: Install CMake
         run: sdkmanager --install "cmake;3.31.6"
