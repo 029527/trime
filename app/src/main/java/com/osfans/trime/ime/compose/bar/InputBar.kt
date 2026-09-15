@@ -212,11 +212,13 @@ private fun AlwaysBar(
             }
         }
         if (first != null) {
+            // the end slot is where the hide-keyboard button always was: a downward swipe hides, whatever it shows
             ToolbarButton(
                 spec = remember(first) { BarButtonSpec.Configured(first) },
                 state = state,
                 actions = actions,
                 modifier = Modifier.barButtonSize(first.sizeDp(config.buttonSizeDp)),
+                onSwipeDown = actions::onHideKeyboard,
             )
         } else {
             BarButton(
@@ -230,9 +232,10 @@ private fun AlwaysBar(
 }
 
 /**
- * The theme's buttons after the first, laid from the end towards the start with
- * `button_spacing` after each. When they do not fit, every button gives up width in
- * proportion to its own, so none is pushed out of the bar (the View bar's flexbox did the same).
+ * The theme's buttons after the first, with `button_spacing` between them and the bar's ends:
+ * laid from the end towards the start, or in order from the start when the toolbar's
+ * `buttonsAlignment` is START. When they do not fit, every button gives up width in proportion
+ * to its own, so none is pushed out of the bar (the View bar's flexbox did the same).
  */
 @Composable
 private fun ButtonsRow(
@@ -268,10 +271,19 @@ private fun ButtonsRow(
                 m.measure(Constraints(minWidth = 0, maxWidth = w, minHeight = 0, maxHeight = height))
             }
         layout(width, height) {
-            var x = width
-            placeables.forEach {
-                x -= spacing + it.width
-                it.place(x, (height - it.height) / 2)
+            if (toolBar.buttonsAlignment == ToolBar.ButtonsAlignment.START) {
+                var x = 0
+                placeables.forEach {
+                    x += spacing
+                    it.place(x, (height - it.height) / 2)
+                    x += it.width
+                }
+            } else {
+                var x = width
+                placeables.forEach {
+                    x -= spacing + it.width
+                    it.place(x, (height - it.height) / 2)
+                }
             }
         }
     }
@@ -284,6 +296,7 @@ private fun ToolbarButton(
     state: InputBarState,
     actions: InputBarActions,
     modifier: Modifier,
+    onSwipeDown: (() -> Unit)? = null,
 ) {
     when (spec) {
         is BarButtonSpec.Configured -> {
@@ -293,6 +306,7 @@ private fun ToolbarButton(
                 optionEnabled = spec.option?.let { state.options[it] } ?: false,
                 onClick = { actions.onButton(spec.config.action) },
                 onLongClick = if (longPress.isNotEmpty()) ({ actions.onButton(longPress) }) else null,
+                onSwipeDown = onSwipeDown,
                 modifier = modifier,
             )
         }

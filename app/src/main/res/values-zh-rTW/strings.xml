@@ -335,4 +335,11 @@
     <string name="voice_vocabulary_exists">檔案已經存在，沒有覆蓋</string>
     <string name="voice_theme_hint">主題裏怎麼寫</string>
     <string name="voice_theme_hint_summary">preset_keys 裏把麥克風鍵寫成 {command: voice_input}</string>
+    <string name="edit_select">選取</string>
+    <string name="edit_line_start">行首</string>
+    <string name="edit_line_end">行尾</string>
+    <string name="edit_select_all">全選</string>
+    <string name="edit_cut">剪下</string>
+    <string name="edit_copy">複製</string>
+    <string name="edit_paste">貼上</string>
 </resources>

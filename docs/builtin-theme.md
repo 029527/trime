@@ -42,6 +42,28 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 
 加新的预设键就在 `BuiltinKeys.kt` 里加一条 `"名字" to PresetKey(...)`，字段和原来 yaml 的 `preset_keys` 一样，只是改成了驼峰命名。
 
+## 改工具栏
+
+没有在打字时，候选栏那一行显示工具栏。它配置在 `BuiltinTheme.kt` 的 `toolBar`（模型见 `data/theme/model/ToolBar.kt`），
+现在从左到右是：
+
+| 位置 | 按钮 | 动作 |
+| --- | --- | --- |
+| 最左 | 「…」 | `primaryButton` 留空时的内置按钮，打开方案 / 开关窗口 |
+| 左侧 | 光标 `ic@cursor-text` | 预设键 `edit_panel`：打开编辑面板（方向键、选择、行首行尾、全选剪切复制粘贴） |
+| 左侧 | 剪贴板 `ic@clipboard-outline` | 预设键 `clipboard_window` |
+| 最右 | 收起 `ic@menu-down` | 预设键 `Hide`；在这个按钮上往下滑也会收起键盘 |
+
+- `buttons` 的**第一个**按钮固定占最右边的位置，也就是原来收起箭头的位置，下滑收起键盘也跟着这个位置走。
+- 其余按钮由 `buttonsAlignment` 决定：`START` 紧跟在「…」后面按列表顺序排（现在的写法），`END`（默认）从右往左排。
+  按钮之间和两端空 `buttonSpacing` dp，现在是 0，因为按钮本身已经是栏高的正方形。
+- 按钮样式由 `toolBarButton()` 统一：24dp 图标、候选字色、按下时圆角色块，和内置的「…」一致。
+  图标名是 Community Material 的名字（`ic@` 加上 materialdesignicons 的名字，横线或下划线都行）。
+- `action` 写预设键名。加按钮就在 `buttons` 里多写一条 `toolBarButton("ic@…", "预设键")`；
+  `BuiltinThemeTest` 会检查引用的预设键存在。
+- 编辑面板本身（`ime/edit/EditPanelWindow.kt`、`ime/compose/edit/EditPanel.kt`）不在主题里配置，
+  尺寸见 `docs/ime-design-system.md` §2.5。
+
 ## 改配色
 
 打开 `BuiltinColors.kt`，两套方案各是一张 `"颜色名" to "0xRRGGBB"` 的表。颜色名和原来 yaml 的

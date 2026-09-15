@@ -13,9 +13,19 @@ data class ToolBar(
     val primaryButton: Button? = null,
     val buttons: List<Button> = emptyList(),
     val buttonSpacing: Int = 18,
+    /**
+     * Where the buttons after the first go: [ButtonsAlignment.END] lays them from the end
+     * towards the start, as the View bar did; [ButtonsAlignment.START] lays them in order
+     * after the primary button. The first button always takes the end slot.
+     */
+    val buttonsAlignment: ButtonsAlignment = ButtonsAlignment.END,
     val buttonFont: List<String> = emptyList(),
     val backStyle: String = "ic@arrow-left",
 ) : Parcelable {
+    enum class ButtonsAlignment {
+        START,
+        END,
+    }
 
     @Parcelize
     data class Button(

@@ -345,4 +345,11 @@
     <string name="voice_vocabulary_exists">The file already exists</string>
     <string name="voice_theme_hint">Theme key</string>
     <string name="voice_theme_hint_summary">Write the mic key as {command: voice_input} in preset_keys</string>
+    <string name="edit_select">Select</string>
+    <string name="edit_line_start">Line start</string>
+    <string name="edit_line_end">Line end</string>
+    <string name="edit_select_all">Select all</string>
+    <string name="edit_cut">Cut</string>
+    <string name="edit_copy">Copy</string>
+    <string name="edit_paste">Paste</string>
 </resources>

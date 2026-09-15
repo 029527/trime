@@ -177,7 +177,7 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 ### 2.5 弹出层和面板
 
 按键以外的 Compose 部件也从 `ImeTokens` 取尺寸，字段名带区域前缀。圆角、键距、字号梯度能复用按键组的（`keyCornerRadius`、
-`keyLabelTextSize` 等）就直接复用，下面只列各区域自己的。除了长按小键盘的两项，横竖屏同值。
+`keyLabelTextSize` 等）就直接复用，下面只列各区域自己的。除了长按小键盘的两项和编辑面板（单独列了横屏），横竖屏同值。
 
 **按键气泡和长按小键盘**（`popup*`）。样子照 iOS：浅色圆角块带柔和阴影，贴在键的上方。气泡本身的尺寸和字号见 §2.3「按下反馈」。
 
@@ -233,6 +233,35 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 | `barInlinePinnedHorizontalMargin` | 10dp | 自动填充固定项的左右外边距 |
 | `barTabSpacing` | 8dp | 面板标题栏里返回键、标题、面板自带栏之间 |
 | `barUnrolledItemMinWidth` | 40dp | 展开候选网格里单个候选的最窄宽度 |
+
+**编辑面板**（`editPanel*`）：工具栏光标按钮打开的面板。格子就是按键，圆角、键距、明暗层次都用按键组的：
+方向键是字母级（`keyBack`，按下 `highlightedKeyBack`），其余是功能级（`functionKeyBack`，按下按 `keyPressedFunctionSwap` 换亮色），
+「选择」打开时用强调色（`accentBack` / `accentText`，即配色里的 `enter_key_action_*`，和回车键变蓝同一种颜色）。
+行高不设 token：四行平分窗口高度（竖屏跟键盘同高 256dp，横屏 160dp）。
+
+```
+┌────┬──────┬────┬──────┐
+│    │  ↑   │    │ 全选 │
+│    ├──────┤    ├──────┤
+│ ←  │ 选择 │ →  │ 剪切 │
+│    ├──────┤    ├──────┤
+│    │  ↓   │    │ 复制 │
+├────┴──┬───┴────┼──────┤
+│ 行首  │  行尾  │ 粘贴 │
+└───────┴────────┴──────┘
+```
+
+| Token | 竖屏 | 横屏 | 理由 |
+|---|---|---|---|
+| `editPanelCommandColumnFraction` | 0.28 | 0.28 | 右侧命令列占面板宽度的比例：竖屏约 113dp，放得下图标加两个字 |
+| `editPanelCenterColumnWeight` | 1.4 | 1.4 | 中间（↑ 选择 ↓）一列相对左右方向键（各 1）的宽度，「选择」两个字不挤 |
+| `editPanelArrowIconSize` | 26dp | 22dp | 方向键只有图标，比按键图标（22 / 20dp）略大，一眼分清方向 |
+| `editPanelIconSize` | 20dp | 18dp | 带文字的格子里的图标 |
+| `editPanelLabelTextSize` | 14sp | 14sp | 比功能键文字（16sp）小一级：图标和文字叠在一格里 |
+| `editPanelIconLabelGap` | 2dp | 6dp | 竖排时紧贴；横排时隔开 |
+| `editPanelLabelBesideIcon` | false | true | 横屏一行只有 40dp 高，图标和文字叠不下，改成左右并排 |
+
+四个方向键长按连发，节奏和退格一致（`longPressTimeout` / `repeatInterval` 偏好）；行首行尾和命令不连发。
 
 ---
 
