@@ -131,7 +131,7 @@
     <string name="developer">Developer</string>
     <string name="profile">Profile</string>
     <string name="virtual_keyboard">Virtual Keyboard</string>
-    <string name="theme">Keyboard Style</string>
+    <string name="theme">Appearance</string>
     <string name="about">About</string>
     <string name="storage">Storage</string>
     <string name="data_storage_mode">Data storage mode</string>
