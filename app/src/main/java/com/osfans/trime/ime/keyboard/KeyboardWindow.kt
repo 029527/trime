@@ -260,6 +260,18 @@ class KeyboardWindow :
                 ".next" -> presetKeyboardIds.getOrNull(currentIdx + 1) ?: currentKeyboardId
                 ".last" -> lastKeyboardId
                 ".last_lock" -> lastLockKeyboardId
+                // 中文键盘 ⇄ 英文键盘：在英文（ascii）键盘上回到当前方案的键盘，否则去英文键盘；
+                // 符号层这类没写 ascii_keyboard 的键盘，借最近一个锁定键盘（字母键盘）的
+                ".ascii_toggle" -> {
+                    if (currentKeyboard?.asciiMode == true) {
+                        smartMatchKeyboard()
+                    } else {
+                        val ascii =
+                            currentKeyboard?.asciiKeyboard?.takeIf { it.isNotEmpty() }
+                                ?: cachedKeyboards[lastLockKeyboardId]?.first?.asciiKeyboard
+                        if (ascii != null && presetKeyboardIds.contains(ascii)) ascii else currentKeyboardId
+                    }
+                }
                 ".ascii" -> {
                     var ascii = currentKeyboard?.asciiKeyboard
                     if (ascii.isNullOrEmpty()) {

@@ -14,17 +14,16 @@ import com.osfans.trime.data.theme.model.ToolBar
  */
 object BuiltinTheme {
     /**
-     * The bar above the keyboard while nothing is being typed, left to right: the switches button
-     * ("…", the built-in primary button), edit panel, clipboard, then hide keyboard at the far end.
-     * `buttons[0]` always takes the end slot; the others follow the primary button in order.
+     * The bar above the keyboard while nothing is being typed: the switches button ("…", the built-in
+     * primary button) at the start, hide keyboard at the far end. Clipboard and the edit panel live
+     * only on the keyboard's bottom row. `buttons[0]` always takes the end slot; any others follow
+     * the primary button in order.
      */
     private val toolBar =
         ToolBar(
             buttons =
             listOf(
                 toolBarButton("ic@menu-down", "Hide"),
-                toolBarButton("ic@cursor-text", "edit_panel"),
-                toolBarButton("ic@clipboard-outline", "clipboard_window"),
             ),
             // the buttons are already as wide as the bar is tall; the glyphs need no extra gap
             buttonSpacing = 0,

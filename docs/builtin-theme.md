@@ -54,19 +54,24 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 
 | 位置 | 宽度 | 预设键 | 点击 | 长按 | 图标 |
 | --- | --- | --- | --- | --- | --- |
-| 左下角 | 12 | `ios_schema` | 发 `MENU`：弹出方案选单（已启用的方案单选，外加「其他输入法」按钮） | `IME_switch`：系统输入法选择器 | `ic@keyboard-outline` → Keyboard |
+| 左下角 | 12 | `ios_schema` | `select: .ascii_toggle`：中文键盘 ⇄ 英文键盘（见下） | 预设键 `Menu`：方案选单（已启用的方案单选） | `ic@keyboard-outline` → Keyboard |
 | 空白 | 8 | — | | | |
 | 中间 | 20 | `ios_emoji` | 表情面板 | — | `ic@emoticon-outline` → EmojiEmotions |
 | 中间 | 20 | `ios_clipboard` | 命令 `clipboard_window`：剪贴板窗口 | — | `ic@clipboard-outline` → ContentPaste |
-| 中间 | 20 | `ios_edit` | 命令 `edit_panel`：编辑面板（方向键、选择、行首行尾、全选剪切复制粘贴） | — | `ic@cursor-text` → Edit（铅笔，和工具栏同一个） |
+| 中间 | 20 | `ios_edit` | 命令 `edit_panel`：编辑面板（方向键、选择、行首行尾、全选剪切复制粘贴） | — | `ic@cursor-text` → Edit（铅笔） |
 | 空白 | 8 | — | | | |
-| 右下角 | 12 | `ios_mic` | 语音输入（按住说话） | — | `ic@microphone-outline` → Mic |
+| 右下角 | 12 | `ios_mic` | 语音听写（点一下开始，再点或静音 3 秒停止） | — | `ic@microphone-outline` → Mic |
 
 - 两个角保留原来地球 / 麦克风的 12% 格子，图标位置不变；中间三个等宽 20%（竖屏约 82dp 宽），和两角之间各空 8%，
   五个图标的间距是 24 / 20 / 20 / 24%，看起来均匀，每个触摸区都比 44dp 大。
 - 剪贴板和编辑面板用单独的 `ios_clipboard` / `ios_edit`，不直接写 `clipboard_window` / `edit_panel`：那两个预设键的
   `label` 是文字，写在按键上的 `label` 在英文（ascii）状态下会被预设键的文字顶掉，键面就从图标变成「剪贴」「编辑」。
 - 原来的 `ios_globe`（`Control+Shift+1` 轮换方案）已删除：方案多于两个时轮换不如直接选。
+- 键盘里原来的 `ZH` / `EN` 键（`ios_to_en` / `ios_to_zh`）已删除，中英切换只走左下角；竖屏把宽度并给空格。
+- `.ascii_toggle` 是 `KeyboardWindow.evalKeyboard` 里的伪键盘名：当前键盘是英文（`ascii_mode: true`）就回到当前方案的键盘
+  （双拼 `default`，九宫格 `t9` / 横屏 `t9_land`），否则去当前键盘的 `ascii_keyboard`；符号层没写 `ascii_keyboard`，借最近一个锁定键盘的。
+  所以竖屏默认方案下就是「双拼混输 ⇄ 英文全键」，长按选了九宫格后点一下是「九宫格 ⇄ 英文全键」。
+- 长按不再弹系统输入法选择器；方案选单里还留着「其他输入法」按钮，要换别的输入法从那里进。
 
 ### 横屏的麦克风键
 
@@ -74,13 +79,15 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 
 | 键盘 | 横屏最后一行 | 让出宽度的键 |
 | --- | --- | --- |
-| `default`、`english` | 符号键 12、逗号 10、**麦克风 10**、空格 24、句号 10、中英 12、回车 22 | 空格 34 → 24 |
+| `default`、`english` | 符号键 12、逗号 10、**麦克风 10**、空格 24、句号 10、**切换 12**、回车 22 | 空格 46 → 24 |
 | `symbols`、`symbols2`、`symbols_en`、`symbols2_en` | ABC 12、**麦克风 10**、空格 56、回车 22 | 空格 66 → 56 |
 | `number` | ABC 15、**麦克风 10**、0、逗号、回车（各 25） | ABC 25 → 15，数字列不动 |
-| `t9_land` | 左边数字区不变；`!` 9、**麦克风 12**、空格 13、ZH 13、回车 13 | 空格 25 → 13 |
+| `t9_land` | 左边数字区不变；`!` 9、**麦克风 12**、空格 13、**切换 13**、回车 13 | 空格 25 → 13 |
 
 - 前几个键盘的麦克风是共用的 `landscapeMic`（带 `hideInPortrait`），让宽度的键写 `widthLand`；`t9_land` 只在横屏用，直接改宽度。
-- 都放在空格左边：空格和右手边的中英、回车挨在一起，最常按的几个键不被隔开；麦克风一次听写只按一两下，放远一点也不碍事。
+- 横屏同样没有左下角的切换键，所以 `default` / `english` 在回车左边放 `landscapeSwitch`（也带 `hideInPortrait`），
+  `t9_land` 在同一位置放 `ios_schema`，点击长按和左下角一样。
+- 都放在空格左边：空格和右手边的切换、回车挨在一起，最常按的几个键不被隔开；麦克风一次听写只按一两下，放远一点也不碍事。
 - `t9_land` 的麦克风正好在 PQRS 下面、空格在 TUV 下面，最后一行和上面的列对齐。
 
 ## 改工具栏
@@ -91,8 +98,6 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 | 位置 | 按钮 | 动作 |
 | --- | --- | --- |
 | 最左 | 「…」 | `primaryButton` 留空时的内置按钮，打开方案 / 开关窗口 |
-| 左侧 | 光标 `ic@cursor-text` | 预设键 `edit_panel`：打开编辑面板（方向键、选择、行首行尾、全选剪切复制粘贴） |
-| 左侧 | 剪贴板 `ic@clipboard-outline` | 预设键 `clipboard_window` |
 | 最右 | 收起 `ic@menu-down` | 预设键 `Hide`；在这个按钮上往下滑也会收起键盘 |
 
 - `buttons` 的**第一个**按钮固定占最右边的位置，也就是原来收起箭头的位置，下滑收起键盘也跟着这个位置走。

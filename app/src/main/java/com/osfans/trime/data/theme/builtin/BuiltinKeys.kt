@@ -24,15 +24,14 @@ object BuiltinKeys {
             "ios_mic" to PresetKey(label = "ic@microphone-outline", command = "voice_input"),
             "ios_number" to PresetKey(label = "123", send = "Eisu_toggle", select = "number"),
             "ios_return" to PresetKey(label = "enter_labels", send = "Return"),
-            "ios_schema" to PresetKey(label = "ic@keyboard-outline", send = "MENU"),
+            // 中文键盘 ⇄ 英文键盘；回到中文时用当前方案的键盘（双拼 default，九宫格 t9）
+            "ios_schema" to PresetKey(label = "ic@keyboard-outline", send = "Eisu_toggle", select = ".ascii_toggle"),
             "ios_shift" to PresetKey(label = "ic@apple-keyboard-shift", send = "Shift_L", shiftLock = "ascii_long"),
             "ios_space" to PresetKey(label = "space", send = "space", slideCursor = true),
             "ios_symbols" to PresetKey(label = "123", send = "Eisu_toggle", select = "symbols"),
             "ios_symbols2" to PresetKey(label = "#+=", send = "Eisu_toggle", select = "symbols2"),
             "ios_symbols2_en" to PresetKey(label = "#+=", send = "Eisu_toggle", select = "symbols2_en"),
             "ios_symbols_en" to PresetKey(label = "123", send = "Eisu_toggle", select = "symbols_en"),
-            "ios_to_en" to PresetKey(label = "ZH", send = "Eisu_toggle", select = "english"),
-            "ios_to_zh" to PresetKey(label = "EN", send = "Eisu_toggle", select = "default"),
             // ---- generic keys carried over from the upstream trime.yaml
             "BRIGHTNESS_DOWN" to PresetKey(label = "亮度-", send = "BRIGHTNESS_DOWN"),
             "BRIGHTNESS_UP" to PresetKey(label = "亮度+", send = "BRIGHTNESS_UP"),
