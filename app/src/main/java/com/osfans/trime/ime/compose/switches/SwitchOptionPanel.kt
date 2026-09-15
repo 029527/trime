@@ -35,7 +35,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.osfans.trime.ime.compose.clipboard.PanelCell
-import com.osfans.trime.ime.compose.clipboard.PanelListTokens
 import com.osfans.trime.ime.compose.clipboard.PanelMenuAction
 import com.osfans.trime.ime.compose.theme.LocalImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeFonts
@@ -56,10 +55,11 @@ fun SwitchOptionGrid(
     menuFor: (SwitchOptionEntry.Custom) -> List<PanelMenuAction>,
     modifier: Modifier = Modifier,
 ) {
+    val tokens = LocalImeTokens.current
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(PanelListTokens.switchCellMinWidth),
+        columns = GridCells.Adaptive(tokens.panelSwitchCellMinWidth),
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(PanelListTokens.listPadding),
+        contentPadding = PaddingValues(tokens.panelListPadding),
     ) {
         items(entries, contentType = { 0 }) { entry ->
             val tapMenu =
@@ -85,7 +85,7 @@ private fun SwitchOptionCell(
     PanelCell(
         onClick = onClick,
         tapMenu = tapMenu,
-        modifier = Modifier.fillMaxWidth().height(PanelListTokens.switchCellHeight),
+        modifier = Modifier.fillMaxWidth().height(tokens.panelSwitchCellHeight),
     ) { pressed ->
         Column(
             modifier = Modifier.fillMaxSize().padding(top = 4.dp),
@@ -94,7 +94,7 @@ private fun SwitchOptionCell(
             Box(
                 modifier =
                 Modifier
-                    .size(PanelListTokens.switchTileSize)
+                    .size(tokens.panelSwitchTileSize)
                     .clip(RoundedCornerShape(tokens.keyCornerRadius))
                     .background(if (pressed) colors.highlightedKeyBack else colors.keyBack),
                 contentAlignment = Alignment.Center,
@@ -103,7 +103,7 @@ private fun SwitchOptionCell(
                     Icon(
                         painterResource(entry.icon),
                         contentDescription = null,
-                        modifier = Modifier.size(PanelListTokens.switchIconSize),
+                        modifier = Modifier.size(tokens.panelSwitchIconSize),
                         tint = colors.keyText,
                     )
                 } else {
@@ -114,7 +114,7 @@ private fun SwitchOptionCell(
                         style = TextStyle(fontFamily = fonts.key, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center),
                         color = { colors.keyText },
                         maxLines = 1,
-                        autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = PanelListTokens.switchGlyphTextSize),
+                        autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = tokens.panelSwitchGlyphTextSize),
                     )
                 }
             }
@@ -122,7 +122,7 @@ private fun SwitchOptionCell(
             BasicText(
                 text = entry.label,
                 modifier = Modifier.padding(horizontal = 2.dp),
-                style = TextStyle(fontFamily = fonts.key, fontSize = PanelListTokens.switchLabelTextSize, textAlign = TextAlign.Center),
+                style = TextStyle(fontFamily = fonts.key, fontSize = tokens.panelSwitchLabelTextSize, textAlign = TextAlign.Center),
                 color = { colors.keyText },
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,

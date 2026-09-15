@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.osfans.trime.R
 import com.osfans.trime.ime.compose.clipboard.PanelBarButton
-import com.osfans.trime.ime.compose.clipboard.PanelListTokens
 import com.osfans.trime.ime.compose.theme.LocalImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeFonts
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
@@ -113,8 +112,8 @@ fun SegmentsPanel(
     // with a wider AT_MOST probe, and BoxWithConstraints would recompose (and relayout) every frame
     var maxWidth by remember { mutableIntStateOf(0) }
     Box(modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 4.dp).onSizeChanged { maxWidth = it.width }) {
-        val marginPx = with(density) { PanelListTokens.segmentMargin.roundToPx() }
-        val paddingPx = with(density) { PanelListTokens.segmentPaddingHorizontal.roundToPx() }
+        val marginPx = with(density) { tokens.panelSegmentMargin.roundToPx() }
+        val paddingPx = with(density) { tokens.panelSegmentPaddingHorizontal.roundToPx() }
         val rows =
             remember(state, maxWidth, style, density) {
                 if (maxWidth <= 0) {
@@ -133,12 +132,12 @@ fun SegmentsPanel(
         val rowHeight =
             remember(style, density) {
                 val line = measurer.measure("中Ag", style, maxLines = 1).size.height
-                line + 2 * (with(density) { PanelListTokens.segmentPaddingVertical.roundToPx() } + marginPx)
+                line + 2 * (with(density) { tokens.panelSegmentPaddingVertical.roundToPx() } + marginPx)
             }
         val listState = rememberLazyListState()
         val drag = remember(state) { DragSelectRange(state.segments.size, state::isSelected, state::setSelected) }
-        val edgeZone = with(density) { PanelListTokens.segmentEdgeScrollZone.toPx() }
-        val edgeStep = with(density) { PanelListTokens.segmentEdgeScrollStep.toPx() }
+        val edgeZone = with(density) { tokens.panelSegmentEdgeScrollZone.toPx() }
+        val edgeStep = with(density) { tokens.panelSegmentEdgeScrollStep.toPx() }
         // read through state, not as pointerInput keys: a key change restarts the handler mid-drag
         val currentRows by rememberUpdatedState(rows)
         val currentDrag by rememberUpdatedState(drag)
@@ -300,7 +299,7 @@ private fun SegmentChip(
             // the candidate highlight: key colours alone may not tell selected from not (iOS: both white)
             .background(if (selected) colors.highlightedCandidateBack else colors.keyBack)
             .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = PanelListTokens.segmentPaddingHorizontal),
+            .padding(horizontal = tokens.panelSegmentPaddingHorizontal),
         contentAlignment = Alignment.Center,
     ) {
         BasicText(

@@ -78,6 +78,80 @@ data class ImeTokens(
     val keyPreviewTextSize: TextUnit = 30.sp,
     /** Function keys get no bubble; while held they swap to the letter-key shade instead. */
     val keyPressedFunctionSwap: Boolean = true,
+    // key preview bubble and popup keyboard
+    // Looks follow iOS: a light rounded block with a soft shadow, sitting just above the key.
+    /** Space between the top of the key body and the bottom of the bubble / popup keyboard. */
+    val popupAnchorGap: Dp = 2.dp,
+    /** Rounder than a key (6dp): the bubble is taller and floats over the app. */
+    val popupPreviewCornerRadius: Dp = 8.dp,
+    /** Just enough to lift the bubble off same-coloured keys. */
+    val popupShadowElevation: Dp = 3.dp,
+    /** Cells of the long-press keyboard are as wide as the bubble, so a held key reads the same. */
+    val popupKeyboardCellWidth: Dp = 44.dp,
+    val popupKeyboardCellHeight: Dp = 48.dp,
+    val popupKeyboardTextSize: TextUnit = 24.sp,
+    val popupKeyboardPadding: Dp = 4.dp,
+    val popupKeyboardCornerRadius: Dp = 10.dp,
+    /** Focused cell's block; same radius as a key. */
+    val popupKeyboardHighlightCornerRadius: Dp = 6.dp,
+    // symbol panel
+    // Corners, gaps, and type sizes come from the key group, so a cell looks like a key.
+    /** Narrowest single cell when the source gives none; wide enough for one 22sp emoji plus gaps. */
+    val symbolCellMinWidth: Dp = 48.dp,
+    /** Text inside a long-text cell keeps this far from the key body edges; small enough that a three-character label still fits one cell. */
+    val symbolLongTextHorizontalPadding: Dp = 4.dp,
+    /** Width of the fixed key column when the bar sits left or right of the grid. */
+    val symbolSideBarWidth: Dp = 64.dp,
+    // panel lists: clipboard, switches, word segments
+    /** Outer padding of a list, and the gap between its cells. */
+    val panelListPadding: Dp = 4.dp,
+    val panelCellSpacing: Dp = 6.dp,
+    val panelEntryTextSize: TextUnit = 15.sp,
+    val panelEntryPaddingHorizontal: Dp = 10.dp,
+    val panelEntryPaddingVertical: Dp = 8.dp,
+    val panelEntryMaxLines: Int = 4,
+    val panelEntryPinSize: Dp = 12.dp,
+    val panelEntryPinAlpha: Float = 0.3f,
+    /** Narrowest grid column: four columns on a portrait phone. */
+    val panelSwitchCellMinWidth: Dp = 88.dp,
+    val panelSwitchCellHeight: Dp = 96.dp,
+    val panelSwitchTileSize: Dp = 48.dp,
+    val panelSwitchIconSize: Dp = 24.dp,
+    val panelSwitchGlyphTextSize: TextUnit = 20.sp,
+    val panelSwitchLabelTextSize: TextUnit = 12.sp,
+    val panelSegmentPaddingHorizontal: Dp = 8.dp,
+    val panelSegmentPaddingVertical: Dp = 4.dp,
+    /** Margin on every side of a segment chip. */
+    val panelSegmentMargin: Dp = 4.dp,
+    /** Dragging this close to the top / bottom edge scrolls the list. */
+    val panelSegmentEdgeScrollZone: Dp = 10.dp,
+    val panelSegmentEdgeScrollStep: Dp = 12.dp,
+    val panelBarIconSize: Dp = 24.dp,
+    val panelDisabledAlpha: Float = 0.38f,
+    val panelMenuTextSize: TextUnit = 16.sp,
+    val panelEmptyHintTextSize: TextUnit = 14.sp,
+    val panelEmptyHintAlpha: Float = 0.6f,
+    // input bar
+    // The values are the ones the View bar used, so the bar did not change size in the switch.
+    /** The unroll button at the end of the candidate row. */
+    val barUnrollButtonWidth: Dp = 40.dp,
+    /** Plain icon buttons (hide keyboard, unroll, back) leave this much around the glyph. */
+    val barIconButtonPadding: Dp = 4.dp,
+    /** Pressed plain icon buttons get a rounded block of the highlight colour. */
+    val barIconButtonCornerRadius: Dp = 8.dp,
+    val barClipboardIconSize: Dp = 20.dp,
+    val barClipboardSpacing: Dp = 4.dp,
+    val barClipboardMaxTextWidth: Dp = 220.dp,
+    /** The clipboard suggestion chip keeps this much off the top and bottom of the bar. */
+    val barClipboardVerticalMargin: Dp = 4.dp,
+    val barClipboardCornerRadius: Dp = 8.dp,
+    /** Characters of the clip shown in the suggestion; the rest is cut before measuring. */
+    val barClipboardPreviewLength: Int = 42,
+    val barInlinePinnedHorizontalMargin: Dp = 10.dp,
+    /** Between a board window's back button, its title and the window's own bar view. */
+    val barTabSpacing: Dp = 8.dp,
+    /** Narrowest item of the unrolled candidate grid. */
+    val barUnrolledItemMinWidth: Dp = 40.dp,
 ) {
     companion object {
         val Portrait = ImeTokens()
@@ -105,6 +179,8 @@ data class ImeTokens(
             keySymbolInsetEnd = 4.dp,
             keyPreviewHeight = 48.dp,
             keyPreviewTextSize = 26.sp,
+            popupKeyboardCellHeight = 40.dp,
+            popupKeyboardTextSize = 22.sp,
         )
     }
 }

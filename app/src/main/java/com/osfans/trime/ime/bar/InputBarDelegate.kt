@@ -32,7 +32,6 @@ import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.candidates.compact.CompactCandidateDelegate
 import com.osfans.trime.ime.candidates.unrolled.UnrolledCandidateWindow
 import com.osfans.trime.ime.compose.bar.AlwaysMode
-import com.osfans.trime.ime.compose.bar.BarTokens
 import com.osfans.trime.ime.compose.bar.InlineSuggestionViews
 import com.osfans.trime.ime.compose.bar.InputBar
 import com.osfans.trime.ime.compose.bar.InputBarActions
@@ -40,12 +39,14 @@ import com.osfans.trime.ime.compose.bar.InputBarConfig
 import com.osfans.trime.ime.compose.bar.InputBarState
 import com.osfans.trime.ime.compose.bar.TabContent
 import com.osfans.trime.ime.compose.imeComposeView
+import com.osfans.trime.ime.compose.theme.ImeTokens
 import com.osfans.trime.ime.composition.PreeditDelegate
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.dependency.InputDependencyManager
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.candidateViewHeight
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.inputBarHeight
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
 import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.switches.SwitchOptionWindow
 import com.osfans.trime.ime.window.BoardWindow
@@ -91,6 +92,9 @@ class InputBarDelegate : InputBroadcastReceiver {
 
     private val state = InputBarState()
 
+    private val clipboardPreviewLength =
+        (if (context.isLandscapeMode()) ImeTokens.Landscape else ImeTokens.Portrait).barClipboardPreviewLength
+
     private var clipboardTimeoutJob: Job? = null
 
     private var isClipboardFresh: Boolean = false
@@ -103,7 +107,7 @@ class InputBarDelegate : InputBroadcastReceiver {
             if (it.text.isNullOrEmpty()) {
                 isClipboardFresh = false
             } else {
-                state.clipboardText = it.text.take(BarTokens.CLIPBOARD_PREVIEW_LENGTH)
+                state.clipboardText = it.text.take(clipboardPreviewLength)
                 isClipboardFresh = true
                 launchClipboardTimeoutJob()
             }

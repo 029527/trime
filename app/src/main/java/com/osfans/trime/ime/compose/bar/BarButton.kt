@@ -46,6 +46,7 @@ import com.osfans.trime.data.theme.KeyActionManager
 import com.osfans.trime.data.theme.model.ToolBar
 import com.osfans.trime.ime.compose.theme.ImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeColors
+import com.osfans.trime.ime.compose.theme.LocalImeTokens
 import com.osfans.trime.ime.keyboard.KeyAction
 import com.osfans.trime.ime.keyboard.KeyboardSwitcher
 import com.osfans.trime.ime.keyboard.toIconName
@@ -111,6 +112,7 @@ internal fun BarButton(
     val pressed = remember { mutableStateOf(false) }
     val isPressed by pressed
     val colors = LocalImeColors.current
+    val tokens = LocalImeTokens.current
     when (spec) {
         is BarButtonSpec.Icon -> {
             Box(
@@ -119,10 +121,10 @@ internal fun BarButton(
                     .barButtonGestures(pressed, onClick, onLongClick, onSwipeDown)
                     .drawBehind {
                         if (isPressed) {
-                            val r = BarTokens.iconButtonCornerRadius.toPx()
+                            val r = tokens.barIconButtonCornerRadius.toPx()
                             drawRoundRect(colors.highlightedCandidateBack, cornerRadius = CornerRadius(r, r))
                         }
-                    }.padding(BarTokens.iconButtonPadding),
+                    }.padding(tokens.barIconButtonPadding),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(

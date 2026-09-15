@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.viewinterop.AndroidView
+import com.osfans.trime.ime.compose.theme.LocalImeTokens
 
 /** Autofill chips inflated by the system, kept as the [InlineContentView]s it hands out. */
 @Immutable
@@ -58,6 +59,7 @@ internal fun InlineSuggestions(
     views: InlineSuggestionViews,
     modifier: Modifier = Modifier,
 ) {
+    val tokens = LocalImeTokens.current
     Row(modifier = modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
         Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
             val context = androidx.compose.ui.platform.LocalContext.current
@@ -104,7 +106,7 @@ internal fun InlineSuggestions(
         }
         views.pinned?.let { pinned ->
             key(pinned) {
-                EmbeddedView(pinned, Modifier.fillMaxHeight().padding(horizontal = BarTokens.inlinePinnedHorizontalMargin))
+                EmbeddedView(pinned, Modifier.fillMaxHeight().padding(horizontal = tokens.barInlinePinnedHorizontalMargin))
             }
         }
     }

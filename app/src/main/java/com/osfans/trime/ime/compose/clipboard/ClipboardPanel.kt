@@ -158,6 +158,7 @@ private fun BeanList(
     onPaste: (DatabaseBean) -> Unit,
     menuFor: (ClipboardPage, DatabaseBean) -> List<PanelMenuAction>,
 ) {
+    val tokens = LocalImeTokens.current
     if (items.itemCount == 0) {
         // no hint while the first page is still loading, or it flashes on every open
         if (items.loadState.refresh is LoadState.NotLoading) {
@@ -179,8 +180,8 @@ private fun BeanList(
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(PanelListTokens.listPadding),
-            verticalArrangement = Arrangement.spacedBy(PanelListTokens.cellSpacing),
+            contentPadding = PaddingValues(tokens.panelListPadding),
+            verticalArrangement = Arrangement.spacedBy(tokens.panelCellSpacing),
         ) {
             items(
                 count = items.itemCount,
@@ -205,7 +206,7 @@ private fun BeanEntry(
     val colors = LocalImeColors.current
     val fonts = LocalImeFonts.current
     val tokens = LocalImeTokens.current
-    val text = remember(bean.text) { excerptText(bean.text.orEmpty()) }
+    val text = remember(bean.text) { excerptText(bean.text.orEmpty(), tokens.panelEntryMaxLines) }
     val shape = RoundedCornerShape(tokens.keyCornerRadius)
     PanelCell(onClick = onPaste, longPressMenu = menu, modifier = Modifier.fillMaxWidth()) { pressed ->
         Box(Modifier.matchParentSize().clip(shape).background(if (pressed) colors.highlightedKeyBack else colors.keyBack))
@@ -215,12 +216,12 @@ private fun BeanEntry(
             Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = PanelListTokens.entryPaddingHorizontal,
-                    vertical = PanelListTokens.entryPaddingVertical,
+                    horizontal = tokens.panelEntryPaddingHorizontal,
+                    vertical = tokens.panelEntryPaddingVertical,
                 ),
-            style = TextStyle(fontFamily = fonts.key, fontSize = PanelListTokens.entryTextSize),
+            style = TextStyle(fontFamily = fonts.key, fontSize = tokens.panelEntryTextSize),
             color = { colors.keyText },
-            maxLines = PanelListTokens.ENTRY_MAX_LINES,
+            maxLines = tokens.panelEntryMaxLines,
             overflow = TextOverflow.Ellipsis,
         )
         if (bean.pinned) {
@@ -231,8 +232,8 @@ private fun BeanEntry(
                 Modifier
                     .align(Alignment.BottomEnd)
                     .padding(2.dp)
-                    .size(PanelListTokens.entryPinSize),
-                tint = colors.keyText.copy(alpha = colors.keyText.alpha * PanelListTokens.ENTRY_PIN_ALPHA),
+                    .size(tokens.panelEntryPinSize),
+                tint = colors.keyText.copy(alpha = colors.keyText.alpha * tokens.panelEntryPinAlpha),
             )
         }
     }
@@ -241,7 +242,7 @@ private fun BeanEntry(
 /** The first [lines] lines of [str], each cut at [chars]: a huge clip would otherwise be laid out in full. */
 internal fun excerptText(
     str: String,
-    lines: Int = PanelListTokens.ENTRY_MAX_LINES,
+    lines: Int,
     chars: Int = 128,
 ): String = buildString {
     val length = str.length

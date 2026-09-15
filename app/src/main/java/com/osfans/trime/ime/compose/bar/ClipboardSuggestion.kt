@@ -54,13 +54,13 @@ internal fun ClipboardSuggestion(
     val tokens = LocalImeTokens.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val shape = RoundedCornerShape(BarTokens.clipboardCornerRadius)
+    val shape = RoundedCornerShape(tokens.barClipboardCornerRadius)
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Row(
             modifier =
             Modifier
                 .fillMaxHeight()
-                .padding(vertical = BarTokens.clipboardVerticalMargin)
+                .padding(vertical = tokens.barClipboardVerticalMargin)
                 .background(if (pressed) colors.highlightedCandidateBack else Color.Transparent, shape)
                 .combinedClickable(
                     interactionSource = interaction,
@@ -68,19 +68,19 @@ internal fun ClipboardSuggestion(
                     hapticFeedbackEnabled = false,
                     onLongClick = onEdit,
                     onClick = onCommit,
-                ).padding(horizontal = BarTokens.clipboardSpacing),
+                ).padding(horizontal = tokens.barClipboardSpacing),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(BarTokens.clipboardSpacing),
+            horizontalArrangement = Arrangement.spacedBy(tokens.barClipboardSpacing),
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_clipboard_24),
                 contentDescription = null,
-                modifier = Modifier.size(BarTokens.clipboardIconSize),
+                modifier = Modifier.size(tokens.barClipboardIconSize),
                 colorFilter = ColorFilter.tint(colors.candidateText),
             )
             BasicText(
                 text = text,
-                modifier = Modifier.weight(1f, fill = false).widthIn(max = BarTokens.clipboardMaxTextWidth),
+                modifier = Modifier.weight(1f, fill = false).widthIn(max = tokens.barClipboardMaxTextWidth),
                 style = TextStyle(fontFamily = fonts.candidate, fontSize = tokens.preeditTextSize),
                 color = { colors.candidateText },
                 maxLines = 1,
@@ -92,7 +92,7 @@ internal fun ClipboardSuggestion(
                 contentDescription = null,
                 modifier =
                 Modifier
-                    .size(BarTokens.clipboardIconSize)
+                    .size(tokens.barClipboardIconSize)
                     .clickable(interactionSource = null, indication = null, onClick = onDismiss),
                 colorFilter = ColorFilter.tint(colors.candidateText),
             )

@@ -172,6 +172,67 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 | 候选栏 | 52dp（过渡期） | 32dp，关掉内嵌预编辑时上方再加 14dp 拼音行 | 横屏候选只能一行 |
 | 字号 | 候选 20 / 注释 14 / 字母 22 | 候选 18 / 注释 12 / 字母 20 | 行高从 53 降到 40，字号跟着降一级，不按比例降（按比例会低于 16sp） |
 | 九宫格 | `t9` | `t9_land`（左侧多一块数字小键盘） | 布局由主题决定，不属于固定部分 |
+| 长按小键盘 | 格高 48dp、字 24sp | 格高 40dp、字 22sp | 跟着行高降；格宽不变，仍和气泡同宽 |
+
+### 2.5 弹出层和面板
+
+按键以外的 Compose 部件也从 `ImeTokens` 取尺寸，字段名带区域前缀。圆角、键距、字号梯度能复用按键组的（`keyCornerRadius`、
+`keyLabelTextSize` 等）就直接复用，下面只列各区域自己的。除了长按小键盘的两项，横竖屏同值。
+
+**按键气泡和长按小键盘**（`popup*`）。样子照 iOS：浅色圆角块带柔和阴影，贴在键的上方。气泡本身的尺寸和字号见 §2.3「按下反馈」。
+
+| Token | 竖屏 | 横屏 | 理由 |
+|---|---|---|---|
+| `popupAnchorGap` | 2dp | 2dp | 气泡 / 小键盘底边离键身顶边的距离 |
+| `popupPreviewCornerRadius` | 8dp | 8dp | 比按键（6dp）圆：气泡更高，且浮在 App 上 |
+| `popupShadowElevation` | 3dp | 3dp | 刚好把气泡从同色的键上托起来 |
+| `popupKeyboardCellWidth` | 44dp | 44dp | 和气泡同宽，按住的键看起来一样 |
+| `popupKeyboardCellHeight` | 48dp | 40dp | |
+| `popupKeyboardTextSize` | 24sp | 22sp | |
+| `popupKeyboardPadding` | 4dp | 4dp | |
+| `popupKeyboardCornerRadius` | 10dp | 10dp | |
+| `popupKeyboardHighlightCornerRadius` | 6dp | 6dp | 焦点格的色块，和按键同圆角 |
+
+**符号面板**（`symbol*`）。格子长得像按键：单字符用 `keyTextSize`，更长的用 `keyLabelTextSize`。
+
+| Token | 值 | 理由 |
+|---|---|---|
+| `symbolCellMinWidth` | 48dp | 数据源没给格宽时的最窄单格，放得下一个 22sp emoji 加键距 |
+| `symbolLongTextHorizontalPadding` | 4dp | 长文本离键身左右边的距离；小到三个字的标签还能放进一格 |
+| `symbolSideBarWidth` | 64dp | 功能键栏在网格左右两侧时的列宽 |
+
+**列表面板**（`panel*`）：剪贴板、方案开关、分词窗口共用。
+
+| Token | 值 | 用途 |
+|---|---|---|
+| `panelListPadding` / `panelCellSpacing` | 4dp / 6dp | 列表外边距 / 条目间距 |
+| `panelEntryTextSize` | 15sp | 剪贴板条目文字 |
+| `panelEntryPaddingHorizontal` / `panelEntryPaddingVertical` | 10dp / 8dp | 剪贴板条目内边距 |
+| `panelEntryMaxLines` | 4 | 条目最多显示几行；超长的剪贴内容先截断再排版 |
+| `panelEntryPinSize` / `panelEntryPinAlpha` | 12dp / 0.3 | 置顶图钉 |
+| `panelSwitchCellMinWidth` | 88dp | 开关网格最窄列宽：竖屏手机四列 |
+| `panelSwitchCellHeight` / `panelSwitchTileSize` / `panelSwitchIconSize` | 96dp / 48dp / 24dp | 开关格、图标底块、图标 |
+| `panelSwitchGlyphTextSize` / `panelSwitchLabelTextSize` | 20sp / 12sp | 无图标时的首字 / 下方标签 |
+| `panelSegmentPaddingHorizontal` / `panelSegmentPaddingVertical` | 8dp / 4dp | 分词块内边距 |
+| `panelSegmentMargin` | 4dp | 分词块四周外边距 |
+| `panelSegmentEdgeScrollZone` / `panelSegmentEdgeScrollStep` | 10dp / 12dp | 拖到离上下边这么近时滚动，每次滚这么多 |
+| `panelBarIconSize` / `panelDisabledAlpha` | 24dp / 0.38 | 面板顶栏图标，禁用时的透明度 |
+| `panelMenuTextSize` | 16sp | 长按菜单 |
+| `panelEmptyHintTextSize` / `panelEmptyHintAlpha` | 14sp / 0.6 | 空列表提示 |
+
+**输入栏**（`bar*`）：键盘上方那一条和展开的候选网格。数值沿用 View 版输入栏，换成 Compose 时高度和布局不跳。
+
+| Token | 值 | 用途 |
+|---|---|---|
+| `barUnrollButtonWidth` | 40dp | 候选行末尾的展开按钮 |
+| `barIconButtonPadding` / `barIconButtonCornerRadius` | 4dp / 8dp | 纯图标按钮（收起键盘、展开、返回）的内边距和按下色块圆角 |
+| `barClipboardIconSize` / `barClipboardSpacing` | 20dp / 4dp | 剪贴板建议的图标和间距 |
+| `barClipboardMaxTextWidth` | 220dp | 剪贴板建议文字最宽 |
+| `barClipboardVerticalMargin` / `barClipboardCornerRadius` | 4dp / 8dp | 建议块离栏上下边的距离、圆角 |
+| `barClipboardPreviewLength` | 42 | 剪贴板建议只取前 42 个字符，其余测量前就截掉 |
+| `barInlinePinnedHorizontalMargin` | 10dp | 自动填充固定项的左右外边距 |
+| `barTabSpacing` | 8dp | 面板标题栏里返回键、标题、面板自带栏之间 |
+| `barUnrolledItemMinWidth` | 40dp | 展开候选网格里单个候选的最窄宽度 |
 
 ---
 

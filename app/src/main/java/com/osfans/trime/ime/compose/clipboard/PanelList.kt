@@ -48,56 +48,6 @@ import com.osfans.trime.ime.compose.theme.LocalImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeFonts
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
 
-/**
- * Sizes shared by the list-like panels that cover the keyboard: clipboard, switches, word segments.
- *
- * Kept apart from [com.osfans.trime.ime.compose.theme.ImeTokens] while those panels settle; sizes
- * that already have a keyboard token (corner radius, function-key text size) use the token instead.
- */
-object PanelListTokens {
-    /** Outer padding of a list, and the gap between its cells. */
-    val listPadding = 4.dp
-    val cellSpacing = 6.dp
-
-    // clipboard entries
-    val entryTextSize = 15.sp
-    val entryPaddingHorizontal = 10.dp
-    val entryPaddingVertical = 8.dp
-    const val ENTRY_MAX_LINES = 4
-    val entryPinSize = 12.dp
-    const val ENTRY_PIN_ALPHA = 0.3f
-
-    // switches grid
-
-    /** Narrowest grid column: four columns on a portrait phone. */
-    val switchCellMinWidth = 88.dp
-    val switchCellHeight = 96.dp
-    val switchTileSize = 48.dp
-    val switchIconSize = 24.dp
-    val switchGlyphTextSize = 20.sp
-    val switchLabelTextSize = 12.sp
-
-    // word segments
-    val segmentPaddingHorizontal = 8.dp
-    val segmentPaddingVertical = 4.dp
-
-    /** Margin on every side of a segment chip. */
-    val segmentMargin = 4.dp
-
-    /** Dragging this close to the top / bottom edge scrolls the list. */
-    val segmentEdgeScrollZone = 10.dp
-    val segmentEdgeScrollStep = 12.dp
-
-    // bar
-    val barIconSize = 24.dp
-    const val DISABLED_ALPHA = 0.38f
-
-    // menu and empty state
-    val menuTextSize = 16.sp
-    val emptyHintTextSize = 14.sp
-    const val EMPTY_HINT_ALPHA = 0.6f
-}
-
 /** One row of a long-press or tap menu. [icon] 0 means no icon. */
 class PanelMenuAction(
     val label: String,
@@ -189,7 +139,7 @@ fun PanelMenu(
         actions.forEach { action ->
             DropdownMenuItem(
                 text = {
-                    Text(action.label, fontFamily = fonts.key, fontSize = PanelListTokens.menuTextSize)
+                    Text(action.label, fontFamily = fonts.key, fontSize = tokens.panelMenuTextSize)
                 },
                 leadingIcon = if (action.icon != 0) {
                     { Icon(painterResource(action.icon), contentDescription = null) }
@@ -215,6 +165,7 @@ fun PanelBarButton(
     enabled: Boolean = true,
 ) {
     val colors = LocalImeColors.current
+    val tokens = LocalImeTokens.current
     Box(
         modifier
             .fillMaxHeight()
@@ -225,13 +176,13 @@ fun PanelBarButton(
                 interactionSource = null,
                 indication = ripple(bounded = false, color = colors.candidateText),
                 onClick = onClick,
-            ).alpha(if (enabled) 1f else PanelListTokens.DISABLED_ALPHA),
+            ).alpha(if (enabled) 1f else tokens.panelDisabledAlpha),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             painterResource(icon),
             contentDescription = null,
-            modifier = Modifier.size(PanelListTokens.barIconSize),
+            modifier = Modifier.size(tokens.panelBarIconSize),
             tint = colors.candidateText,
         )
     }
@@ -245,15 +196,16 @@ fun PanelEmptyHint(
 ) {
     val colors = LocalImeColors.current
     val fonts = LocalImeFonts.current
+    val tokens = LocalImeTokens.current
     Box(modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
         BasicText(
             text,
             style = TextStyle(
                 fontFamily = fonts.key,
-                fontSize = PanelListTokens.emptyHintTextSize,
+                fontSize = tokens.panelEmptyHintTextSize,
                 textAlign = TextAlign.Center,
             ),
-            color = { colors.keyText.copy(alpha = colors.keyText.alpha * PanelListTokens.EMPTY_HINT_ALPHA) },
+            color = { colors.keyText.copy(alpha = colors.keyText.alpha * tokens.panelEmptyHintAlpha) },
         )
     }
 }

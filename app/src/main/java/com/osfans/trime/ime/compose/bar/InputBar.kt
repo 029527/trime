@@ -34,6 +34,7 @@ import com.osfans.trime.data.theme.model.ToolBar
 import com.osfans.trime.ime.bar.QuickBarStateMachine
 import com.osfans.trime.ime.bar.UnrollButtonStateMachine
 import com.osfans.trime.ime.compose.theme.LocalImeColors
+import com.osfans.trime.ime.compose.theme.LocalImeTokens
 import kotlin.math.roundToInt
 
 /** What the always-on part of the bar shows between its two end buttons. */
@@ -108,6 +109,7 @@ internal fun InputBar(
     actions: InputBarActions,
 ) {
     val colors = LocalImeColors.current
+    val tokens = LocalImeTokens.current
     // the background may be an image with a border, so it goes through the drawable; re-read per colours
     val background =
         remember(colors) {
@@ -131,7 +133,7 @@ internal fun InputBar(
                 factory = { candidateLayer },
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
-            Box(modifier = Modifier.width(BarTokens.unrollButtonWidth).fillMaxHeight()) {
+            Box(modifier = Modifier.width(tokens.barUnrollButtonWidth).fillMaxHeight()) {
                 val unroll = state.unroll
                 if (bar == QuickBarStateMachine.State.Candidate && unroll != UnrollButtonStateMachine.State.Hidden) {
                     BarButton(
