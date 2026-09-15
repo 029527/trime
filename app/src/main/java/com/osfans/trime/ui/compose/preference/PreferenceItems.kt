@@ -31,6 +31,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -159,10 +160,15 @@ fun SwitchPreferenceItem(
         modifier = modifier,
         onClick = { onCheckedChange(!checked) },
         trailing = {
+            // an unchecked thumb in `outline` disappears on the zinc dark track, which is the same grey
             Switch(
                 checked = checked,
                 onCheckedChange = { onCheckedChange(it) },
                 enabled = enabled,
+                colors = SwitchDefaults.colors(
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    uncheckedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             )
         },
     )

@@ -95,7 +95,7 @@ private fun SwitchOptionCell(
                 modifier =
                 Modifier
                     .size(tokens.panelSwitchTileSize)
-                    .clip(RoundedCornerShape(tokens.keyCornerRadius))
+                    .clip(RoundedCornerShape(tokens.panelSwitchTileCornerRadius))
                     .background(if (pressed) colors.highlightedKeyBack else colors.keyBack),
                 contentAlignment = Alignment.Center,
             ) {
@@ -111,7 +111,7 @@ private fun SwitchOptionCell(
                     BasicText(
                         text = glyph,
                         modifier = Modifier.padding(4.dp),
-                        style = TextStyle(fontFamily = fonts.key, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center),
+                        style = TextStyle(fontFamily = fonts.family, fontWeight = tokens.panelTitleWeight, textAlign = TextAlign.Center),
                         color = { colors.keyText },
                         maxLines = 1,
                         autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = tokens.panelSwitchGlyphTextSize),
@@ -122,7 +122,7 @@ private fun SwitchOptionCell(
             BasicText(
                 text = entry.label,
                 modifier = Modifier.padding(horizontal = 2.dp),
-                style = TextStyle(fontFamily = fonts.key, fontSize = tokens.panelSwitchLabelTextSize, textAlign = TextAlign.Center),
+                style = TextStyle(fontFamily = fonts.family, fontWeight = tokens.panelLabelWeight, fontSize = tokens.panelSwitchLabelTextSize, textAlign = TextAlign.Center),
                 color = { colors.keyText },
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,

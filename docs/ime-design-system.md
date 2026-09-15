@@ -4,10 +4,93 @@ Trime fork 的键盘外观分成两半：
 
 - **固定的一半写在代码里**（`ime/compose/theme/ImeTokens.kt`）：尺寸、间距、圆角、字号梯度、候选栏和预编辑区的样式、
   按键提示的位置和大小、按下反馈。主题改不了这些，所以换哪套配色键盘都不会变难用。
-- **可变的一半留在主题 yaml 里**：配色（浅色 / 深色两套）、字体文件、键盘布局。
+- **可变的一半在内置主题里**（`data/theme/builtin/`）：配色（浅色 / 深色两套，或跟随壁纸取色）、键盘布局。
+- **字体内置**：思源黑体（Noto Sans SC 可变字体），键盘和 App 共用，见 §0.3。
 
-目标是把 **iOS 主题的简洁**和 **Trime 内置默认主题的易用**合在一起。下面先写两边各自好在哪、冲突在哪，
-再给出定稿的数值和键位方案。每个数都带理由；想改数值，先改理由。
+外观是**现代 Android / Material** 风格；键位沿用 iOS 主题 + 默认主题效率的合体方案（§4），这次改外观**没有动任何键位**
+（`BuiltinKeyboardsSnapshotTest` 钉住每个键）。§0 是设计语言，§1 是当初定键位时的调研，留作键位取舍的依据，
+其中对 iOS 外观的描述是历史。每个数都带理由；想改数值，先改理由。
+
+---
+
+## 0. 设计语言：现代 Android
+
+参考 Gboard 和 Material 3 Expressive：按键是适度圆角的矩形，没有描边和投影；层级靠色调区分；
+唯一的强调色留给回车；按下是色调变化（state layer），不是换色也不是下沉。
+
+### 0.1 颜色角色
+
+所有配色都由 `KeyboardColorRoles`（`data/theme/builtin/KeyboardColorRoles.kt`）的九个角色生成，
+主题颜色键怎么对应角色**只在那个文件里写一次**（KDoc 里有完整对照表）。固定配色和壁纸取色走同一张表，所以层级永远一致。
+
+| 角色 | 用在哪 | 浅色（zinc） | 深色（zinc） | 跟随壁纸时的 Material 角色 |
+|---|---|---|---|---|
+| `surface` | 键盘底、候选栏、面板底 | `E8E8EC` | `18181B` | 浅 surfaceContainerHigh / 深 surfaceContainerLowest |
+| `key` | 字母键、空格、气泡、剪贴板条目 | `FFFFFF` | `3F3F46` | 浅 surfaceContainerLowest / 深 surfaceBright |
+| `functionKey` | 功能键、首选候选的胶囊 | `D4D4D8` | `323238` | 浅 secondaryContainer / 深 surfaceContainerHigh |
+| `preedit` | 预编辑条 | `F4F4F5` | `27272A` | 浅 surfaceContainerLow / 深 surfaceContainerHigh |
+| `onSurface` | 键面文字、候选 | `18181B` | `FAFAFA` | onSurface |
+| `onSurfaceVariant` | 注释、提示 | `71717A` | `A1A1AA` | onSurfaceVariant |
+| `onFunctionKey` | 功能键文字 | `18181B` | `FAFAFA` | 浅 onSecondaryContainer / 深 onSurface |
+| `accent` | 回车键、开着的开关键、长按小键盘的焦点格 | `18181B` | `FAFAFA` | primary |
+| `onAccent` | 强调色上的文字和图标 | `FAFAFA` | `18181B` | onPrimary |
+
+- **按下色不是角色**：对应的 on 色以 12% 叠在底色上（Material 的 pressed state layer），
+  `hilited_key_back_color`、`hilited_off_key_back_color`、`hilited_enter_key_action_back_color` 都这么算。
+- 固定配色取 shadcn zinc 灰阶，和 App 设置页（`ui/theme/Color.kt`）同一套；强调色是「背景的反色」，
+  浅色下近黑、深色下近白，和设置页主按钮一致，不引入品牌色。
+- 对比度由 `KeyboardColorRolesTest` 检查：键面文字、功能键文字、回车文字 ≥ 4.5:1，注释 ≥ 3:1。
+- 配色微调滑块（暖度 / 亮度 / 不透明度）照常叠加在最终颜色上，壁纸取色也一样。
+- **跟随壁纸取色**（Android 12+）：`ColorManager` 用 `dynamicLightColorScheme` / `dynamicDarkColorScheme` 取系统调色板，
+  经 `KeyboardColorRoles.fromMaterial()` 变成角色（浅色和深色取不同的 surface 角色，见上表最后一列和 KDoc），深浅由系统 uiMode 决定。
+  输入法在 `onConfigurationChanged`、`onCreateInputView`、`onWindowShown` 时调用 `ColorManager.refreshWallpaperColors()`，
+  颜色真的变了才重建键盘。
+
+### 0.2 形状
+
+| 部件 | 形状 | 理由 |
+|---|---|---|
+| 按键 | 圆角 10dp（横屏 8dp），无描边、无投影 | 比 iOS 的 6dp 软，又不至于在 34dp 宽的键上变成药丸 |
+| 回车键 | 胶囊（圆角 = 键身高度一半），强调色 | 全键盘唯一的强调色和唯一的胶囊，一眼找到 |
+| 首选候选、符号面板当前标签 | 胶囊，`functionKey` 色 | Material 的 chip / 选中态 |
+| 按键气泡 | 圆角 14dp，3dp 投影 | 浮在 App 上，比键更圆 |
+| 长按小键盘 | 圆角 16dp，焦点格圆角 10dp、强调色 | 焦点格就是「要打出的那个」，和回车同色 |
+| 工具栏按钮按下 | 圆形色块 | Material 图标按钮 |
+| 开关面板图标底块 | 圆角 16dp | Material 快捷设置块 |
+| 键盘窗口 | 贴底时直角铺满；浮动键盘四角 16dp | Gboard 贴底不做圆角；浮动时是一张卡片 |
+
+### 0.3 字重
+
+一个可变字体（`SourceHanSans`，字重轴 350–700）给所有地方用，角色之间只差字重，**不用伪粗体**。
+CJK 笔画在同字重下比拉丁字母显细，所以整体比 Roboto 默认的 400 / 500 略重一档。
+
+键盘（`ImeTokens.*Weight`）：
+
+| 角色 | 字重 | 用在哪 |
+|---|---|---|
+| `keyTextWeight` | 500 | 字母、数字、单字符键、九宫格字母组、符号面板单字 |
+| `keyLabelWeight` | 550 | 功能键文字（`123` `换行` `ZH` `空格`）、符号面板底栏键 |
+| `keySymbolWeight` | 400 | 右上角提示、底部提示 |
+| `candidateWeight` / `candidateHighlightWeight` | 450 / 500 | 候选 / 高亮的首选 |
+| `candidateCommentWeight` | 400 | 注释、拼音 |
+| `preeditWeight` | 400 | 预编辑 |
+| `popupWeight` | 500 | 气泡、长按小键盘 |
+| `panelTitleWeight` | 600 | 面板标签栏标题：符号分类、剪贴板 / 收藏、面板窗口标题、开关首字 |
+| `panelLabelWeight` | 500 | 编辑面板、开关名、菜单、分词块、工具栏文字按钮 |
+| `panelBodyWeight` | 400 | 剪贴板条目、剪贴板建议、空列表提示 |
+
+App（`ui/theme/Type.kt`）：页面大标题 / TopAppBar（display、headline）600，分组标题（title）600，
+列表主文字（bodyLarge）500，次要说明（bodyMedium / bodySmall）400，按钮和分组表头（labelLarge）600，小标签 500。
+
+缺字回退：字体里没有的字形（emoji、扩展 B 区以后的生僻字）走系统 `sans-serif` 回退链，emoji 是系统彩色 emoji。
+
+### 0.4 图标
+
+- Material Icons **Outlined** 风格，全部集中在 `ime/compose/theme/ImeIcons.kt`。按键和工具栏在布局里仍写 `ic@名字`
+  （Community Material 的名字，改外观不改布局），`ImeIcons.vector()` 把名字映射到 Material 图标；没映射的名字仍画原来的图标。
+- Material Icons 没有键盘 Shift，`ImeIcons.Shift` 是按 Outlined 描边规格画的空心箭头。
+- 键盘画布里用 `rememberVectorPainter` 的 painter 画：每个图标光栅化一次缓存，着色 `ColorFilter` 按颜色缓存，每帧不分配。
+- 图标尺寸按 Material 图标自带的留白算：按键 24dp（字形约 20dp），右上角图标提示 13dp，工具栏 24dp，编辑面板方向键 30dp。
 
 > 过渡期：按键已经由 Compose 画布（`ime/compose/keyboard/KeyboardCanvas.kt`）按本文的 token 绘制，yaml 里和按键尺寸有关的字段
 > 按 §3.1 处理；候选栏、预编辑区等其余部分还以各自的迁移进度为准。用户主题（trime-config 的 `tools/gen_ios_theme.py`）
@@ -89,12 +172,12 @@ Trime fork 的键盘外观分成两半：
 | `candidateCommentTextSize` | 14sp | 12sp | `comment_text_size` | 候选的 70%。注释里是错音提示和带调拼音，是有用信息；Mac 上是 87%，手机屏小取 70%。原来的 55%（11sp）读不清 |
 | `candidateHorizontalPadding` | 12dp | 10dp | `candidate_padding` | 两个候选之间 24dp 空白，手指点得开；再大一页少放一个候选 |
 | `candidateCommentGap` | 2dp | 2dp | —（View 固定 1dp） | 注释紧跟候选，读成一个整体 |
-| `candidateHighlightPadding` | 4dp | 3dp | `hilited_candidate_padding` | 首选色块**紧贴文字**，四周各多 4dp（字号的 20%）。2dp 时色块贴着笔画显得挤；撑满整个候选项又像按钮 |
-| `candidateHighlightCornerRadius` | 6dp | 5dp | `candidate_corner_radius` | 和按键圆角同一数值，一套形状语言 |
+| `candidateHighlightPaddingHorizontal` / `candidateHighlightPaddingVertical` | 8 / 4dp | 6 / 3dp | `hilited_candidate_padding` | 首选胶囊**紧贴文字**：上下 4dp（字号的 20%），左右多给一点，胶囊两头的弧线不压笔画。两个候选之间的空白仍是 2 × `candidateHorizontalPadding` |
+| `candidateHighlightCornerRadius` | 50dp | 50dp | `candidate_corner_radius` | 大于色块高度一半，画出来就是胶囊，不随字号变 |
 | `candidateBarHeight` | 48dp + 注释行 | 32dp | `candidate_view_height` 52 + `comment_height` | Compose 版候选行 48dp（Material 最小触摸目标），不再单独给注释留高度。View 过渡期保持 52dp，避免键盘高度跳变 |
 
-首选的形状：**实心圆角色块 + 正常字色**，不用描边、不用下划线。色块颜色来自配色（`hilited_candidate_back_color`），
-深浅色只换颜色不换形状。
+首选的形状：**实心胶囊 + 正常字色 + 字重 500**（其余候选 450），不用描边、不用下划线。胶囊颜色是 `functionKey` 角色
+（`hilited_candidate_back_color`），深浅色只换颜色不换形状。
 
 ### 2.2 预编辑区
 
@@ -104,7 +187,7 @@ Trime fork 的键盘外观分成两半：
 | `preeditT9TextSize` | 13sp | 12sp | —（View 用注释字号） | 九宫格的拼音提示和注释同级 |
 | `preeditHorizontalPadding` | 8dp | 6dp | `preedit/horizontal_padding` | 和候选栏对齐到同一左边距附近 |
 | `preeditVerticalPadding` | 2dp | 1dp | — | 贴着键盘顶，不额外加高 |
-| `preeditCornerRadius` | 6dp | 5dp | `preedit/top_*_radius` | 同候选色块 |
+| `preeditCornerRadius` | 12dp | 10dp | `preedit/top_*_radius` | Material 的小卡片圆角，比按键圆一档 |
 
 预编辑区不透明（View 过渡 `preedit/alpha: 1.0`）：半透明的拼音条压在 App 文字上读不清。
 默认是内嵌到目标输入框（`inlinePreeditMode`），这个区域只在关掉内嵌时出现。
@@ -114,15 +197,16 @@ Trime fork 的键盘外观分成两半：
 | Token | 竖屏 | 横屏 | View 过渡 | 理由 |
 |---|---|---|---|---|
 | `keyRowHeight` | 53dp | 40dp | `key_height`、`keyboard_height` | 键身 = 53 − 8 = 45dp，高于 44dp 触摸下限。横屏 4 行 × 40 = 160dp，屏高 400dp 的 40% |
-| `keyCornerRadius` | 6dp | 6dp | `round_corner` | iOS 的 5dp 在 Android 像素密度下偏硬；默认主题的 8dp 在 34dp 宽的键上像药丸 |
+| `keyCornerRadius` | 10dp | 8dp | `round_corner` | Material 的适度圆角：比 iOS 的 6dp 软；再大在 34dp 宽的键上就成了药丸。横屏键身只有 34dp 高，降一档 |
 | `keyHorizontalGap` | 6dp | 6dp | `horizontal_gap` | 键距在 fork 里画成按键视图的内边距（`KeyboardView.kt`），**仍算触摸区**，所以缩小键距不增加命中率，只让键身变宽。6dp 足够让每个键成为独立的块 |
 | `keyVerticalGap` | 8dp | 6dp | `vertical_gap` | 比横向略大：手指纵向误差比横向大，视觉上行间也需要更清楚 |
 | `keyboardHorizontalPadding` | 3dp | 40dp | `keyboard_padding`、`keyboard_padding_land` | 竖屏贴边；横屏两侧各让 40dp，否则键被拉成扁条 |
-| `keyboardCornerRadius` | 26dp | 26dp | `keyboard_corner_radius` | 整块键盘顶部圆角，和 iOS 一致，让键盘像一张浮起来的卡片 |
+| `keyboardCornerRadius` | 16dp | 16dp | `keyboard_corner_radius` | **只用于浮动键盘**（四角）。贴底的键盘直角铺满，和 Gboard 一致 |
 | `keyTextSize` | 22sp | 20sp | `key_text_size` | 单字符键：字母、`，` `。`、数字。23sp 时 `m` `w` 在 34dp 宽的键里太满 |
 | `keyLabelTextSize` | 16sp | 14sp | `label_text_size`、`key_long_text_size` | 功能键文字（`123` `空格` `换行` `ZH`）。比字母小两级，明确是「控制」 |
 | `keyLetterGroupTextSize` | 20sp | 18sp | 九宫格按键上的 `key_text_size: 20` | 九宫格的 `ABC` `PQRS` 是打字的键，不是控制键；用功能键的 16sp 会和 `分词` `重输` 分不出主次。比单字母小一级，因为一个键上要放四个字母 |
-| `keyIconSize` | 22dp | 20dp | 按键 `key_text_size` | 图标和字母同高，视觉重量相当 |
+| `keyIconSize` | 24dp | 22dp | 按键 `key_text_size` | Material 图标在 24dp 框里留白，字形约 20dp，和字母同高 |
+| `keySymbolIconSize` | 13dp | 12dp | — | 右上角的图标提示（全选 / 剪切 / 复制 / 粘贴），比文字提示略大，补回图标自带的留白 |
 | `keySymbolTextSize` | 10sp | 9sp | `symbol_text_size` | 提示是字母的一半不到。9sp 在 420dpi 上笔画发虚 |
 | `keySymbolInsetTop` / `keySymbolInsetEnd` | 3dp / 5dp | 2dp / 4dp | `key_symbol_offset_y: 1` / `key_symbol_offset_x: 10` | **右上角**。放顶部正中会和字母的上沿挤在一条竖线上；右上角是 Gboard / 搜狗的通用位置，手指记忆通用 |
 | `keySymbolAlpha` | 0.5 | 0.5 | 配色 `key_symbol_color` | 字色 × 50%：白键黑字上约 `86868B`（对比度 3.6:1），扫一眼找得到、永远不比字母抢眼。原来的 `B4B7BD`（1.9:1）等于没有 |
@@ -143,24 +227,26 @@ iOS 主题没有用到它；一个键同时有右上角提示和底部提示时�
 | 级别 | 哪些键 | 颜色来源 |
 |---|---|---|
 | 字母级（亮） | 字母、数字、`，` `。` 等**上屏字符的键**、空格 | `key_back_color` |
-| 功能级（暗） | Shift、退格、`123` / `ABC` / `#+=`、`ZH` / `EN`、换行 | `func_key_back_color`（或 `off_key_back_color`） |
+| 功能级（暗） | Shift、退格、`123` / `ABC` / `#+=`、`ZH` / `EN` | `func_key_back_color`（或 `off_key_back_color`），即 `functionKey` 角色 |
+| 强调 | 回车 | `enter_key_action_*`，即 `accent` 角色，胶囊形 |
 | 透明 | 最底下一行的地球 / emoji / 麦克风 | 透明底，只画图标 |
 
-回车在输入框要求「搜索 / 发送 / 前往 / 完成」时单独变强调色（`enter_key_action_*`），这是唯一的第三种颜色。
+回车**总是**强调色，不只是输入框要求「搜索 / 发送 / 前往 / 完成」时：它是全键盘唯一的强调色。
+深浅色下功能键都比字母键「低一级」：浅色是比白键深的灰，深色是介于键盘底和字母键之间的灰。
 
 #### 按下反馈
 
 | 键 | 反馈 | 理由 |
 |---|---|---|
 | 字母级 | 键上方弹出气泡：`keyPreviewWidth` 44dp × `keyPreviewHeight` 56dp，字 30sp（横屏 48dp 高、26sp）；上滑时气泡里换成上滑要打的字符 | 手指盖住了键面，气泡是唯一能确认按到哪个键的方式；上滑前能看到结果，敢滑 |
-| 功能级 | 不弹气泡，按住时背景换成字母级的亮色（`keyPressedFunctionSwap`） | 功能键没有「打出了什么」可以预览，颜色翻转就够了 |
+| 功能级 | 不弹气泡，按住时叠一层 12% 的按下色（`hilited_off_key_back_color`）；`keyPressedFunctionSwap` 为 false | 功能键没有「打出了什么」可以预览，色调变化就够了；Material 的按下反馈是 state layer，不是换色 |
 | 全部 | 振动由用户设置决定（fork 的「振动效果」选项） | 不属于外观 |
 
 View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制使用**，不要依赖它做下沉效果。
 
-**功能键按下换亮色由配色表达，代码不强制**：功能键的按下色取 `hilited_off_key_back_color`，或按键上写的 `hilited_key_back_color`，
-主题把它设成字母键底色即可（iOS 主题浅色 / 深色都是这么写的，Compose 版已截图验证）。配色两项都没写时回落到
-`hilited_key_back_color`，也是字母级的按下色，所以不会出现「按下反而更暗」。代码替主题换色会违反「颜色跟 yaml」（§3.1），所以不做。
+**按下色由配色表达，代码不强制**：按键画布取 `hilited_off_key_back_color` 或按键上写的 `hilited_key_back_color`，
+由 `KeyboardColorRoles` 统一按 state layer 算好。编辑面板和符号面板底栏这类自己画功能键的地方读 `keyPressedFunctionSwap`：
+为 false 时用 `ImeColors.highlightedFunctionKeyBack`。
 
 ### 2.4 横屏和竖屏的差异
 
@@ -179,19 +265,19 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 按键以外的 Compose 部件也从 `ImeTokens` 取尺寸，字段名带区域前缀。圆角、键距、字号梯度能复用按键组的（`keyCornerRadius`、
 `keyLabelTextSize` 等）就直接复用，下面只列各区域自己的。除了长按小键盘的两项和编辑面板（单独列了横屏），横竖屏同值。
 
-**按键气泡和长按小键盘**（`popup*`）。样子照 iOS：浅色圆角块带柔和阴影，贴在键的上方。气泡本身的尺寸和字号见 §2.3「按下反馈」。
+**按键气泡和长按小键盘**（`popup*`）。Material 的浮层：`key` 色圆角块带低投影，贴在键的上方；长按小键盘的焦点格用强调色。气泡本身的尺寸和字号见 §2.3「按下反馈」。
 
 | Token | 竖屏 | 横屏 | 理由 |
 |---|---|---|---|
 | `popupAnchorGap` | 2dp | 2dp | 气泡 / 小键盘底边离键身顶边的距离 |
-| `popupPreviewCornerRadius` | 8dp | 8dp | 比按键（6dp）圆：气泡更高，且浮在 App 上 |
+| `popupPreviewCornerRadius` | 14dp | 14dp | 比按键（10dp）圆：气泡更高，且浮在 App 上 |
 | `popupShadowElevation` | 3dp | 3dp | 刚好把气泡从同色的键上托起来 |
 | `popupKeyboardCellWidth` | 44dp | 44dp | 和气泡同宽，按住的键看起来一样 |
 | `popupKeyboardCellHeight` | 48dp | 40dp | |
 | `popupKeyboardTextSize` | 24sp | 22sp | |
 | `popupKeyboardPadding` | 4dp | 4dp | |
-| `popupKeyboardCornerRadius` | 10dp | 10dp | |
-| `popupKeyboardHighlightCornerRadius` | 6dp | 6dp | 焦点格的色块，和按键同圆角 |
+| `popupKeyboardCornerRadius` | 16dp | 16dp | |
+| `popupKeyboardHighlightCornerRadius` | 10dp | 10dp | 焦点格的强调色块，和按键同圆角 |
 
 **符号面板**（`symbol*`）。格子长得像按键：单字符用 `keyTextSize`，更长的用 `keyLabelTextSize`。
 
@@ -212,6 +298,7 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 | `panelEntryPinSize` / `panelEntryPinAlpha` | 12dp / 0.3 | 置顶图钉 |
 | `panelSwitchCellMinWidth` | 88dp | 开关网格最窄列宽：竖屏手机四列 |
 | `panelSwitchCellHeight` / `panelSwitchTileSize` / `panelSwitchIconSize` | 96dp / 48dp / 24dp | 开关格、图标底块、图标 |
+| `panelSwitchTileCornerRadius` | 16dp | 图标底块圆角，Material 快捷设置块 |
 | `panelSwitchGlyphTextSize` / `panelSwitchLabelTextSize` | 20sp / 12sp | 无图标时的首字 / 下方标签 |
 | `panelSegmentPaddingHorizontal` / `panelSegmentPaddingVertical` | 8dp / 4dp | 分词块内边距 |
 | `panelSegmentMargin` | 4dp | 分词块四周外边距 |
@@ -225,10 +312,10 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 | Token | 值 | 用途 |
 |---|---|---|
 | `barUnrollButtonWidth` | 40dp | 候选行末尾的展开按钮 |
-| `barIconButtonPadding` / `barIconButtonCornerRadius` | 4dp / 8dp | 纯图标按钮（收起键盘、展开、返回）的内边距和按下色块圆角 |
+| `barIconButtonPadding` / `barIconButtonCornerRadius` | 4dp / 20dp | 纯图标按钮（收起键盘、展开、返回）的内边距和按下色块圆角（圆形） |
 | `barClipboardIconSize` / `barClipboardSpacing` | 20dp / 4dp | 剪贴板建议的图标和间距 |
 | `barClipboardMaxTextWidth` | 220dp | 剪贴板建议文字最宽 |
-| `barClipboardVerticalMargin` / `barClipboardCornerRadius` | 4dp / 8dp | 建议块离栏上下边的距离、圆角 |
+| `barClipboardVerticalMargin` / `barClipboardCornerRadius` | 4dp / 20dp | 建议块离栏上下边的距离、圆角（胶囊） |
 | `barClipboardPreviewLength` | 42 | 剪贴板建议只取前 42 个字符，其余测量前就截掉 |
 | `barInlinePinnedHorizontalMargin` | 10dp | 自动填充固定项的左右外边距 |
 | `barTabSpacing` | 8dp | 面板标题栏里返回键、标题、面板自带栏之间 |
@@ -255,8 +342,8 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 |---|---|---|---|
 | `editPanelCommandColumnFraction` | 0.28 | 0.28 | 右侧命令列占面板宽度的比例：竖屏约 113dp，放得下图标加两个字 |
 | `editPanelCenterColumnWeight` | 1.4 | 1.4 | 中间（↑ 选择 ↓）一列相对左右方向键（各 1）的宽度，「选择」两个字不挤 |
-| `editPanelArrowIconSize` | 26dp | 22dp | 方向键只有图标，比按键图标（22 / 20dp）略大，一眼分清方向 |
-| `editPanelIconSize` | 20dp | 18dp | 带文字的格子里的图标 |
+| `editPanelArrowIconSize` | 30dp | 26dp | 方向键只有 Material 的 chevron，字形只占框的一半，所以框要比按键图标（24 / 22dp）大 |
+| `editPanelIconSize` | 22dp | 20dp | 带文字的格子里的图标 |
 | `editPanelLabelTextSize` | 14sp | 14sp | 比功能键文字（16sp）小一级：图标和文字叠在一格里 |
 | `editPanelIconLabelGap` | 2dp | 6dp | 竖排时紧贴；横排时隔开 |
 | `editPanelLabelBesideIcon` | false | true | 横屏一行只有 40dp 高，图标和文字叠不下，改成左右并排 |
@@ -269,10 +356,10 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 
 **可以配：**
 
-- **配色**：`preset_color_schemes` 里的所有颜色键，浅色 / 深色两套（`default` 里写 `light_scheme` / `dark_scheme` 跟随系统）。
+- **配色**：由 `KeyboardColorRoles` 的角色生成浅色 / 深色两套（§0.1），颜色键名沿用 yaml 时代的 `preset_color_schemes`。
   包括自定义键名（如 `func_key_back_color`）供按键引用。提示色 `key_symbol_color` 只剩 View 渲染在用（按 §2.3 的 50% 规则取值），Compose 画布不读，见 §3.1。
   运行时的暖度 / 亮度 / 不透明度滤镜在 App 里调，主题里保持中性。
-- **字体文件**：`style` 下 `*_font` 列表，文件放用户目录 `fonts/`。加粗靠换字重文件。`latin_font` 必须留空。
+- ~~字体文件~~：字体已内置（§0.3），`style` 下的 `*_font` 不再读取，用户目录的 `fonts/` 也不再使用。
 - **键盘布局**：`preset_keyboards` 里有哪些键盘、每个键的动作（`click` / `long_click` / `swipe_*`）、宽度百分比、
   `label` / `label_symbol`、按键引用哪个配色键、`hide_in_landscape`、`_land` 横屏专用键盘。
 - **行高比例**：按键 / 行的 `height`（相对 `keyboard_height` 等比缩放），用于地球行这类矮一截的行。
@@ -305,7 +392,7 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 | `key_text_offset_*` / `key_symbol_offset_*` / `key_hint_offset_*` / `key_press_offset_*` | 忽略；提示位置用 `keySymbolInsetTop` / `keySymbolInsetEnd` | 尺寸 |
 | `key_border`（style、键盘、按键上） | **照旧生效**，宽度按 dp，颜色跟 `key_border_color` | token 里没有描边宽度，也就没有冲突；设计本身不用描边，iOS 主题写的是 0 |
 | `keyboard_height*`、按键 `width`、行 `height`、`hide_in_landscape` | 照旧生效（`Keyboard` 据此算触摸格） | 布局是可变的一半；键盘总高见下 |
-| `key_font` / `symbol_font` | 照旧 | 字体是可变的一半。`label_font` 仍然不读，和 View 版一致 |
+| `key_font` / `symbol_font` / 所有 `*_font` | 忽略，用内置思源黑体 + 字重 token | 字体内置（§0.3） |
 | 浮动键盘缩放（App 设置，不是 yaml） | 字号、图标、提示内边距乘缩放；键距、圆角不缩 | 小窗里字要跟着缩，键距再缩键就挤成一片 |
 
 `keyboard_height` / `keyboard_height_land` 暂时保留可配：键盘总高和屏幕、导航栏、用户习惯都有关，

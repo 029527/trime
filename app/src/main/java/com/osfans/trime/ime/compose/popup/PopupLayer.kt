@@ -37,7 +37,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import com.mikepenz.iconics.IconicsDrawable
-import com.osfans.trime.data.theme.FontManager
+import com.osfans.trime.data.theme.SourceHanSans
 import com.osfans.trime.ime.compose.theme.ImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeColors
 import kotlin.math.roundToInt
@@ -147,7 +147,7 @@ private val DrawScope.nativeCanvas: Canvas get() = drawContext.canvas.nativeCanv
 
 /**
  * Text goes through a platform [Paint] like the key labels do (see `KeyboardCanvas`): the popup
- * font is a platform typeface with FontManager's fallback chain, and one `drawText` allocates
+ * font is the app's platform typeface with the system fallback chain, and one `drawText` allocates
  * nothing where a paragraph layout would.
  */
 internal class PopupPainter(
@@ -155,17 +155,18 @@ internal class PopupPainter(
 ) {
     class Label(
         size: Float,
+        weight: Int,
     ) {
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
             textSize = size
-            typeface = FontManager.getTypeface("popup_font")
+            typeface = SourceHanSans.typeface(weight)
             textAlign = Paint.Align.CENTER
         }
         val centerShift = paint.fontMetrics.let { -(it.ascent + it.descent) / 2 }
     }
 
-    val preview = Label(metrics.previewTextSize)
-    val cell = Label(metrics.cellTextSize)
+    val preview = Label(metrics.previewTextSize, metrics.textWeight)
+    val cell = Label(metrics.cellTextSize, metrics.textWeight)
     private val iconSize = metrics.cellTextSize.roundToInt()
     private val colorFilters = SparseArray<ColorFilter>()
 

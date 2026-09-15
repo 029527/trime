@@ -139,7 +139,7 @@ fun PanelMenu(
         actions.forEach { action ->
             DropdownMenuItem(
                 text = {
-                    Text(action.label, fontFamily = fonts.key, fontSize = tokens.panelMenuTextSize)
+                    Text(action.label, fontFamily = fonts.family, fontWeight = tokens.panelLabelWeight, fontSize = tokens.panelMenuTextSize)
                 },
                 leadingIcon = if (action.icon != 0) {
                     { Icon(painterResource(action.icon), contentDescription = null) }
@@ -201,7 +201,8 @@ fun PanelEmptyHint(
         BasicText(
             text,
             style = TextStyle(
-                fontFamily = fonts.key,
+                fontFamily = fonts.family,
+                fontWeight = tokens.panelBodyWeight,
                 fontSize = tokens.panelEmptyHintTextSize,
                 textAlign = TextAlign.Center,
             ),

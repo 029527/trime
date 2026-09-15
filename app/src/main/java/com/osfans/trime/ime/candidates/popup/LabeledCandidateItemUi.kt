@@ -15,8 +15,9 @@ import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
 import com.osfans.trime.core.CandidateProto
 import com.osfans.trime.data.theme.ColorManager
-import com.osfans.trime.data.theme.FontManager
+import com.osfans.trime.data.theme.SourceHanSans
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.ime.compose.theme.ImeTokens
 import com.osfans.trime.util.sp
 import splitties.dimensions.dp
 import splitties.views.dsl.core.Ui
@@ -29,9 +30,9 @@ class LabeledCandidateItemUi(
     private val labelSize = theme.window.foreground.labelFontSize
     private val textSize = theme.window.foreground.textFontSize
     private val commentSize = theme.window.foreground.commentFontSize
-    private val labelFont = FontManager.getTypeface("label_font")
-    private val textFont = FontManager.getTypeface("candidate_font")
-    private val commentFont = FontManager.getTypeface("comment_font")
+    private val labelFont = SourceHanSans.typeface(ImeTokens.Portrait.candidateCommentWeight)
+    private val textFont = SourceHanSans.typeface(ImeTokens.Portrait.candidateWeight)
+    private val commentFont = SourceHanSans.typeface(ImeTokens.Portrait.candidateCommentWeight)
     private val labelColor = ColorManager.getColor("label_color")
     private val textColor = ColorManager.getColor("candidate_text_color")
     private val commentColor = ColorManager.getColor("comment_text_color")

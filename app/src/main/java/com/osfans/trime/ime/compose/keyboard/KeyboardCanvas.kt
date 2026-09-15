@@ -18,6 +18,7 @@ import android.util.SparseArray
 import android.view.KeyCharacterMap
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -26,7 +27,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
@@ -34,7 +38,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.mikepenz.iconics.IconicsDrawable
 import com.mikepenz.iconics.utils.sizePx
-import com.osfans.trime.data.theme.FontManager
+import com.osfans.trime.data.theme.SourceHanSans
+import com.osfans.trime.ime.compose.theme.ImeIcons
 import com.osfans.trime.ime.compose.theme.ImeTokens
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
 import com.osfans.trime.ime.keyboard.Key
@@ -42,6 +47,7 @@ import com.osfans.trime.ime.keyboard.Keyboard
 import com.osfans.trime.ime.keyboard.isIconFont
 import com.osfans.trime.ime.keyboard.toIconName
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.ColorFilter as ComposeColorFilter
 
 /**
  * Draws every key of [keyboard] on one canvas, sized by [ImeTokens] and coloured by the theme.
@@ -56,13 +62,16 @@ import kotlin.math.roundToInt
  * Key backgrounds go through Compose's `drawRoundRect`: it draws with a pooled paint and only
  * inline value classes, so it allocates nothing and costs the same as the platform call. Text and
  * icons stay on the native canvas on purpose:
- * - the key font is a platform [Typeface] with a custom fallback chain built by [FontManager];
+ * - the key font is a platform [Typeface] from [SourceHanSans], one per weight, with the system fallback chain;
  * - `TextMeasurer` would lay out a paragraph per label (and again whenever shift or the ascii mode
  *   changes a label), then draw it through a `MultiParagraph`, where one `drawText` on a
  *   pre-configured [Paint] does the job;
  * - label centring matches the View keyboard's ascent/descent rule, which paragraph layout does
  *   not expose directly;
- * - icons are `IconicsDrawable`s, which need a native canvas anyway.
+ * - `ic@` glyphs are Material vectors (see [ImeIcons]) drawn through remembered vector painters,
+ *   or `IconicsDrawable`s for a name `ImeIcons` does not map.
+ *
+ * The enter key is the one key in the accent colour, drawn as a pill ([ImeTokens.enterKeyPill]).
  */
 @Composable
 fun KeyboardCanvas(
@@ -73,7 +82,20 @@ fun KeyboardCanvas(
     val context = LocalContext.current
     val tokens = LocalImeTokens.current
     val density = LocalDensity.current
-    val painter = remember(keyboard, state, tokens, density) { KeyPainter(context, keyboard, state, tokens, density) }
+    // one vector painter per glyph the layout names; a painter caches its raster, so each glyph is
+    // rasterised once per size instead of once per frame
+    val iconNames =
+        remember(keyboard) {
+            keyboard.keys
+                .flatMap { listOf(it.getLabel(), it.symbolLabel) }
+                .filter { it.isIconFont && ImeIcons.vector(it) != null }
+                .distinct()
+        }
+    val vectorIcons = remember(keyboard) { HashMap<String, Painter>() }
+    for (name in iconNames) {
+        key(name) { vectorIcons[name] = rememberVectorPainter(ImeIcons.vector(name)!!) }
+    }
+    val painter = remember(keyboard, state, tokens, density) { KeyPainter(context, keyboard, state, tokens, density, vectorIcons) }
     Canvas(modifier) {
         state.observe()
         Trace.beginSection("KeyboardCanvas")
@@ -93,6 +115,7 @@ private class KeyPainter(
     private val state: KeyboardRenderState,
     private val tokens: ImeTokens,
     density: Density,
+    private val vectorIcons: Map<String, Painter>,
 ) {
     private val keys = keyboard.keys
     private val count = keys.size
@@ -122,11 +145,13 @@ private class KeyPainter(
     private val labelIcons = arrayOfNulls<IconSlot>(count)
     private val symbolIcons = arrayOfNulls<IconSlot>(count)
     private val colorFilters = SparseArray<ColorFilter>()
+    private val vectorFilters = SparseArray<ComposeColorFilter>()
 
     init {
         val scale = state.textScale
-        val keyFont = FontManager.getTypeface("key_font")
-        val symbolFont = FontManager.getTypeface("symbol_font")
+        val keyFont = SourceHanSans.typeface(tokens.keyTextWeight)
+        val labelFont = SourceHanSans.typeface(tokens.keyLabelWeight)
+        val symbolFont = SourceHanSans.typeface(tokens.keySymbolWeight)
         with(density) {
             val halfH = tokens.keyHorizontalGap.toPx() / 2
             val halfV = tokens.keyVerticalGap.toPx() / 2
@@ -145,10 +170,10 @@ private class KeyPainter(
             symbolInsetEnd = tokens.keySymbolInsetEnd.toPx() * scale
             letter = TextStyle(textPaint(tokens.keyTextSize, scale, keyFont, Paint.Align.CENTER))
             letterGroup = TextStyle(textPaint(tokens.keyLetterGroupTextSize, scale, keyFont, Paint.Align.CENTER))
-            label = TextStyle(textPaint(tokens.keyLabelTextSize, scale, keyFont, Paint.Align.CENTER))
+            label = TextStyle(textPaint(tokens.keyLabelTextSize, scale, labelFont, Paint.Align.CENTER))
             symbolPaint = textPaint(tokens.keySymbolTextSize, scale, symbolFont, Paint.Align.RIGHT)
             hintPaint = textPaint(tokens.keySymbolTextSize, scale, symbolFont, Paint.Align.CENTER)
-            symbolIconSize = symbolPaint.textSize
+            symbolIconSize = tokens.keySymbolIconSize.toPx() * scale
         }
         val fm = symbolPaint.fontMetrics
         symbolAscent = fm.ascent
@@ -168,18 +193,18 @@ private class KeyPainter(
             val b = bodies[i * 4 + 3]
 
             var text = key.getLabel()
+            // the enter key always wears the accent, not only when the editor asks to go / search / send
             val isEnter = text == ENTER_LABELS
-            val primary = isEnter && state.isEnterPrimaryAction
             if (isEnter) text = state.labelEnter
 
-            scope.drawBackground(canvas, i, key, primary, l, t, r, b)
+            scope.drawBackground(canvas, i, key, isEnter, l, t, r, b)
 
-            val textColor = (if (primary) state.actionKeyTextColor else null) ?: key.getTextColor()
-            if (text.isNotEmpty()) drawLabel(canvas, i, text, textColor, (l + r) / 2, (t + b) / 2)
+            val textColor = (if (isEnter) state.actionKeyTextColor else null) ?: key.getTextColor()
+            if (text.isNotEmpty()) scope.drawLabel(canvas, i, text, textColor, (l + r) / 2, (t + b) / 2)
 
             val secondary = symbolColor(textColor)
             val symbol = key.symbolLabel
-            if (!hideSymbol && symbol.isNotBlank()) drawSymbol(canvas, i, symbol, secondary, r - symbolInsetEnd, t + symbolInsetTop)
+            if (!hideSymbol && symbol.isNotBlank()) scope.drawSymbol(canvas, i, symbol, secondary, r - symbolInsetEnd, t + symbolInsetTop)
             val hint = key.hint
             if (!hideHint && hint.isNotBlank()) drawHint(canvas, hint, secondary, (l + r) / 2, b - symbolInsetTop)
         }
@@ -189,20 +214,21 @@ private class KeyPainter(
         canvas: Canvas,
         i: Int,
         key: Key,
-        primary: Boolean,
+        accent: Boolean,
         l: Float,
         t: Float,
         r: Float,
         b: Float,
     ) {
-        val actionBackground = if (primary) (if (key.isPressed) state.hlActionKeyBackground else state.actionKeyBackground) else null
+        val actionBackground = if (accent) (if (key.isPressed) state.hlActionKeyBackground else state.actionKeyBackground) else null
         val background = actionBackground ?: key.getBackgroundDrawable()
+        val radius = if (accent && tokens.enterKeyPill) CornerRadius((b - t) / 2) else cornerRadius
         // ColorManager turns every plain colour into a GradientDrawable; images and nine-patches
         // are drawn as they are, without rounding.
         val solid = (background as? GradientDrawable)?.color?.defaultColor
         if (solid != null) {
             if (solid ushr 24 != 0) {
-                drawRoundRect(Color(solid), Offset(l, t), Size(r - l, b - t), cornerRadius, alpha = background.alpha / 255f)
+                drawRoundRect(Color(solid), Offset(l, t), Size(r - l, b - t), radius, alpha = background.alpha / 255f)
             }
         } else if (background != null) {
             background.setBounds(l.toInt(), t.toInt(), r.toInt(), b.toInt())
@@ -214,12 +240,12 @@ private class KeyPainter(
             Color(key.getBorderColor()),
             Offset(l + inset, t + inset),
             Size(r - l - border.width, b - t - border.width),
-            cornerRadius,
+            radius,
             style = border,
         )
     }
 
-    private fun drawLabel(
+    private fun DrawScope.drawLabel(
         canvas: Canvas,
         i: Int,
         text: String,
@@ -242,7 +268,7 @@ private class KeyPainter(
     }
 
     /** Top-end corner: [right] and [top] are the inner edges of the inset. */
-    private fun drawSymbol(
+    private fun DrawScope.drawSymbol(
         canvas: Canvas,
         i: Int,
         text: String,
@@ -288,7 +314,12 @@ private class KeyPainter(
         }
     }
 
-    private fun drawIcon(
+    /**
+     * A Material glyph from [vectorIcons] when the name is mapped (see `ImeIcons`), otherwise the
+     * Community Material glyph. The vector painter keeps its raster between frames; the tint filter
+     * is cached per colour, so a frame allocates nothing.
+     */
+    private fun DrawScope.drawIcon(
         canvas: Canvas,
         slots: Array<IconSlot?>,
         i: Int,
@@ -298,6 +329,14 @@ private class KeyPainter(
         left: Float,
         top: Float,
     ) {
+        val vector = vectorIcons[name]
+        if (vector != null) {
+            val filter = vectorFilters[color] ?: ComposeColorFilter.tint(Color(color)).also { vectorFilters.put(color, it) }
+            translate(left, top) {
+                with(vector) { draw(Size(size, size), colorFilter = filter) }
+            }
+            return
+        }
         val px = size.roundToInt()
         var slot = slots[i]
         if (slot == null || slot.name != name) {

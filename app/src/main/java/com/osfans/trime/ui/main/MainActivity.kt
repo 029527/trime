@@ -30,6 +30,7 @@ import com.osfans.trime.BuildConfig
 import com.osfans.trime.R
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.soundeffect.SoundEffectManager
+import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.databinding.ActivityMainBinding
 import com.osfans.trime.ui.setup.SetupActivity
 import com.osfans.trime.util.isStorageAvailable
@@ -47,19 +48,11 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
 
-    private val uiMode by AppPrefs.defaultInstance().advanced.uiMode
-
     private lateinit var navController: NavController
     private var testInputPanel: TestInputPanel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val uiMode =
-            when (uiMode) {
-                AppPrefs.Advanced.UiMode.AUTO -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                AppPrefs.Advanced.UiMode.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
-                AppPrefs.Advanced.UiMode.DARK -> AppCompatDelegate.MODE_NIGHT_YES
-            }
-        AppCompatDelegate.setDefaultNightMode(uiMode)
+        AppCompatDelegate.setDefaultNightMode(ThemeManager.prefs.appNightMode)
         super.onCreate(savedInstanceState)
         if (SetupActivity.shouldShowUp()) {
             startActivity<SetupActivity>()

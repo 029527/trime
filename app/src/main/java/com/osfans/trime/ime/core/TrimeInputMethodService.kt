@@ -364,12 +364,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                         }
                     }
                 }
-            is RimeMessage.DeployMessage -> {
-                if (it.data == RimeMessage.DeployMessage.State.Success) {
-                    // 同步可能换了 fonts/ 里的字体文件
-                    ThemeManager.reloadFonts()
-                }
-            }
             else -> {}
         }
     }
@@ -462,6 +456,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         if (diff and ActivityInfo.CONFIG_ORIENTATION != 0) {
             applyLandscapeSchema()
         }
+        // a new wallpaper, or light / dark switched: the wallpaper palette may be different now
+        ColorManager.refreshWallpaperColors()
     }
 
     private val contentSize = floatArrayOf(0f, 0f)
@@ -613,9 +609,16 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
 
     override fun onCreateInputView(): View? {
         Timber.d("onCreateInputView")
+        ColorManager.refreshWallpaperColors()
         replaceInputViews(ThemeManager.activeTheme)
         // We will call `setInputView` by ourselves. This is fine.
         return null
+    }
+
+    override fun onWindowShown() {
+        super.onWindowShown()
+        // the wallpaper may have changed while the keyboard was hidden; rebuilds only if it did
+        ColorManager.refreshWallpaperColors()
     }
 
     override fun setInputView(view: View) {

@@ -131,7 +131,7 @@
     <string name="developer">Developer</string>
     <string name="profile">Profile</string>
     <string name="virtual_keyboard">Virtual Keyboard</string>
-    <string name="theme">Keyboard Style</string>
+    <string name="theme">Appearance</string>
     <string name="about">About</string>
     <string name="storage">Storage</string>
     <string name="data_storage_mode">Data storage mode</string>
@@ -226,6 +226,8 @@
     <string name="navbar_bkg_full">Keyboard background image</string>
     <string name="day_night_mode">Day / night colors</string>
     <string name="day_night_follow_system">Follow system</string>
+    <string name="follow_wallpaper_colors">Wallpaper colors</string>
+    <string name="follow_wallpaper_colors_summary">Keyboard and settings take their colors from the wallpaper; light or dark follows the system</string>
     <string name="day_night_light">Light</string>
     <string name="day_night_dark">Dark</string>
     <string name="undo">Undo</string>

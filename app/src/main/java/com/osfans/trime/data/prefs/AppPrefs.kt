@@ -544,18 +544,10 @@ class AppPrefs(
         shared: SharedPreferences,
     ) : PreferenceDelegateOwner(shared, R.string.advanced) {
         companion object {
-            const val UI_MODE = "ui_mode"
             const val SHOW_APP_ICON = "show_app_icon"
             const val IGNORE_SYSTEM_GESTURE_INSETS = "ignore_system_gesture_insets"
         }
 
-        enum class UiMode(override val stringRes: Int) : PreferenceDelegateEnum {
-            AUTO(R.string.automatic),
-            LIGHT(R.string.light),
-            DARK(R.string.dark),
-        }
-
-        val uiMode = enum(R.string.ui_mode, UI_MODE, UiMode.AUTO)
         val showAppIcon = switch(
             R.string.show_app_icon,
             SHOW_APP_ICON,

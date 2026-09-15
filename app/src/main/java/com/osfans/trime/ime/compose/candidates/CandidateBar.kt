@@ -18,9 +18,11 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -243,7 +245,19 @@ private fun CandidateItem(
     val colors = LocalImeColors.current
     val fonts = LocalImeFonts.current
     val tokens = LocalImeTokens.current
-    val highlightPadding = tokens.candidateHighlightPadding
+    val highlightPaddingX = tokens.candidateHighlightPaddingHorizontal
+    val highlightPaddingY = tokens.candidateHighlightPaddingVertical
+    // the weight is a layout input, so it is read in composition; derived, so only the two items
+    // whose highlight flips recompose when it moves
+    val highlighted by remember(isHighlighted) { derivedStateOf(isHighlighted) }
+    val textStyle =
+        remember(fonts, tokens, highlighted) {
+            TextStyle(
+                fontFamily = fonts.family,
+                fontWeight = if (highlighted) tokens.candidateHighlightWeight else tokens.candidateWeight,
+                fontSize = tokens.candidateTextSize,
+            )
+        }
     Box(
         modifier =
         Modifier
@@ -254,7 +268,7 @@ private fun CandidateItem(
                 hapticFeedbackEnabled = false,
                 onLongClick = onLongClick,
                 onClick = onClick,
-            ).padding(horizontal = (tokens.candidateHorizontalPadding - highlightPadding).coerceAtLeast(0.dp)),
+            ).padding(horizontal = (tokens.candidateHorizontalPadding - highlightPaddingX).coerceAtLeast(0.dp)),
         contentAlignment = Alignment.Center,
     ) {
         // the highlight is drawn, not composed: moving it only redraws the two items involved
@@ -266,12 +280,12 @@ private fun CandidateItem(
                         val radius = tokens.candidateHighlightCornerRadius.toPx()
                         drawRoundRect(colors.highlightedCandidateBack, cornerRadius = CornerRadius(radius, radius))
                     }
-                }.padding(highlightPadding),
+                }.padding(horizontal = highlightPaddingX, vertical = highlightPaddingY),
         ) {
             BasicText(
                 text = candidate.text,
                 modifier = Modifier.alignByBaseline(),
-                style = TextStyle(fontFamily = fonts.candidate, fontSize = tokens.candidateTextSize),
+                style = textStyle,
                 color = { if (isHighlighted()) colors.highlightedCandidateText else colors.candidateText },
                 maxLines = 1,
                 softWrap = false,
@@ -280,7 +294,7 @@ private fun CandidateItem(
                 BasicText(
                     text = candidate.comment,
                     modifier = Modifier.alignByBaseline().padding(start = tokens.candidateCommentGap),
-                    style = TextStyle(fontFamily = fonts.comment, fontSize = tokens.candidateCommentTextSize),
+                    style = TextStyle(fontFamily = fonts.family, fontWeight = tokens.candidateCommentWeight, fontSize = tokens.candidateCommentTextSize),
                     color = { if (isHighlighted()) colors.highlightedCandidateComment else colors.candidateComment },
                     maxLines = 1,
                     softWrap = false,

@@ -130,7 +130,7 @@
     <string name="developer">開發者</string>
     <string name="exception_logcat_created">Logcat 行程已建立</string>
     <string name="about">關於</string>
-    <string name="theme">鍵盤樣式</string>
+    <string name="theme">外觀</string>
     <string name="profile">配置</string>
     <string name="virtual_keyboard">虛擬鍵盤</string>
     <string name="storage">儲存</string>
@@ -223,6 +223,8 @@
     <string name="navbar_bkg_full">鍵盤背景圖片</string>
     <string name="day_night_mode">深淺色</string>
     <string name="day_night_follow_system">跟隨系統</string>
+    <string name="follow_wallpaper_colors">跟隨桌布取色</string>
+    <string name="follow_wallpaper_colors_summary">鍵盤和設定頁的顏色取自桌布，深淺色跟隨系統</string>
     <string name="day_night_light">淺色</string>
     <string name="day_night_dark">深色</string>
     <string name="undo">撤銷</string>

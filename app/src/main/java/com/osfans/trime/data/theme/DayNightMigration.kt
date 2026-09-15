@@ -21,13 +21,20 @@ import com.osfans.trime.data.theme.builtin.BuiltinColors
  *
  * The old keys (and the stale `selected_theme`) are removed afterwards, which also makes
  * this a no-op on every later start.
+ *
+ * The settings app's `ui_mode` is only removed, never converted: the app now follows the
+ * keyboard's light / dark choice, and a stored keyboard choice must not change under the user.
+ * [ThemePrefs.followWallpaper] is new and stays off until turned on.
  */
 object DayNightMigration {
     const val FOLLOW_SYSTEM_DAY_NIGHT = "follow_system_day_night"
     const val NORMAL_MODE_COLOR = "normal_mode_color"
     const val SELECTED_THEME = "selected_theme"
 
-    private val legacyKeys = listOf(FOLLOW_SYSTEM_DAY_NIGHT, NORMAL_MODE_COLOR, SELECTED_THEME)
+    /** The settings app's own light / dark choice, now taken from [ThemePrefs.dayNightMode] as well. */
+    const val UI_MODE = "ui_mode"
+
+    private val legacyKeys = listOf(FOLLOW_SYSTEM_DAY_NIGHT, NORMAL_MODE_COLOR, SELECTED_THEME, UI_MODE)
 
     fun resolve(
         followSystem: Boolean?,
@@ -55,9 +62,10 @@ object DayNightMigration {
         }
     }
 
-    /** Whether the built-in scheme [id] has a dark background; unknown ids are light. */
+    /** Whether the built-in scheme [id] (a current or [legacy][BuiltinColors.legacyIds] id) has a dark background; unknown ids are light. */
     fun isBuiltinDarkScheme(id: String): Boolean {
-        val colors = BuiltinColors.schemes.find { it.id == id }?.colors ?: return false
+        val current = BuiltinColors.legacyIds[id] ?: id
+        val colors = BuiltinColors.schemes.find { it.id == current }?.colors ?: return false
         for (key in arrayOf("back_color", "keyboard_back_color", "key_back_color")) {
             val color = parseHexColor(colors[key] ?: continue) ?: continue
             return ColorTint.isDarkColor(color)

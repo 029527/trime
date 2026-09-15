@@ -127,7 +127,7 @@
     <string name="app_crash_message">抱歉，但我们提供了日志以供调查。</string>
     <string name="virtual_keyboard">虚拟键盘</string>
     <string name="about">关于</string>
-    <string name="theme">键盘样式</string>
+    <string name="theme">外观</string>
     <string name="profile">配置</string>
     <string name="storage">存储</string>
     <string name="data_storage_mode">数据存储模式</string>
@@ -224,6 +224,8 @@
     <string name="navbar_bkg_full">键盘背景图片</string>
     <string name="day_night_mode">深浅色</string>
     <string name="day_night_follow_system">跟随系统</string>
+    <string name="follow_wallpaper_colors">跟随壁纸取色</string>
+    <string name="follow_wallpaper_colors_summary">键盘和设置页的颜色取自壁纸，深浅色跟随系统</string>
     <string name="day_night_light">浅色</string>
     <string name="day_night_dark">深色</string>
     <string name="undo">撤销</string>

@@ -1,7 +1,7 @@
 # 内置主题
 
-键盘主题不再从 yaml 加载，而是直接写在代码里。App 只有这一套主题：iOS 风格，原来是配置仓库里的
-`ios.trime.yaml`。字体文件仍然放在用户目录，不打包进 APK。
+键盘主题不再从 yaml 加载，而是直接写在代码里。App 只有这一套主题：现代 Android（Material）外观，
+键位来自原来配置仓库里的 `ios.trime.yaml`。字体（思源黑体）打包进 APK。设计语言见 `docs/ime-design-system.md` §0。
 
 ## 主题在哪
 
@@ -12,8 +12,9 @@
 | `BuiltinTheme.kt` | 组装入口，`BuiltinTheme.theme` 就是全 App 用的 `Theme` |
 | `BuiltinKeyboards.kt` | 各个键盘的键位：`default`（中文）、`english`、`t9`、`t9_land`、`symbols`、`symbols2`、`symbols_en`、`symbols2_en`、`number` |
 | `BuiltinKeys.kt` | 预设键 `presetKeys`：按键里 `key("ios_shift")` 这种名字指向的动作 |
-| `BuiltinColors.kt` | 配色：`ios_light`、`ios_dark` 两套，外加 `fallbackColors` |
-| `BuiltinStyle.kt` | 尺寸、字号、字体文件名，候选窗和预编辑条的样式 |
+| `BuiltinColors.kt` | 配色：`light`、`dark` 两套（由 `KeyboardColorRoles` 生成），外加 `fallbackColors` |
+| `KeyboardColorRoles.kt` | 颜色角色和「角色 → 颜色键」的对照表，固定配色和壁纸取色共用 |
+| `BuiltinStyle.kt` | 尺寸、字号，候选窗和预编辑条的样式（不含字体） |
 | `BuiltinLiquid.kt` | 符号 / 表情面板的标签页和底栏 |
 
 模型类在 `data/theme/model/`，构造参数都带默认值。内置主题只写和默认值不同的字段，所以没写出来的字段就是默认值。
@@ -57,8 +58,9 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 - `buttons` 的**第一个**按钮固定占最右边的位置，也就是原来收起箭头的位置，下滑收起键盘也跟着这个位置走。
 - 其余按钮由 `buttonsAlignment` 决定：`START` 紧跟在「…」后面按列表顺序排（现在的写法），`END`（默认）从右往左排。
   按钮之间和两端空 `buttonSpacing` dp，现在是 0，因为按钮本身已经是栏高的正方形。
-- 按钮样式由 `toolBarButton()` 统一：24dp 图标、候选字色、按下时圆角色块，和内置的「…」一致。
-  图标名是 Community Material 的名字（`ic@` 加上 materialdesignicons 的名字，横线或下划线都行）。
+- 按钮样式由 `toolBarButton()` 统一：24dp Material 图标、候选字色、按下时圆形色块。
+  图标名仍写 Community Material 的名字（`ic@` 加上 materialdesignicons 的名字，横线或下划线都行），
+  实际画的是 `ime/compose/theme/ImeIcons.kt` 里映射到的 Material 图标；加新按钮时记得在那里加映射。
 - `action` 写预设键名。加按钮就在 `buttons` 里多写一条 `toolBarButton("ic@…", "预设键")`；
   `BuiltinThemeTest` 会检查引用的预设键存在。
 - 编辑面板本身（`ime/edit/EditPanelWindow.kt`、`ime/compose/edit/EditPanel.kt`）不在主题里配置，
@@ -66,9 +68,11 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 
 ## 改配色
 
-打开 `BuiltinColors.kt`，两套方案各是一张 `"颜色名" to "0xRRGGBB"` 的表。颜色名和原来 yaml 的
-`preset_color_schemes` 相同；值也可以写成另一个颜色名，引用它。方案里没写的颜色先查 `fallbackColors`，
-再查 `ColorManager` 里内置的兜底链。**两套方案的颜色名要保持一致**，`BuiltinThemeTest` 会检查。
+两套方案不再逐个写颜色：`BuiltinColors.kt` 用 `KeyboardColorRoles.NeutralLight` / `NeutralDark` 生成。
+改色调就改这两组角色的值；想让某个颜色键换一个角色，改 `KeyboardColorRoles.colors()` 里的对照表（KDoc 里有表格）。
+按下色由 on 色 12% 叠在底色上自动算出。颜色名和原来 yaml 的 `preset_color_schemes` 相同；方案里没写的颜色先查
+`fallbackColors`，再查 `ColorManager` 里内置的兜底链。`BuiltinThemeTest` 检查两套方案颜色名一致，
+`KeyboardColorRolesTest` 检查对比度。
 
 要改的只是整体冷暖、亮度、底色透明度时不必改这里：设置页的「配色微调」三个滑块会给所有颜色叠一层滤镜，
 见 `ColorTint`。
@@ -78,9 +82,10 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 `BuiltinStyle.kt` 里的尺寸大多只是历史数据：键盘已经改成 Compose 渲染，尺寸以 `ime/compose/theme/ImeTokens.kt`
 为准，见 `docs/ime-design-system.md`。
 
-字体只写文件名（`MiSans-Medium.ttf`、`MiSans-Regular.ttf`），由 `FontManager` 到用户目录的 `fonts/` 里找，
-文件由配置仓库通过 Git 同步过来。每个文件约 8MB，所以刻意不打进 APK。找不到文件时回退系统字体。
-部署成功后会清一次字体缓存，同步换了字体文件也能生效。
+字体不属于主题：Noto Sans SC 可变字体（思源黑体同一套字形）放在 `app/src/main/fontAssets/fonts/`，由
+`data/theme/SourceHanSans.kt` 提供。放在单独的 assets 目录是因为 `src/main/assets` 里的文件都会进 checksums、
+同步时被拷到用户目录；字体不压缩存放，各个字重直接映射 APK。用户目录的 `fonts/` 不再读取。
+字重见 `docs/ime-design-system.md` §0.3，许可证（OFL 1.1）随字体放在同一目录，并列在 App 的开源许可页。
 
 ## 深浅色
 
@@ -88,11 +93,32 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 
 | 选项 | 用哪套配色 |
 | --- | --- |
-| 跟随系统（默认） | 系统夜间模式时用 `ios_dark`，否则用 `ios_light` |
-| 浅色 | 总是 `ios_light` |
-| 深色 | 总是 `ios_dark` |
+| 跟随系统（默认） | 系统夜间模式时用 `dark`，否则用 `light` |
+| 浅色 | 总是 `light` |
+| 深色 | 总是 `dark` |
 
 `ColorManager` 监听这个偏好和系统夜间模式，切换后重建键盘视图。
+
+### 跟随壁纸取色
+
+偏好 `ThemePrefs.followWallpaper`（key `theme_follow_wallpaper`，默认关），在「深浅色」下面，只在 Android 12+ 显示。
+
+- 打开后键盘不用 `light` / `dark`，改用壁纸调色板生成的 `wallpaper_light` / `wallpaper_dark`
+  （Material 角色到键盘角色的对照在 `KeyboardColorRoles.fromMaterial`）；用浅色还是深色版由**系统**深浅色决定，
+  所以「深浅色」三选一在设置页里置灰。配色微调滑块照常叠加。
+- 换壁纸或系统切深浅色时，输入法在 `onConfigurationChanged`、`onCreateInputView`、`onWindowShown` 重新取色，颜色变了才重建。
+
+### App 界面和键盘用同一套设置
+
+设置 App（`TrimeTheme`）不再有自己的「用户界面模式」：
+
+| 设置 | 键盘 | App |
+| --- | --- | --- |
+| 跟随壁纸取色 开 | 壁纸配色，深浅跟随系统 | Material You 动态配色，深浅跟随系统 |
+| 关，深浅色 = 跟随系统 / 浅色 / 深色 | `light` / `dark` 按选择 | zinc 中性配色，深浅按同一个选择 |
+
+App 的深浅色由 `ThemePrefs.appNightMode` 经 `AppCompatDelegate.setDefaultNightMode` 设置（`MainActivity` 启动时和主题设置页改动时）。
+原来「高级」里的 `ui_mode` 已删除：迁移时只删这个 key，不拿它改键盘的深浅色，升级后 App 跟着键盘原有的选择走。
 
 ### 旧偏好迁移
 
@@ -100,7 +126,7 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 
 1. 存过 `follow_system_day_night = true` → 跟随系统；
 2. 否则，如果存过 `normal_mode_color`：该方案是深色（按底色亮度判断）→ 深色，否则 → 浅色。
-   不认识的方案 id 按浅色处理，因为旧版找不到方案时也会退回浅色的 `default`；
+   旧的 `ios_light` / `ios_dark` 按 `BuiltinColors.legacyIds` 对应到现在的方案；不认识的方案 id 按浅色处理，因为旧版找不到方案时也会退回浅色的 `default`；
 3. 两个都没存过 → 跟随系统（也就是默认值，不写入）。
 
 之后删掉 `follow_system_day_night`、`normal_mode_color` 和 `selected_theme` 三个旧 key，所以只会迁移一次。
@@ -123,6 +149,8 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 ## 验证
 
 - `BuiltinThemeTest`：检查键盘齐全、有一深一浅两套配色，按键引用的预设键、切换目标和面板都存在。
+- `BuiltinKeyboardsSnapshotTest`：钉住每个键盘每个键的宽高、键面文字、提示和动作；只改外观时它必须不变。
+  有意改键位后用 `UPDATE_SNAPSHOT=1 ./gradlew :app:testDebugUnitTest` 重新生成快照。
   改完键位或配色先跑 `./gradlew :app:testDebugUnitTest`。
 - 内置主题最初由一次性脚本从 Rime 部署后的 `build/ios.trime.yaml` 生成。提交
   「把 iOS 主题生成成内置 Kotlin 代码…」里的 `BuiltinThemeEquivalenceTest` 断言了 `Theme.decode(yaml)`

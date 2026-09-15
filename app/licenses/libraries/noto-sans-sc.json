@@ -1,0 +1,11 @@
+{
+    "uniqueId": "notofonts/noto-cjk",
+    "artifactVersion": "2.004",
+    "description": "Noto Sans SC variable font (Source Han Sans glyphs), bundled as the app font",
+    "name": "Noto Sans SC",
+    "website": "https://github.com/notofonts/noto-cjk",
+    "tag": "font",
+    "licenses": [
+        "OFL-1.1"
+    ]
+}

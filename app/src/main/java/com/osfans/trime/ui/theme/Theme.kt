@@ -19,6 +19,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.osfans.trime.data.theme.ThemeManager
 
 /**
  * The one and only theme wrapper for Trime's *app* UI (the settings activity and
@@ -26,18 +27,17 @@ import androidx.core.view.WindowCompat
  * yaml-driven theming in `data/theme/`.
  *
  * The palette is the shadcn/ui-style neutral one in [TrimeLightColorScheme] /
- * [TrimeDarkColorScheme]. Material You dynamic colour is deliberately **off**: a
- * wallpaper-derived scheme drags purples and blues into a UI whose whole point is to
- * be colourless. Pass `dynamicColor = true` to opt a screen back into it.
+ * [TrimeDarkColorScheme], or the wallpaper's Material You scheme when the user turned on
+ * "follow wallpaper colours" (`ThemePrefs.followWallpaper`), the same switch the keyboard uses.
  *
- * Light/dark follows the activity configuration, which `MainActivity` already drives
- * from the `uiMode` preference through `AppCompatDelegate.setDefaultNightMode`, so
- * the AUTO / LIGHT / DARK preference keeps working without extra plumbing here.
+ * Light/dark follows the activity configuration, which `MainActivity` drives from
+ * `ThemePrefs.appNightMode` through `AppCompatDelegate.setDefaultNightMode`: the keyboard's
+ * light / dark preference, or the system's while following the wallpaper.
  */
 @Composable
 fun TrimeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = ThemeManager.prefs.isFollowingWallpaper,
     applySystemBarAppearance: Boolean = true,
     content: @Composable () -> Unit,
 ) {

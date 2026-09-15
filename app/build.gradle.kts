@@ -100,6 +100,21 @@ android {
         includeInBundle = false
     }
 
+    // The app font lives outside src/main/assets on purpose: everything in there is checksummed
+    // and copied to the user data dir on sync, and a 17 MB font has no business being copied.
+    sourceSets {
+        getByName("main") {
+            assets.srcDir("src/main/fontAssets")
+        }
+    }
+
+    // Stored uncompressed so Typeface can map it straight from the APK; a compressed font would
+    // be inflated into memory once per weight. Matched by file name (a path suffix), not by
+    // extension: other .ttf in the APK, like the Iconics glyph font, stay compressed.
+    androidResources {
+        noCompress += "NotoSansSC-VF.ttf"
+    }
+
     packaging {
         resources {
             excludes +=
@@ -143,6 +158,8 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
+    // R8 keeps only the icons referenced from ImeIcons
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)

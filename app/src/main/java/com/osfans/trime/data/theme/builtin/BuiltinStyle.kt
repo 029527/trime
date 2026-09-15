@@ -11,20 +11,18 @@ import com.osfans.trime.data.theme.model.Window
 
 /**
  * Sizes, fonts and paddings of the built-in theme. Only values that differ from the model
- * defaults are written here. Fonts are looked up by file name in the user data dir's `fonts/`.
+ * defaults are written here. The font is not part of the theme: it is built in, see `SourceHanSans`.
  */
 object BuiltinStyle {
     val style =
         GeneralStyle(
-            candidateFont = listOf("MiSans-Medium.ttf"),
             candidatePadding = 12,
             candidateTextSize = 20f,
             candidateTextVerticalBias = 0.5f,
             candidateViewHeight = 52,
             candidateViewHeightLand = 32,
-            candidateCornerRadius = 6f,
+            candidateCornerRadius = 12f,
             hilitedCandidatePadding = 4f,
-            commentFont = listOf("MiSans-Regular.ttf"),
             commentTextSize = 14f,
             horizontalGap = 6,
             keyboardPadding = 3,
@@ -33,7 +31,6 @@ object BuiltinStyle {
             keyboardPaddingBottom = 4,
             keyboardPaddingLand = 40,
             keyboardPaddingLandBottom = 4,
-            keyFont = listOf("MiSans-Medium.ttf"),
             keyHeight = 53,
             keyLongTextSize = 16f,
             keyTextSize = 22f,
@@ -41,20 +38,16 @@ object BuiltinStyle {
             keySymbolOffsetY = 1f,
             keyWidth = 10f,
             labelTextSize = 16f,
-            labelFont = listOf("MiSans-Medium.ttf"),
             keyboardHeight = 256,
             keyboardHeightLand = 160,
-            keyboardCornerRadius = 26f,
+            keyboardCornerRadius = 16f,
             popupBottomMargin = 62,
             popupWidth = 44,
             popupHeight = 56,
             popupKeyHeight = 48,
-            popupFont = listOf("MiSans-Medium.ttf"),
             popupTextSize = 30f,
-            roundCorner = 6f,
-            symbolFont = listOf("MiSans-Regular.ttf"),
+            roundCorner = 10f,
             symbolTextSize = 10f,
-            textFont = listOf("MiSans-Regular.ttf"),
             verticalGap = 8,
             enterLabel = GeneralStyle.EnterLabel(
                 go = "前往",
@@ -70,8 +63,8 @@ object BuiltinStyle {
     /** Inline preedit bar above the candidates. */
     val preedit =
         Preedit(
-            topStartRadius = 6f,
-            topEndRadius = 6f,
+            topStartRadius = 12f,
+            topEndRadius = 12f,
             alpha = 1f,
         )
 

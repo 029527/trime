@@ -1,0 +1,428 @@
+# default width=10.0 height=53.0 ascii=english keys=40
+0 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=q) SWIPE_UP=Plain(token=1) LONG_CLICK=Plain(token=1)
+1 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=w) SWIPE_UP=Plain(token=2) LONG_CLICK=Plain(token=2)
+2 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=e) SWIPE_UP=Plain(token=3) LONG_CLICK=Plain(token=3)
+3 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=r) SWIPE_UP=Plain(token=4) LONG_CLICK=Plain(token=4)
+4 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=t) SWIPE_UP=Plain(token=5) LONG_CLICK=Plain(token=5)
+5 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=y) SWIPE_UP=Plain(token=6) LONG_CLICK=Plain(token=6)
+6 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=u) SWIPE_UP=Plain(token=7) LONG_CLICK=Plain(token=7)
+7 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=i) SWIPE_UP=Plain(token=8) LONG_CLICK=Plain(token=8)
+8 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=o) SWIPE_UP=Plain(token=9) LONG_CLICK=Plain(token=9)
+9 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=p) SWIPE_UP=Plain(token=0) LONG_CLICK=Plain(token=0)
+10 w=5.0 h=0.0 label="" symbol="" hint="" CLICK=null
+11 w=0.0 h=0.0 label="" symbol="ic@select-all" hint="" CLICK=Plain(token=a) LONG_CLICK=Plain(token=select_all)
+12 w=0.0 h=0.0 label="" symbol="-" hint="" CLICK=Plain(token=s) SWIPE_UP=Plain(token=-) LONG_CLICK=Plain(token=-)
+13 w=0.0 h=0.0 label="" symbol="/" hint="" CLICK=Plain(token=d) SWIPE_UP=Inline(token=Token(commit=/, text=null, label=/)) LONG_CLICK=Inline(token=Token(commit=/, text=null, label=/))
+14 w=0.0 h=0.0 label="" symbol="：" hint="" CLICK=Plain(token=f) SWIPE_UP=Inline(token=Token(commit=null, text=：, label=：)) LONG_CLICK=Inline(token=Token(commit=null, text=：, label=：))
+15 w=0.0 h=0.0 label="" symbol="；" hint="" CLICK=Plain(token=g) SWIPE_UP=Inline(token=Token(commit=null, text=；, label=；)) LONG_CLICK=Inline(token=Token(commit=null, text=；, label=；))
+16 w=0.0 h=0.0 label="" symbol="（" hint="" CLICK=Plain(token=h) SWIPE_UP=Inline(token=Token(commit=null, text=（, label=（)) LONG_CLICK=Inline(token=Token(commit=null, text=（, label=（))
+17 w=0.0 h=0.0 label="" symbol="）" hint="" CLICK=Plain(token=j) SWIPE_UP=Inline(token=Token(commit=null, text=）, label=）)) LONG_CLICK=Inline(token=Token(commit=null, text=）, label=）))
+18 w=0.0 h=0.0 label="" symbol="“”" hint="" CLICK=Plain(token=k) SWIPE_UP=Inline(token=Token(commit=null, text=“”{Left}, label=“”)) LONG_CLICK=Inline(token=Token(commit=null, text=“”{Left}, label=“”))
+19 w=0.0 h=0.0 label="" symbol="@" hint="" CLICK=Plain(token=l) SWIPE_UP=Plain(token=@) LONG_CLICK=Plain(token=@)
+20 w=5.0 h=0.0 label="" symbol="" hint="" CLICK=null
+21 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_shift)
+22 w=0.0 h=0.0 label="" symbol="、" hint="" CLICK=Plain(token=z) SWIPE_UP=Inline(token=Token(commit=null, text=、, label=、)) LONG_CLICK=Inline(token=Token(commit=null, text=、, label=、))
+23 w=0.0 h=0.0 label="" symbol="ic@content-cut" hint="" CLICK=Plain(token=x) LONG_CLICK=Plain(token=cut)
+24 w=0.0 h=0.0 label="" symbol="ic@content-copy" hint="" CLICK=Plain(token=c) LONG_CLICK=Plain(token=copy)
+25 w=0.0 h=0.0 label="" symbol="ic@content-paste" hint="" CLICK=Plain(token=v) LONG_CLICK=Plain(token=paste)
+26 w=0.0 h=0.0 label="" symbol="？" hint="" CLICK=Plain(token=b) SWIPE_UP=Inline(token=Token(commit=null, text=？, label=？)) LONG_CLICK=Inline(token=Token(commit=null, text=？, label=？))
+27 w=0.0 h=0.0 label="" symbol="！" hint="" CLICK=Plain(token=n) SWIPE_UP=Inline(token=Token(commit=null, text=！, label=！)) LONG_CLICK=Inline(token=Token(commit=null, text=！, label=！))
+28 w=0.0 h=0.0 label="" symbol="…" hint="" CLICK=Plain(token=m) SWIPE_UP=Inline(token=Token(commit=null, text=……, label=……)) LONG_CLICK=Inline(token=Token(commit=null, text=……, label=……))
+29 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_backspace) SWIPE_LEFT=Plain(token=Escape)
+30 w=12.0 h=0.0 label="" symbol=" " hint="" CLICK=Plain(token=ios_symbols) SWIPE_UP=Plain(token=liquid_keyboard_switch) LONG_CLICK=Plain(token=ios_number)
+31 w=10.0 h=0.0 label="，" symbol="" hint="" CLICK=Plain(token=,)
+32 w=34.0 h=0.0 label="空格" symbol="" hint="" CLICK=Plain(token=ios_space)
+33 w=10.0 h=0.0 label="。" symbol="" hint="" CLICK=Plain(token=.)
+34 w=12.0 h=0.0 label="" symbol=" " hint="" CLICK=Plain(token=ios_to_en) LONG_CLICK=Plain(token=Menu)
+35 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
+36 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
+37 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+38 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+39 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# english width=10.0 height=53.0 ascii=english keys=40
+0 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=q) SWIPE_UP=Plain(token=1) LONG_CLICK=Plain(token=1)
+1 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=w) SWIPE_UP=Plain(token=2) LONG_CLICK=Plain(token=2)
+2 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=e) SWIPE_UP=Plain(token=3) LONG_CLICK=Plain(token=3)
+3 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=r) SWIPE_UP=Plain(token=4) LONG_CLICK=Plain(token=4)
+4 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=t) SWIPE_UP=Plain(token=5) LONG_CLICK=Plain(token=5)
+5 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=y) SWIPE_UP=Plain(token=6) LONG_CLICK=Plain(token=6)
+6 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=u) SWIPE_UP=Plain(token=7) LONG_CLICK=Plain(token=7)
+7 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=i) SWIPE_UP=Plain(token=8) LONG_CLICK=Plain(token=8)
+8 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=o) SWIPE_UP=Plain(token=9) LONG_CLICK=Plain(token=9)
+9 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=p) SWIPE_UP=Plain(token=0) LONG_CLICK=Plain(token=0)
+10 w=5.0 h=0.0 label="" symbol="" hint="" CLICK=null
+11 w=0.0 h=0.0 label="" symbol="ic@select-all" hint="" CLICK=Plain(token=a) LONG_CLICK=Plain(token=select_all)
+12 w=0.0 h=0.0 label="" symbol="-" hint="" CLICK=Plain(token=s) SWIPE_UP=Inline(token=Token(commit=-, text=null, label=-)) LONG_CLICK=Inline(token=Token(commit=-, text=null, label=-))
+13 w=0.0 h=0.0 label="" symbol="/" hint="" CLICK=Plain(token=d) SWIPE_UP=Inline(token=Token(commit=/, text=null, label=/)) LONG_CLICK=Inline(token=Token(commit=/, text=null, label=/))
+14 w=0.0 h=0.0 label="" symbol=":" hint="" CLICK=Plain(token=f) SWIPE_UP=Inline(token=Token(commit=:, text=null, label=:)) LONG_CLICK=Inline(token=Token(commit=:, text=null, label=:))
+15 w=0.0 h=0.0 label="" symbol=";" hint="" CLICK=Plain(token=g) SWIPE_UP=Inline(token=Token(commit=;, text=null, label=;)) LONG_CLICK=Inline(token=Token(commit=;, text=null, label=;))
+16 w=0.0 h=0.0 label="" symbol="(" hint="" CLICK=Plain(token=h) SWIPE_UP=Inline(token=Token(commit=(, text=null, label=()) LONG_CLICK=Inline(token=Token(commit=(, text=null, label=())
+17 w=0.0 h=0.0 label="" symbol=")" hint="" CLICK=Plain(token=j) SWIPE_UP=Inline(token=Token(commit=), text=null, label=))) LONG_CLICK=Inline(token=Token(commit=), text=null, label=)))
+18 w=0.0 h=0.0 label="" symbol=""" hint="" CLICK=Plain(token=k) SWIPE_UP=Inline(token=Token(commit=", text=null, label=")) LONG_CLICK=Inline(token=Token(commit=", text=null, label="))
+19 w=0.0 h=0.0 label="" symbol="@" hint="" CLICK=Plain(token=l) SWIPE_UP=Inline(token=Token(commit=@, text=null, label=@)) LONG_CLICK=Inline(token=Token(commit=@, text=null, label=@))
+20 w=5.0 h=0.0 label="" symbol="" hint="" CLICK=null
+21 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_shift)
+22 w=0.0 h=0.0 label="" symbol="'" hint="" CLICK=Plain(token=z) SWIPE_UP=Inline(token=Token(commit=', text=null, label=')) LONG_CLICK=Inline(token=Token(commit=', text=null, label='))
+23 w=0.0 h=0.0 label="" symbol="ic@content-cut" hint="" CLICK=Plain(token=x) LONG_CLICK=Plain(token=cut)
+24 w=0.0 h=0.0 label="" symbol="ic@content-copy" hint="" CLICK=Plain(token=c) LONG_CLICK=Plain(token=copy)
+25 w=0.0 h=0.0 label="" symbol="ic@content-paste" hint="" CLICK=Plain(token=v) LONG_CLICK=Plain(token=paste)
+26 w=0.0 h=0.0 label="" symbol="?" hint="" CLICK=Plain(token=b) SWIPE_UP=Inline(token=Token(commit=?, text=null, label=?)) LONG_CLICK=Inline(token=Token(commit=?, text=null, label=?))
+27 w=0.0 h=0.0 label="" symbol="!" hint="" CLICK=Plain(token=n) SWIPE_UP=Inline(token=Token(commit=!, text=null, label=!)) LONG_CLICK=Inline(token=Token(commit=!, text=null, label=!))
+28 w=0.0 h=0.0 label="" symbol="#" hint="" CLICK=Plain(token=m) SWIPE_UP=Inline(token=Token(commit=#, text=null, label=#)) LONG_CLICK=Inline(token=Token(commit=#, text=null, label=#))
+29 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_backspace) SWIPE_LEFT=Plain(token=Escape)
+30 w=12.0 h=0.0 label="" symbol=" " hint="" CLICK=Plain(token=ios_symbols_en) SWIPE_UP=Plain(token=liquid_keyboard_switch) LONG_CLICK=Plain(token=ios_number)
+31 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=,, text=null, label=,))
+32 w=34.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_space)
+33 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=., text=null, label=.))
+34 w=12.0 h=0.0 label="" symbol=" " hint="" CLICK=Plain(token=ios_to_zh) LONG_CLICK=Plain(token=Menu)
+35 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
+36 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
+37 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+38 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+39 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# number width=25.0 height=53.0 ascii= keys=20
+0 w=0.0 h=0.0 label="1" symbol="" hint="" CLICK=Plain(token=KP_1)
+1 w=0.0 h=0.0 label="2" symbol="" hint="" CLICK=Plain(token=KP_2)
+2 w=0.0 h=0.0 label="3" symbol="" hint="" CLICK=Plain(token=KP_3)
+3 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_backspace)
+4 w=0.0 h=0.0 label="4" symbol="" hint="" CLICK=Plain(token=KP_4)
+5 w=0.0 h=0.0 label="5" symbol="" hint="" CLICK=Plain(token=KP_5)
+6 w=0.0 h=0.0 label="6" symbol="" hint="" CLICK=Plain(token=KP_6)
+7 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=-, text=null, label=-))
+8 w=0.0 h=0.0 label="7" symbol="" hint="" CLICK=Plain(token=KP_7)
+9 w=0.0 h=0.0 label="8" symbol="" hint="" CLICK=Plain(token=KP_8)
+10 w=0.0 h=0.0 label="9" symbol="" hint="" CLICK=Plain(token=KP_9)
+11 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=., text=null, label=.))
+12 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_abc)
+13 w=0.0 h=0.0 label="0" symbol="" hint="" CLICK=Plain(token=KP_0)
+14 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=,, text=null, label=,))
+15 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
+16 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
+17 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+18 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+19 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# symbols width=10.0 height=53.0 ascii= keys=35
+0 w=0.0 h=0.0 label="1" symbol="" hint="" CLICK=Plain(token=KP_1)
+1 w=0.0 h=0.0 label="2" symbol="" hint="" CLICK=Plain(token=KP_2)
+2 w=0.0 h=0.0 label="3" symbol="" hint="" CLICK=Plain(token=KP_3)
+3 w=0.0 h=0.0 label="4" symbol="" hint="" CLICK=Plain(token=KP_4)
+4 w=0.0 h=0.0 label="5" symbol="" hint="" CLICK=Plain(token=KP_5)
+5 w=0.0 h=0.0 label="6" symbol="" hint="" CLICK=Plain(token=KP_6)
+6 w=0.0 h=0.0 label="7" symbol="" hint="" CLICK=Plain(token=KP_7)
+7 w=0.0 h=0.0 label="8" symbol="" hint="" CLICK=Plain(token=KP_8)
+8 w=0.0 h=0.0 label="9" symbol="" hint="" CLICK=Plain(token=KP_9)
+9 w=0.0 h=0.0 label="0" symbol="" hint="" CLICK=Plain(token=KP_0)
+10 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=-)
+11 w=0.0 h=0.0 label="/" symbol="" hint="" CLICK=Plain(token=/)
+12 w=0.0 h=0.0 label="：" symbol="" hint="" CLICK=Plain(token=:)
+13 w=0.0 h=0.0 label="；" symbol="" hint="" CLICK=Plain(token=;)
+14 w=0.0 h=0.0 label="（" symbol="" hint="" CLICK=Plain(token=()
+15 w=0.0 h=0.0 label="）" symbol="" hint="" CLICK=Plain(token=))
+16 w=0.0 h=0.0 label="￥" symbol="" hint="" CLICK=Plain(token=$)
+17 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=@)
+18 w=0.0 h=0.0 label="“”" symbol="" hint="" CLICK=Plain(token=")
+19 w=0.0 h=0.0 label="「」" symbol="" hint="" CLICK=Plain(token=')
+20 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_symbols2)
+21 w=11.66 h=0.0 label="。" symbol="" hint="" CLICK=Plain(token=.)
+22 w=11.66 h=0.0 label="，" symbol="" hint="" CLICK=Plain(token=,)
+23 w=11.66 h=0.0 label="、" symbol="" hint="" CLICK=Plain(token=\)
+24 w=11.66 h=0.0 label="？" symbol="" hint="" CLICK=Plain(token=?)
+25 w=11.66 h=0.0 label="！" symbol="" hint="" CLICK=Plain(token=!)
+26 w=11.66 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=., text=null, label=.))
+27 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_backspace) SWIPE_LEFT=Plain(token=Escape)
+28 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_abc)
+29 w=66.0 h=0.0 label="空格" symbol="" hint="" CLICK=Plain(token=ios_space)
+30 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
+31 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
+32 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+33 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+34 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# symbols2 width=10.0 height=53.0 ascii= keys=34
+0 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=[, text=null, label=[))
+1 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=], text=null, label=]))
+2 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit={, text=null, label={))
+3 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=}, text=null, label=}))
+4 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=#, text=null, label=#))
+5 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=%, text=null, label=%))
+6 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=^, text=null, label=^))
+7 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=*, text=null, label=*))
+8 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=+, text=null, label=+))
+9 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit==, text=null, label==))
+10 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=_, text=null, label=_))
+11 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=\, text=null, label=\))
+12 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=|, text=null, label=|))
+13 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=~, text=null, label=~))
+14 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=《, text=null, label=《))
+15 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=》, text=null, label=》))
+16 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=€, text=null, label=€))
+17 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=&, text=null, label=&))
+18 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=·, text=null, label=·))
+19 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=…, text=null, label=…))
+20 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_symbols)
+21 w=14.0 h=0.0 label="。" symbol="" hint="" CLICK=Plain(token=.)
+22 w=14.0 h=0.0 label="，" symbol="" hint="" CLICK=Plain(token=,)
+23 w=14.0 h=0.0 label="？" symbol="" hint="" CLICK=Plain(token=?)
+24 w=14.0 h=0.0 label="！" symbol="" hint="" CLICK=Plain(token=!)
+25 w=14.0 h=0.0 label="「」" symbol="" hint="" CLICK=Plain(token=')
+26 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_backspace) SWIPE_LEFT=Plain(token=Escape)
+27 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_abc)
+28 w=66.0 h=0.0 label="空格" symbol="" hint="" CLICK=Plain(token=ios_space)
+29 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
+30 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
+31 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+32 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+33 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# symbols2_en width=10.0 height=53.0 ascii= keys=34
+0 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=[, text=null, label=[))
+1 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=], text=null, label=]))
+2 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit={, text=null, label={))
+3 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=}, text=null, label=}))
+4 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=#, text=null, label=#))
+5 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=%, text=null, label=%))
+6 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=^, text=null, label=^))
+7 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=*, text=null, label=*))
+8 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=+, text=null, label=+))
+9 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit==, text=null, label==))
+10 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=_, text=null, label=_))
+11 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=\, text=null, label=\))
+12 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=|, text=null, label=|))
+13 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=~, text=null, label=~))
+14 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=<, text=null, label=<))
+15 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=>, text=null, label=>))
+16 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=€, text=null, label=€))
+17 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=£, text=null, label=£))
+18 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=¥, text=null, label=¥))
+19 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=•, text=null, label=•))
+20 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_symbols_en)
+21 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=., text=null, label=.))
+22 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=,, text=null, label=,))
+23 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=?, text=null, label=?))
+24 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=!, text=null, label=!))
+25 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=', text=null, label='))
+26 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_backspace) SWIPE_LEFT=Plain(token=Escape)
+27 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_abc)
+28 w=66.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_space)
+29 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
+30 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
+31 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+32 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+33 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# symbols_en width=10.0 height=53.0 ascii= keys=34
+0 w=0.0 h=0.0 label="1" symbol="" hint="" CLICK=Plain(token=KP_1)
+1 w=0.0 h=0.0 label="2" symbol="" hint="" CLICK=Plain(token=KP_2)
+2 w=0.0 h=0.0 label="3" symbol="" hint="" CLICK=Plain(token=KP_3)
+3 w=0.0 h=0.0 label="4" symbol="" hint="" CLICK=Plain(token=KP_4)
+4 w=0.0 h=0.0 label="5" symbol="" hint="" CLICK=Plain(token=KP_5)
+5 w=0.0 h=0.0 label="6" symbol="" hint="" CLICK=Plain(token=KP_6)
+6 w=0.0 h=0.0 label="7" symbol="" hint="" CLICK=Plain(token=KP_7)
+7 w=0.0 h=0.0 label="8" symbol="" hint="" CLICK=Plain(token=KP_8)
+8 w=0.0 h=0.0 label="9" symbol="" hint="" CLICK=Plain(token=KP_9)
+9 w=0.0 h=0.0 label="0" symbol="" hint="" CLICK=Plain(token=KP_0)
+10 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=-, text=null, label=-))
+11 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=/, text=null, label=/))
+12 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=:, text=null, label=:))
+13 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=;, text=null, label=;))
+14 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=(, text=null, label=())
+15 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=), text=null, label=)))
+16 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=$, text=null, label=$))
+17 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=&, text=null, label=&))
+18 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=@, text=null, label=@))
+19 w=0.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=", text=null, label="))
+20 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_symbols2_en)
+21 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=., text=null, label=.))
+22 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=,, text=null, label=,))
+23 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=?, text=null, label=?))
+24 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=!, text=null, label=!))
+25 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=', text=null, label='))
+26 w=15.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_backspace) SWIPE_LEFT=Plain(token=Escape)
+27 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_abc)
+28 w=66.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_space)
+29 w=22.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
+30 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
+31 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_emoji)
+32 w=64.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+33 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# t9 width=20.0 height=53.0 ascii=english keys=24
+0 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=,)
+1 w=22.0 h=0.0 label="分词" symbol="" hint="" CLICK=Plain(token=')
+2 w=22.0 h=0.0 label="ABC" symbol="" hint="" CLICK=Plain(token=2)
+3 w=22.0 h=0.0 label="DEF" symbol="" hint="" CLICK=Plain(token=3)
+4 w=20.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_backspace) SWIPE_LEFT=Plain(token=Escape)
+5 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=.)
+6 w=22.0 h=0.0 label="GHI" symbol="" hint="" CLICK=Plain(token=4)
+7 w=22.0 h=0.0 label="JKL" symbol="" hint="" CLICK=Plain(token=5)
+8 w=22.0 h=0.0 label="MNO" symbol="" hint="" CLICK=Plain(token=6)
+9 w=20.0 h=0.0 label="重输" symbol="" hint="" CLICK=Plain(token=Escape)
+10 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=?)
+11 w=22.0 h=0.0 label="PQRS" symbol="" hint="" CLICK=Plain(token=7)
+12 w=22.0 h=0.0 label="TUV" symbol="" hint="" CLICK=Plain(token=8)
+13 w=22.0 h=0.0 label="WXYZ" symbol="" hint="" CLICK=Plain(token=9)
+14 w=20.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=0)
+15 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=!)
+16 w=14.0 h=0.0 label="符" symbol="" hint="" CLICK=Plain(token=ios_symbols)
+17 w=14.0 h=0.0 label="123" symbol="" hint="" CLICK=Plain(token=ios_number)
+18 w=30.0 h=0.0 label="空格" symbol="" hint="" CLICK=Plain(token=ios_space)
+19 w=14.0 h=0.0 label="ZH" symbol="" hint="" CLICK=Plain(token=ios_to_en)
+20 w=14.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
+21 w=12.0 h=44.0 label="" symbol=" " hint="" hideInLandscape CLICK=Plain(token=ios_globe) LONG_CLICK=Plain(token=IME_switch)
+22 w=76.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=null
+23 w=12.0 h=0.0 label="" symbol="" hint="" hideInLandscape CLICK=Plain(token=ios_mic)
+# t9_land width=20.0 height=53.0 ascii=english keys=35
+0 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=+, text=null, label=+))
+1 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=1, text=null, label=1))
+2 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=2, text=null, label=2))
+3 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=3, text=null, label=3))
+4 w=9.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=,)
+5 w=13.0 h=0.0 label="分词" symbol="" hint="" CLICK=Plain(token=')
+6 w=13.0 h=0.0 label="ABC" symbol="" hint="" CLICK=Plain(token=2)
+7 w=13.0 h=0.0 label="DEF" symbol="" hint="" CLICK=Plain(token=3)
+8 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_backspace) SWIPE_LEFT=Plain(token=Escape)
+9 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=-, text=null, label=-))
+10 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=4, text=null, label=4))
+11 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=5, text=null, label=5))
+12 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=6, text=null, label=6))
+13 w=9.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=.)
+14 w=13.0 h=0.0 label="GHI" symbol="" hint="" CLICK=Plain(token=4)
+15 w=13.0 h=0.0 label="JKL" symbol="" hint="" CLICK=Plain(token=5)
+16 w=13.0 h=0.0 label="MNO" symbol="" hint="" CLICK=Plain(token=6)
+17 w=12.0 h=0.0 label="重输" symbol="" hint="" CLICK=Plain(token=Escape)
+18 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=*, text=null, label=*))
+19 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=7, text=null, label=7))
+20 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=8, text=null, label=8))
+21 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=9, text=null, label=9))
+22 w=9.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=?)
+23 w=13.0 h=0.0 label="PQRS" symbol="" hint="" CLICK=Plain(token=7)
+24 w=13.0 h=0.0 label="TUV" symbol="" hint="" CLICK=Plain(token=8)
+25 w=13.0 h=0.0 label="WXYZ" symbol="" hint="" CLICK=Plain(token=9)
+26 w=12.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=@, text=null, label=@))
+27 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=/, text=null, label=/))
+28 w=10.0 h=0.0 label="符" symbol="" hint="" CLICK=Plain(token=ios_symbols)
+29 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=0, text=null, label=0))
+30 w=10.0 h=0.0 label="" symbol="" hint="" CLICK=Inline(token=Token(commit=., text=null, label=.))
+31 w=9.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=!)
+32 w=25.0 h=0.0 label="空格" symbol="" hint="" CLICK=Plain(token=ios_space)
+33 w=13.0 h=0.0 label="ZH" symbol="" hint="" CLICK=Plain(token=ios_to_en)
+34 w=13.0 h=0.0 label="" symbol="" hint="" CLICK=Plain(token=ios_return)
+preset BRIGHTNESS_DOWN label="亮度-" send="BRIGHTNESS_DOWN" command="" option="" select=""
+preset BRIGHTNESS_UP label="亮度+" send="BRIGHTNESS_UP" command="" option="" select=""
+preset BackSpace label="退格" send="BackSpace" command="" option="" select=""
+preset BackToPreviousSyllable label="刪音節" send="Control+BackSpace" command="" option="" select=""
+preset Baidu label="百度搜索" send="" command="run" option="https://www.baidu.com/s?wd=%4$s" select=""
+preset CALCULATOR label="計算機" send="CALCULATOR" command="" option="" select=""
+preset CALENDAR label="日曆" send="CALENDAR" command="" option="" select=""
+preset CONTACTS label="電話簿" send="CONTACTS" command="" option="" select=""
+preset Candidate_switch label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset Charset_switch label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset ChineseDate label="農曆" send="" command="date" option="zh_CN@calendar=chinese" select=""
+preset Clear label="清除" send="" command="" option="" select=""
+preset Color_settings label="配色" send="SETTINGS" command="" option="color" select=""
+preset Color_switch label="配色" send="PROG_RED" command="" option="" select=""
+preset Comment_switch label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset CommitComment label="編碼" send="Control+Shift+Return" command="" option="" select=""
+preset CommitHomepage label="同文網址" send="" command="" option="" select=""
+preset CommitRawInput label="編碼" send="Control+Return" command="" option="" select=""
+preset CommitScriptText label="編碼" send="Shift+Return" command="" option="" select=""
+preset Date label="日期" send="" command="date" option="yyyy-MM-dd" select=""
+preset Delete label="刪除" send="Delete" command="" option="" select=""
+preset DeleteCandidate label="刪詞" send="Control+Delete" command="" option="" select=""
+preset Deploy label="部署" send="FUNCTION" command="apply" option="DEPLOY" select=""
+preset Down label="↓" send="Down" command="" option="" select=""
+preset ENVELOPE label="信箱" send="ENVELOPE" command="" option="" select=""
+preset EXPLORER label="瀏覽器" send="EXPLORER" command="" option="" select=""
+preset End label="行尾" send="End" command="" option="" select=""
+preset Escape label="Esc" send="Escape" command="" option="" select=""
+preset F4 label="方案選單" send="F4" command="" option="" select=""
+preset Google label="谷歌" send="" command="run" option="https://www.google.com/search?q=%s" select=""
+preset Help label="說明" send="HELP" command="" option="" select=""
+preset Henkan label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset Hide label="隱藏" send="BACK" command="" option="" select=""
+preset Hint_switch label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset Home label="行首" send="Home" command="" option="" select=""
+preset Homepage label="同文主頁" send="" command="run" option="https://github.com/osfans/trime" select=""
+preset IME_last label="上一輸入法" send="LANGUAGE_SWITCH" command="" option="" select=".last"
+preset IME_next label="下一輸入法" send="LANGUAGE_SWITCH" command="" option="" select=".next"
+preset IME_switch label="🌐" send="LANGUAGE_SWITCH" command="" option="" select=""
+preset Info label="關於" send="INFO" command="" option="" select=""
+preset Insert label="插入" send="Insert" command="" option="" select=""
+preset Keyboard_default label="返回" send="Eisu_toggle" command="" option="" select=".default"
+preset Keyboard_letter label="字母" send="Eisu_toggle" command="" option="" select="default"
+preset Keyboard_mini label="迷你" send="Eisu_toggle" command="" option="" select="mini"
+preset Keyboard_number label="數字" send="Eisu_toggle" command="" option="" select="number"
+preset Keyboard_switch label="鍵盤" send="Eisu_toggle" command="" option="" select=".next"
+preset Keyboard_symbols label="符號" send="Eisu_toggle" command="" option="" select="symbols"
+preset Left label="←" send="Left" command="" option="" select=""
+preset MUSIC label="音樂" send="MUSIC" command="" option="" select=""
+preset Menu label="方案" send="MENU" command="" option="" select=""
+preset Mode_switch label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset MoeDict label="萌典" send="" command="run" option="https://www.moedict.tw/%3$s" select=""
+preset POWER label="電源" send="POWER" command="" option="" select=""
+preset Page_Down label="下頁" send="Page_Down" command="" option="" select=""
+preset Page_Up label="上頁" send="Page_Up" command="" option="" select=""
+preset Punct_switch label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset RepeatCommit label="重复" send="" command="commit" option="%1$s" select=""
+preset Return label="enter_labels" send="Return" command="" option="" select=""
+preset Return1 label="Enter" send="Return" command="" option="" select=""
+preset Return2 label="回车" send="Return" command="" option="" select=""
+preset Right label="→" send="Right" command="" option="" select=""
+preset SEARCH label="搜尋" send="SEARCH" command="" option="" select=""
+preset SLEEP label="休眠" send="SLEEP" command="" option="" select=""
+preset Schema_settings label="方案" send="SETTINGS" command="" option="schema" select=""
+preset Schema_switch label="下一方案" send="Control+Shift+1" command="" option="" select=""
+preset Search label="搜索" send="" command="search" option="%1$s" select=""
+preset Settings label="設定" send="SETTINGS" command="" option="" select=""
+preset Share label="分享" send="" command="send" option="%s" select=""
+preset Shift_L label="Shift" send="Shift_L" command="" option="" select=""
+preset Sync label="同步" send="FUNCTION" command="apply" option="SYNC_USER_DATA" select=""
+preset Theme_settings label="主題" send="SETTINGS" command="" option="theme" select=""
+preset Time label="時間" send="" command="date" option="HH:mm:ss" select=""
+preset TrimeApp label="同文" send="" command="run" option="com.osfans.trime" select=""
+preset TrimeCmp label="同文組件" send="" command="run" option="com.osfans.trime/.ui.main.MainActivity" select=""
+preset Up label="↑" send="Up" command="" option="" select=""
+preset VOICE_ASSIST label="語音" send="VOICE_ASSIST" command="" option="" select=""
+preset VOLUME_DOWN label="音量-" send="VOLUME_DOWN" command="" option="" select=""
+preset VOLUME_MUTE label="靜音" send="VOLUME_MUTE" command="" option="" select=""
+preset VOLUME_UP label="音量+" send="VOLUME_UP" command="" option="" select=""
+preset WebSearch label="搜索網頁" send="" command="web_search" option="%4$s" select=""
+preset Wiki label="維基" send="" command="run" option="https://zh.wikipedia.org/wiki/%s" select=""
+preset Zdic label="漢典" send="" command="run" option="http://www.zdic.net/sousuo/?q=%1$s" select=""
+preset Zdic2 label="漢典" send="" command="run" option="http://www.zdic.net/sousuo/?q=%2$s" select=""
+preset Zenkaku_Hankaku label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset clipboard_window label="剪贴" send="FUNCTION" command="clipboard_window" option="0" select=""
+preset copy label="複製" send="Control+c" command="" option="" select=""
+preset copy_all label="全謄" send="" command="" option="" select=""
+preset cut label="剪下" send="Control+x" command="" option="" select=""
+preset cut_all label="全挪" send="" command="" option="" select=""
+preset edit_panel label="编辑" send="FUNCTION" command="edit_panel" option="" select=""
+preset ios_abc label="ABC" send="Eisu_toggle" command="" option="" select=".last_lock"
+preset ios_backspace label="ic@backspace-outline" send="BackSpace" command="" option="" select=""
+preset ios_emoji label="ic@emoticon-outline" send="FUNCTION" command="liquid_keyboard" option="emoji" select=""
+preset ios_globe label="ic@web" send="Control+Shift+1" command="" option="" select=""
+preset ios_kaomoji label="^_^" send="FUNCTION" command="liquid_keyboard" option="yanwenzi" select=""
+preset ios_mic label="ic@microphone-outline" send="" command="voice_input" option="" select=""
+preset ios_number label="123" send="Eisu_toggle" command="" option="" select="number"
+preset ios_return label="enter_labels" send="Return" command="" option="" select=""
+preset ios_shift label="ic@apple-keyboard-shift" send="Shift_L" command="" option="" select=""
+preset ios_space label="space" send="space" command="" option="" select=""
+preset ios_symbols label="123" send="Eisu_toggle" command="" option="" select="symbols"
+preset ios_symbols2 label="#+=" send="Eisu_toggle" command="" option="" select="symbols2"
+preset ios_symbols2_en label="#+=" send="Eisu_toggle" command="" option="" select="symbols2_en"
+preset ios_symbols_en label="123" send="Eisu_toggle" command="" option="" select="symbols_en"
+preset ios_to_en label="ZH" send="Eisu_toggle" command="" option="" select="english"
+preset ios_to_zh label="EN" send="Eisu_toggle" command="" option="" select="default"
+preset liquid_keyboard_emoji label="🙂" send="FUNCTION" command="liquid_keyboard" option="emoji" select=""
+preset liquid_keyboard_exit label="返回" send="FUNCTION" command="liquid_keyboard" option="-1" select=""
+preset liquid_keyboard_switch label="更多" send="FUNCTION" command="liquid_keyboard" option="更多" select=""
+preset one_hand_switch_1 label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset one_hand_switch_2 label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset one_hand_switch_3 label="" send="SWITCH_CHARSET" command="" option="" select=""
+preset paste label="貼上" send="Control+v" command="" option="" select=""
+preset paste_text label="貼上文本" send="Control+Shift+Alt+v" command="" option="" select=""
+preset redo label="重做" send="Control+Shift+z" command="" option="" select=""
+preset select_all label="全選" send="Control+a" command="" option="" select=""
+preset set_color_ink label="切换到ink配色" send="FUNCTION" command="set_color_scheme" option="ink" select=""
+preset set_theme_ink label="切换到ink主题" send="FUNCTION" command="set_theme" option="ink" select=""
+preset share_text label="分享文本" send="Control+Alt+s" command="" option="" select=""
+preset space label="" send="space" command="" option="" select=""
+preset space1 label="空格" send="space" command="" option="" select=""
+preset undo label="撤銷" send="Control+z" command="" option="" select=""
+preset updateConfig label="更新配置" send="FUNCTION" command="apply" option="UPDATE_CONFIG" select=""

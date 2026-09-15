@@ -99,7 +99,7 @@ fun PreeditBar(
 
     BasicText(
         text = text,
-        style = TextStyle(color = baseColor, fontSize = textSize, fontFamily = fonts.preedit),
+        style = TextStyle(color = baseColor, fontSize = textSize, fontFamily = fonts.family, fontWeight = tokens.preeditWeight),
         // the embedded line has a fixed height; above the keyboard a long preedit wraps
         maxLines = if (style == PreeditStyle.Embedded) 1 else Int.MAX_VALUE,
         onTextLayout = { layout = it },
