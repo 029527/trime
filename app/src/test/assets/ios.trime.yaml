@@ -1,0 +1,885 @@
+__build_info:
+  rime_version: 1.17.0
+  timestamps:
+    ios.trime: 1789438045
+    ios.trime.custom: 0
+author: generated
+config_version: 3.0
+fallback_colors:
+  candidate_text_color: text_color
+liquid_keyboard:
+  ascii:
+    keys: ",.?!:;/\\|*-+=$`'\"^~@#%&()[]{}_"
+    name: "英文"
+    type: SINGLE
+  author: tumuyan
+  cn:
+    keys: ["，", "。", "？", "！", "：", "、", "“", "”", "‘", "···", "……", {click: "-"}, {click: "——", label: "破折"}, {click: ""}, "（", "）", "【", "】", "《", "》", "［", "］", "｛", "｝", "「", "」", "『", "』", "～"]
+    name: "中文"
+    type: SINGLE
+  combing:
+    keys: ["⃢", "꯭", "̣", "̲"]
+    name: "组合"
+    type: SINGLE
+  emoji:
+    keys: "🙂😂🤣😆🙃😅🥺😎👀🙈🙉🙊☹😑😄🤐😨😱🌚🌝🤔❤💔🌹💣👌👍😣😥😮🙄😏😕😯😪😫😴😌🤑😉😋😎😍😘😚😛😜😝😒😓😔😲😷🤒😇🤓🤗🤕🙁😖😞😟😤😢😭😦😧😨😩😬😰😳😵😡😠☝✌🖕👎🙏🤘👏💪💋☘🍀🌸☕🍵🍺🍻🍦🍬🍚🍜🍲🍖🎂💤"
+    type: SINGLE
+  emoji_full:
+    keys: "😀😃😄😁😆😅🤣😂🙂🙃🫠😉😊😇🥰😍🤩😘😗☺😚😙🥲😋😛😜🤪😝🤑🤗🤭🫢🫣🤫🤔🫡🤐🤨😐😑😶🫥😏😒🙄😬🤥😌😔😪🤤😴😷🤒🤕🤢🤮🤧🥵🥶🥴😵🤯🤠🥳🥸😎🤓🧐😕🫤😟🙁☹😮😯😲😳🥺🥹😦😧😨😰😥😢😭😱😖😣😞😓😩😫🥱😤😡😠🤬😈👿💀☠💩🤡👹👺👻👽👾🤖😺😸😹😻😼😽🙀😿😾🙈🙉🙊💌💘💝💖💗💓💞💕💟❣💔❤🧡💛💚💙💜🤎🖤🤍💋💯💢💥💫💦💨🕳💬🗨🗯💭💤👋🤚🖐✋🖖🫱🫲🫳🫴👌🤌🤏✌🤞🫰🤟🤘🤙👈👉👆🖕👇☝🫵👍👎✊👊🤛🤜👏🙌🫶👐🤲🤝🙏✍💅🤳💪🦾🦿🦵🦶👂🦻👃🧠🫀🫁🦷🦴👀👁👅👄🫦👶🧒👦👧🧑👱👨🧔👩🧓👴👵🙍🙎🙅🙆💁🙋🧏🙇🤦🤷👮🕵💂🥷👷🫅🤴👸👳👲🧕🤵👰🤰🫃🫄🤱👼🎅🤶🦸🦹🧙🧚🧛🧜🧝🧞🧟🧌💆💇🚶🧍🧎🏃💃🕺🕴👯🧖🧗🤺🏇⛷🏂🏌🏄🚣🏊⛹🏋🚴🚵🤸🤼🤽🤾🤹🧘🛀🛌👭👫👬💏💑👪🗣👤👥🫂👣🏻🏼🏽🏾🏿🦰🦱🦳🦲🐵🐒🦍🦧🐶🐕🦮🐩🐺🦊🦝🐱🐈🦁🐯🐅🐆🐴🐎🦄🦓🦌🦬🐮🐂🐃🐄🐷🐖🐗🐽🐏🐑🐐🐪🐫🦙🦒🐘🦣🦏🦛🐭🐁🐀🐹🐰🐇🐿🦫🦔🦇🐻🐨🐼🦥🦦🦨🦘🦡🐾🦃🐔🐓🐣🐤🐥🐦🐧🕊🦅🦆🦢🦉🦤🪶🦩🦚🦜🐸🐊🐢🦎🐍🐲🐉🦕🦖🐳🐋🐬🦭🐟🐠🐡🦈🐙🐚🪸🐌🦋🐛🐜🐝🪲🐞🦗🪳🕷🕸🦂🦟🪰🪱🦠💐🌸💮🪷🏵🌹🥀🌺🌻🌼🌷🌱🪴🌲🌳🌴🌵🌾🌿☘🍀🍁🍂🍃🪹🪺🍄🍇🍈🍉🍊🍋🍌🍍🥭🍎🍏🍐🍑🍒🍓🫐🥝🍅🫒🥥🥑🍆🥔🥕🌽🌶🫑🥒🥬🥦🧄🧅🥜🫘🌰🍞🥐🥖🫓🥨🥯🥞🧇🧀🍖🍗🥩🥓🍔🍟🍕🌭🥪🌮🌯🫔🥙🧆🥚🍳🥘🍲🫕🥣🥗🍿🧈🧂🥫🍱🍘🍙🍚🍛🍜🍝🍠🍢🍣🍤🍥🥮🍡🥟🥠🥡🦀🦞🦐🦑🦪🍦🍧🍨🍩🍪🎂🍰🧁🥧🍫🍬🍭🍮🍯🍼🥛☕🫖🍵🍶🍾🍷🍸🍹🍺🍻🥂🥃🫗🥤🧋🧃🧉🧊🥢🍽🍴🥄🔪🫙🏺🌍🌎🌏🌐🗺🗾🧭🏔⛰🌋🗻🏕🏖🏜🏝🏞🏟🏛🏗🧱🪨🪵🛖🏘🏚🏠🏡🏢🏣🏤🏥🏦🏨🏩🏪🏫🏬🏭🏯🏰💒🗼🗽⛪🕌🛕🕍⛩🕋⛲⛺🌁🌃🏙🌄🌅🌆🌇🌉♨🎠🛝🎡🎢💈🎪🚂🚃🚄🚅🚆🚇🚈🚉🚊🚝🚞🚋🚌🚍🚎🚐🚑🚒🚓🚔🚕🚖🚗🚘🚙🛻🚚🚛🚜🏎🏍🛵🦽🦼🛺🚲🛴🛹🛼🚏🛣🛤🛢⛽🛞🚨🚥🚦🛑🚧⚓🛟⛵🛶🚤🛳⛴🛥🚢✈🛩🛫🛬🪂💺🚁🚟🚠🚡🛰🚀🛸🛎🧳⌛⏳⌚⏰⏱⏲🕰🕛🕧🕐🕜🕑🕝🕒🕞🕓🕟🕔🕠🕕🕡🕖🕢🕗🕣🕘🕤🕙🕥🕚🕦🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜🌡☀🌝🌞🪐⭐🌟🌠🌌☁⛅⛈🌤🌥🌦🌧🌨🌩🌪🌫🌬🌀🌈🌂☂☔⛱⚡❄☃⛄☄🔥💧🌊🎃🎄🎆🎇🧨✨🎈🎉🎊🎋🎍🎎🎏🎐🎑🧧🎀🎁🎗🎟🎫🎖🏆🏅🥇🥈🥉⚽⚾🥎🏀🏐🏈🏉🎾🥏🎳🏏🏑🏒🥍🏓🏸🥊🥋🥅⛳⛸🎣🤿🎽🎿🛷🥌🎯🪀🪁🎱🔮🪄🎮🕹🎰🎲🧩🧸🪅🪩🪆♠♥♦♣♟🃏🀄🎴🔫🎭🖼🎨🧵🪡🧶🪢👓🕶🥽🥼🦺👔👕👖🧣🧤🧥🧦👗👘🥻🩱🩲🩳👙👚👛👜👝🛍🎒🩴👞👟🥾🥿👠👡🩰👢👑👒🎩🎓🧢🪖⛑📿💄💍💎🔇🔈🔉🔊📢📣📯🔔🔕🎼🎵🎶🎙🎚🎛🎤🎧📻🎷🪗🎸🎹🎺🎻🪕🥁🪘📱📲☎📞📟📠🔋🪫🔌💻🖥🖨⌨🖱🖲💽💾💿📀🧮🎥🎞📽🎬📺📷📸📹📼🔍🔎🕯💡🔦🏮🪔📔📕📖📗📘📙📚📓📒📃📜📄📰🗞📑🔖🏷💰🪙💴💵💶💷💸💳🧾💹✉📧📨📩📤📥📦📫📪📬📭📮🗳✏✒🖋🖊🖌🖍📝💼📁📂🗂📅📆🗒🗓📇📈📉📊📋📌📍📎🖇📏📐✂🗃🗄🗑🔒🔓🔏🔐🔑🗝💣🔨🪓⛏⚒🛠🗡⚔🪃🏹🛡🪚🔧🪛🔩⚙🗜⚖🦯🔗⛓🪝🧰🧲🪜⚗🧪🧫🧬🔬🔭📡💉🩸💊🩹🩼🩺🩻🚪🛗🪞🪟🛏🛋🪑🚽🪠🚿🛁🪤🪒🧴🧷🧹🧺🧻🪣🧼🫧🪥🧽🧯🛒🧿🪬🚬⚰🪦⚱🗿🪧🪪🏧🚮🚰♿🚹🚺🚻🚼🚾🛂🛃🛄🛅⚠🚸⛔🚫🚳🚭🚯🚱🚷📵🔞☢☣⬆↗➡↘⬇↙⬅↖↕↔↩↪⤴⤵🔃🔄🔙🔚🔛🔜🔝🛐⚛🕉✡☸☯✝☦☪☮🕎🔯♈♉♊♋♌♍♎♏♐♑♒♓⛎🔀🔁🔂▶⏩⏭⏯◀⏪⏮🔼⏫🔽⏬⏸⏹⏺⏏🎦🔅🔆📶📳📴♀♂⚧✖➕➖➗🟰♾‼⁉❓❔❕❗〰💱💲⚕♻⚜🔱📛🔰⭕✅☑✔❌❎➰➿〽✳✴❇©®™🔟🔠🔡🔢🔣🔤🅰🆎🅱🆑🆒🆓ℹ🆔Ⓜ🆕🆖🅾🆗🅿🆘🆙🆚🈁🈂🈷🈶🈯🉐🈹🈚🈲🉑🈸🈴🈳㊗㊙🈺🈵🔴🟠🟡🟢🔵🟣🟤⚫⚪🟥🟧🟨🟩🟦🟪🟫⬛⬜◼◻◾◽▪▫🔶🔷🔸🔹🔺🔻💠🔘🔳🔲🏁🚩🎌🏴🏳"
+    name: "全emoji"
+    type: SINGLE
+  fixed_key_bar:
+    keys: [liquid_keyboard_exit, space1, BackSpace, Return2, clipboard_window, liquid_keyboard_switch]
+    position: bottom
+  grease:
+    keys: "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω"
+    name: "希腊"
+    type: SINGLE
+  history:
+    name: "常用"
+    type: HISTORY
+  ids:
+    keys: "⿰⿱⿲⿳⿴⿵⿶⿷⿸⿹⿺⿻↷↔"
+    name: IDS
+    type: SINGLE
+  jp:
+    keys: "あいうえおかがきぎくぐけげこごさざしじすずせぜそぞただちぢつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろわをんアィイウェエオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロワヲン"
+    name: "假名"
+    type: SINGLE
+  key_height: 40
+  key_height_land: 40
+  keyboards:
+    - emoji
+    - math
+    - ascii
+    - cn
+    - history
+    - symbollist
+    - list
+    - ids
+    - symbol
+    - tabs
+    - pinyin
+    - script_symbols
+    - jp
+    - grease
+    - rusa
+    - korea
+    - lation
+    - yinbiao
+    - unit
+    - yanwenzi
+    - combing
+    - emoji_full
+  korea:
+    keys: "dㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣㅐㅒㅔㅖㅘㅙㅚㅝㅞㅟㅢㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㄲㄸㅚㅆㅉ㉠㉡㉢㉣㉤㉥㉦㉧㉨㉩㉪㉫㉬㉭㉮㉯㉰㉱㉲㉳㉴㉵㉶㉷㉸㉹㉺㉻㈀㈁㈂㈃㈄㈅㈆㈇㈈㈉㈊㈋㈌㈍㈎㈏㈐㈑㈒㈓㈔㈕㈖㈗㈘㈙㈚㈛"
+    name: "韩文"
+    type: SINGLE
+  lation:
+    keys: "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŠŸŒàáâãäåæçèéêëìíîïðñòóõôöøùúûüýþšÿœ"
+    name: "拉丁"
+    type: SINGLE
+  list:
+    keys: "①②③④⑤⑥⑦⑧⑨⑩⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽⑾⑿⒀⒁⒂⒃⒄⒅⒆⒇㈠㈡㈢㈣㈤㈥㈦㈧㈨㈩➊➋➌➍➎➏➐➑➒➓㊀㊁㊂㊃㊄㊅㊆㊇㊈㊉ⅰⅱⅲⅳⅴⅵⅶⅷⅸⅹⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ"
+    name: "列表"
+    type: SINGLE
+  margin_x: 5
+  math:
+    keys: "≈＝≠≌<>≤≥≡()[]{}-+±×*/÷&∥%‰‱°′″∫∮∯∬∭∰∞∑∧∏∈∵∴⊥∝∨∪•√〒∝∽∈∩∧⊙⌒∥∟∣∂∆∞≌∉∪∨⊕⊿⊥∠∫∬∭"
+    name: "数学"
+    type: SINGLE
+  pinyin:
+    keys: "āáǎàōóēéěèǒòīíǐìūúǖǘǚǜǔùêüńňㄚㄛㄜㄧㄨㄩㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ"
+    name: "拼音"
+    type: SINGLE
+  row: 6
+  row_land: 5
+  rusa:
+    keys: "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+    name: "俄语"
+    type: SINGLE
+  script_symbols:
+    keys: "𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵"
+    name: "𝒶𝒜"
+    type: SINGLE
+  single_width: 60
+  symbol:
+    keys: "△▽○◇□☆▲▼●◆■★▷◁▶◀♻♲†⚝✡⚹✦✸✹￼�×⌫☑☒✅❎✔✘✓✗☀☼☽☾◑◐㏂㏘☭♀♂☹☻☠☜☝☞☚☟☛▪•‥…∷※♩♪♫♬§°♭♯♮‖¶№◎¤۞℗®©卍卐℡™㏇Φ⇦⇧⇨⇩⇪↖↑↗←↔→↙↓↘⇄⇅⇆⇤↩⇥▸◂▴▾◤◥◣◢㊤㊧㊥㊨㊦❏❐◲〼▢▣↶✁↷✍⏍ϟ📝✎✆☱☰☴⚿⛮⚙☲☯☵⛶☩☐☳☷☶💬🗨⟲ღ✈☂🎤🌐🔍"
+    name: "特殊"
+    type: SINGLE
+  symbollist:
+    keys: [{"符号": "/fh"}, {"电脑": "/dn"}, {"象棋": "/xq"}, {"麻将": "/mj"}, {"骰子": "/sz"}, {"扑克": "/pk"}, {"天气": "/tq"}, {"音乐": "/yy"}, {"八卦": "/bg"}, {"易经": "/lssg"}, {"天体": "/tt"}, {"星座": "/xz"}, {"星号": "/xh"}, {"方块": "/fk"}, {"几何": "/jh"}, {"箭头": "/jt"}, {"数学": "/sx"}, {"上标": "/sb"}, {"下标": "/xb"}, {"单位": "/dw"}, {"货币": "/hb"}, {"拼音": "/py"}, {"注音": "/zy"}, {"假名": "/jm"}, {"片假": "/pjm"}, {"韩文": "/hw"}, {"希腊": "/xl"}, {"希大": "/xld"}, {"罗马": "/lm"}, {"罗大": "/lmd"}, {"俄语": "/ey"}, {"俄大": "/eyd"}, {"表情": "/bq"}, {"一": "/1"}, {"二": "/2"}, {"三": "/3"}, {"四": "/4"}, {"五": "/5"}, {"六": "/6"}, {"七": "/7"}, {"八": "/8"}, {"九": "/9"}, {"零": "/0"}, {"十": "/10"}, {"分数": "/fs"}, {"标点": "/bd"}, {"偏旁": "/pp"}, {"竖标": "/bdz"}]
+    name: "符号表"
+    type: SYMBOL
+  tabs:
+    name: "更多"
+    type: TABS
+  unit:
+    keys: "℃¥$€฿￡㎡m³℉￥£￠₠¹²³⁴⁵ⁿ⁶⁷⁸⁹⁰ˣ⁺⁻⁼⁽⁾½⅓¼⅔¾₁₂₃₄₅ₙ₆₇₈₉₀ₓ₊₋₌₍₎℅"
+    name: "单位"
+    type: SINGLE
+  vertical_gap: 1
+  yanwenzi:
+    keys: ["⎛⎝≥⏝⏝≤⎠⎞", "^_^", "^ω^", "^o^", "~\\(≧▽≦)/~", "*^_^*", "↖(^ω^)↗", "(^o^)／", "(=^▽^=)", "=^_^=", "(*^ω^*)", "٩(๑^o^๑)۶", "o(￣▽￣)o", "Y(^_^)Y", "٩( 'ω' )و", "╰(*´︶`*)╯", "*罒▽罒*", "ヾ ^_^♪", "=￣ω￣=", "︿(￣︶￣)︿", "(´▽｀)ノ♪", "乁( ˙ ω˙乁)", "✧*｡٩(ˊωˋ*)و✧*｡", "～(￣▽￣～)(～￣▽￣)～", QwQ, "(●—●)", "(๑• . •๑)", "ヾ(≧O≦)〃嗷~", "罒ω罒", "(｡ì _ í｡)", "(๑•ี_เ•ี๑)", "ㄟ(≧◇≦)ㄏ", "(*/ω＼*)", "●▽●", "٩(๑òωó๑)۶", "✺◟(∗❛ัᴗ❛ั∗)◞✺", "( σ'ω')σ", "♡＾▽＾♡", "(๑•̀ㅂ•́)و✧", "(ง •̀_•́)ง", "(｡･ω･｡)ﾉ♡", "(☆_☆)", "(๑°3°๑)", "_(•̀ω•́ 」∠)_", "♪～(´ε｀　)", "～(^з^)-☆", "(´∀｀)♡", "ლ(´ڡ`ლ)", "(＞﹏＜)", T_T, "⊙︿⊙", "〒▽〒", "⊙﹏⊙", "π_π", "(｡•́︿•̀｡)", "(ToT)/~~~", "╯﹏╰", "ಥ_ಥ", "(╥╯^╰╥)", "(〃′o`)", "●﹏●", "( •̥́ ˍ •̀ू )", "(つд⊂)", "心塞(´-ωก`)", "(╥﹏╥)", "┭┮﹏┭┮", "（；´д｀）ゞ", "(´;︵;`)", "(。﹏。)", "┗( T﹏T )┛", QAQ, "ヘ(_ _ヘ)", "╰（‵□′）╯", "(*￣︿￣)", ">o<", "(-`ェ´-怒)", "ヽ(‘⌒´メ)ノ", "(*｀Ω´*)v", "(｡•ˇ‸ˇ•｡)", "(怒｀Д´怒)", "٩(๑`^´๑)۶", "(;｀O´)o", "╰_╯", "(#｀皿´)<怒怒怒!!!", "<(｀^´)>", "（｀Δ´）！", "ψ(｀∇´)ψ", "(；′⌒`)", "s(・｀ヘ´・;)ゞ", "(▼皿▼#)", "￣へ￣", "←_←", "（╯‵□′）╯︵┴─┴", "（▼へ▼メ）", "☄ฺ(◣д◢)☄ฺ", "→_→", "⊙_⊙", "d(ŐдŐ๑)", "Σ( ° △ °|||)︴", "(((φ(◎ロ◎;)φ)))", "⊙▽⊙", "(๑ŐдŐ)b", "╭(°A°`)╮", "(๑òᆺó๑)", "⊙ω⊙", "Σ(っ °Д °;)っ", " (ﾟДﾟ≡ﾟдﾟ)!?", "( *・ω・)✄╰ひ╯", "(⊙x⊙;)", "┌(。Д。)┐", "(°ー°〃)", "︽⊙_⊙︽", "!!!∑(°Д°ノ)ノ", "(๑ŐдŐ)b☆d(ŐдŐ๑)", "Σ⊙▃⊙川", "ヽ(*。>Д<)o゜", "━((*′д｀)爻(′д｀*))━!!!!", "=_=", "╮(╯_╰)╭", "（︶︿︶）", "_(:з」∠)_", "@_@", "╮(╯▽╰)╭", "(＠￣ー￣＠)", "_(:3」∠❀)_", "눈_눈", "╭(╯ε╰)╮", "(ー_ー)!!", "_(:D)∠)_", o_O, "╭(╯^╰)╮", "(；一_一)", "´_>`", "-_-#", "┑(￣Д ￣)┍", "≡￣﹏￣≡", "○|￣|_", "-_-||", "ㄟ( ▔, ▔ )ㄏ", "( ＿ ＿)ノ｜壁", "▄█▀█●"]
+    name: "颜文字"
+    type: SINGLE
+  yinbiao:
+    keys: ["a:", "ɔ:", "ɜː", "i:", "u:", "ʌ", "ɒ", "ə", "ɪ", "ʊ", e, "æ", "eɪ", "aɪ", "ɔɪ", "ɪə", "eə", "ʊə", "əʊ", "aʊ", p, t, k, f, "θ", s, b, d, g, v, "ð", z, "ʃ", h, ts, "tʃ", j, tr, "ʒ", r, dz, "dʒ", dr, w, m, n, "ŋ", l]
+    name: "音标"
+    type: SINGLE
+name: iOS
+preedit:
+  alpha: 1.0
+  foreground:
+    font_size: 16
+  horizontal_padding: 8
+  top_end_radius: 6
+  top_start_radius: 6
+preset_color_schemes:
+  default:
+    author: generated
+    back_color: 0xD1D3D9
+    border_color: 0xD1D3D9
+    candidate_background: 0x00000000
+    candidate_separator_color: 0x00D1D3D9
+    candidate_text_color: 0x000000
+    comment_text_color: 0x6C6C70
+    dark_scheme: ios_dark
+    enter_key_action_back_color: 0x007AFF
+    enter_key_action_text_color: 0xFFFFFF
+    func_key_back_color: 0xACB1BA
+    func_key_hilited_back_color: 0xFFFFFF
+    hilited_back_color: 0xFFFFFF
+    hilited_candidate_back_color: 0xBCC0C7
+    hilited_candidate_text_color: 0x000000
+    hilited_comment_text_color: 0x6C6C70
+    hilited_enter_key_action_back_color: 0x2F8FFF
+    hilited_key_back_color: 0xE1E3E8
+    hilited_key_symbol_color: 0x86868B
+    hilited_key_text_color: 0x000000
+    hilited_off_key_back_color: 0xFFFFFF
+    hilited_off_key_text_color: 0x000000
+    hilited_on_key_back_color: 0xFFFFFF
+    hilited_on_key_text_color: 0x000000
+    hilited_text_color: 0x000000
+    key_back_color: 0xFFFFFF
+    key_border_color: 0x00FFFFFF
+    key_symbol_color: 0x86868B
+    key_text_color: 0x000000
+    keyboard_back_color: 0xD1D3D9
+    keyboard_background: 0xD1D3D9
+    label_color: 0x8E8E93
+    light_scheme: ios_light
+    liquid_keyboard_background: 0xD1D3D9
+    long_text_back_color: 0xFFFFFF
+    name: "iOS（跟随系统深浅色）"
+    off_key_back_color: 0xACB1BA
+    off_key_text_color: 0x000000
+    on_key_back_color: 0xFFFFFF
+    on_key_text_color: 0x000000
+    preview_back_color: 0xFFFFFF
+    preview_text_color: 0x000000
+    root_background: 0xD1D3D9
+    shadow_color: 0x00000000
+    text_back_color: 0xF2F2F7
+    text_color: 0x000000
+  ios_dark:
+    author: generated
+    back_color: 0x2A2A2C
+    border_color: 0x2A2A2C
+    candidate_background: 0x00000000
+    candidate_separator_color: 0x002A2A2C
+    candidate_text_color: 0xFFFFFF
+    comment_text_color: 0xAEAEB2
+    enter_key_action_back_color: 0x0A84FF
+    enter_key_action_text_color: 0xFFFFFF
+    func_key_back_color: 0x464649
+    func_key_hilited_back_color: 0x6B6B6E
+    hilited_back_color: 0x636366
+    hilited_candidate_back_color: 0x48484C
+    hilited_candidate_text_color: 0xFFFFFF
+    hilited_comment_text_color: 0xD1D1D6
+    hilited_enter_key_action_back_color: 0x409CFF
+    hilited_key_back_color: 0x8E8E93
+    hilited_key_symbol_color: 0xCFCFD3
+    hilited_key_text_color: 0xFFFFFF
+    hilited_off_key_back_color: 0x6B6B6E
+    hilited_off_key_text_color: 0xFFFFFF
+    hilited_on_key_back_color: 0xFFFFFF
+    hilited_on_key_text_color: 0x000000
+    hilited_text_color: 0xFFFFFF
+    key_back_color: 0x6B6B6E
+    key_border_color: 0x006B6B6E
+    key_symbol_color: 0xB5B5B9
+    key_text_color: 0xFFFFFF
+    keyboard_back_color: 0x2A2A2C
+    keyboard_background: 0x2A2A2C
+    label_color: 0x8E8E93
+    liquid_keyboard_background: 0x2A2A2C
+    long_text_back_color: 0x6B6B6E
+    name: "iOS 深色"
+    off_key_back_color: 0x464649
+    off_key_text_color: 0xFFFFFF
+    on_key_back_color: 0xFFFFFF
+    on_key_text_color: 0x000000
+    preview_back_color: 0x6B6B6E
+    preview_text_color: 0xFFFFFF
+    root_background: 0x2A2A2C
+    shadow_color: 0x00000000
+    text_back_color: 0x3A3A3C
+    text_color: 0xFFFFFF
+  ios_light:
+    author: generated
+    back_color: 0xD1D3D9
+    border_color: 0xD1D3D9
+    candidate_background: 0x00000000
+    candidate_separator_color: 0x00D1D3D9
+    candidate_text_color: 0x000000
+    comment_text_color: 0x6C6C70
+    enter_key_action_back_color: 0x007AFF
+    enter_key_action_text_color: 0xFFFFFF
+    func_key_back_color: 0xACB1BA
+    func_key_hilited_back_color: 0xFFFFFF
+    hilited_back_color: 0xFFFFFF
+    hilited_candidate_back_color: 0xBCC0C7
+    hilited_candidate_text_color: 0x000000
+    hilited_comment_text_color: 0x6C6C70
+    hilited_enter_key_action_back_color: 0x2F8FFF
+    hilited_key_back_color: 0xE1E3E8
+    hilited_key_symbol_color: 0x86868B
+    hilited_key_text_color: 0x000000
+    hilited_off_key_back_color: 0xFFFFFF
+    hilited_off_key_text_color: 0x000000
+    hilited_on_key_back_color: 0xFFFFFF
+    hilited_on_key_text_color: 0x000000
+    hilited_text_color: 0x000000
+    key_back_color: 0xFFFFFF
+    key_border_color: 0x00FFFFFF
+    key_symbol_color: 0x86868B
+    key_text_color: 0x000000
+    keyboard_back_color: 0xD1D3D9
+    keyboard_background: 0xD1D3D9
+    label_color: 0x8E8E93
+    liquid_keyboard_background: 0xD1D3D9
+    long_text_back_color: 0xFFFFFF
+    name: "iOS 浅色"
+    off_key_back_color: 0xACB1BA
+    off_key_text_color: 0x000000
+    on_key_back_color: 0xFFFFFF
+    on_key_text_color: 0x000000
+    preview_back_color: 0xFFFFFF
+    preview_text_color: 0x000000
+    root_background: 0xD1D3D9
+    shadow_color: 0x00000000
+    text_back_color: 0xF2F2F7
+    text_color: 0x000000
+preset_keyboards:
+  default:
+    ascii_keyboard: english
+    ascii_mode: 0
+    author: generated
+    height: 53
+    keys: [{click: q, long_click: 1, swipe_up: 1}, {click: w, long_click: 2, swipe_up: 2}, {click: e, long_click: 3, swipe_up: 3}, {click: r, long_click: 4, swipe_up: 4}, {click: t, long_click: 5, swipe_up: 5}, {click: y, long_click: 6, swipe_up: 6}, {click: u, long_click: 7, swipe_up: 7}, {click: i, long_click: 8, swipe_up: 8}, {click: o, long_click: 9, swipe_up: 9}, {click: p, long_click: 0, swipe_up: 0}, {width: 5}, {click: a, label_symbol: "ic@select-all", long_click: select_all}, {click: s, label_symbol: "-", long_click: "-", swipe_up: "-"}, {click: d, label_symbol: "/", long_click: {commit: "/", label: "/"}, swipe_up: {commit: "/", label: "/"}}, {click: f, label_symbol: "：", long_click: {label: "：", text: "："}, swipe_up: {label: "：", text: "："}}, {click: g, label_symbol: "；", long_click: {label: "；", text: "；"}, swipe_up: {label: "；", text: "；"}}, {click: h, label_symbol: "（", long_click: {label: "（", text: "（"}, swipe_up: {label: "（", text: "（"}}, {click: j, label_symbol: "）", long_click: {label: "）", text: "）"}, swipe_up: {label: "）", text: "）"}}, {click: k, label_symbol: "“”", long_click: {label: "“”", text: "“”{Left}"}, swipe_up: {label: "“”", text: "“”{Left}"}}, {click: l, label_symbol: "@", long_click: "@", swipe_up: "@"}, {width: 5}, {click: ios_shift, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, width: 15}, {click: z, label_symbol: "、", long_click: {label: "、", text: "、"}, swipe_up: {label: "、", text: "、"}}, {click: x, label_symbol: "ic@content-cut", long_click: cut}, {click: c, label_symbol: "ic@content-copy", long_click: copy}, {click: v, label_symbol: "ic@content-paste", long_click: paste}, {click: b, label_symbol: "？", long_click: {label: "？", text: "？"}, swipe_up: {label: "？", text: "？"}}, {click: n, label_symbol: "！", long_click: {label: "！", text: "！"}, swipe_up: {label: "！", text: "！"}}, {click: m, label_symbol: "…", long_click: {label: "……", text: "……"}, swipe_up: {label: "……", text: "……"}}, {click: ios_backspace, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, swipe_left: Escape, width: 15}, {click: ios_symbols, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, label_symbol: " ", long_click: ios_number, swipe_up: liquid_keyboard_switch, width: 12}, {click: ",", label: "，", width: 10}, {click: ios_space, label: "空格", width: 34}, {click: ., label: "。", width: 10}, {click: ios_to_en, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, label_symbol: " ", long_click: Menu, width: 12}, {click: ios_return, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 22}, {click: ios_globe, height: 44, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, label_symbol: " ", long_click: IME_switch, width: 12}, {click: ios_emoji, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}, {hide_in_landscape: true, width: 64}, {click: ios_mic, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}]
+    lock: true
+    name: "iOS 中文"
+    reset_ascii_mode: true
+    width: 10
+  english:
+    ascii_keyboard: english
+    ascii_mode: 1
+    author: generated
+    height: 53
+    keys: [{click: q, long_click: 1, swipe_up: 1}, {click: w, long_click: 2, swipe_up: 2}, {click: e, long_click: 3, swipe_up: 3}, {click: r, long_click: 4, swipe_up: 4}, {click: t, long_click: 5, swipe_up: 5}, {click: y, long_click: 6, swipe_up: 6}, {click: u, long_click: 7, swipe_up: 7}, {click: i, long_click: 8, swipe_up: 8}, {click: o, long_click: 9, swipe_up: 9}, {click: p, long_click: 0, swipe_up: 0}, {width: 5}, {click: a, label_symbol: "ic@select-all", long_click: select_all}, {click: s, label_symbol: "-", long_click: {commit: "-", label: "-"}, swipe_up: {commit: "-", label: "-"}}, {click: d, label_symbol: "/", long_click: {commit: "/", label: "/"}, swipe_up: {commit: "/", label: "/"}}, {click: f, label_symbol: ":", long_click: {commit: ":", label: ":"}, swipe_up: {commit: ":", label: ":"}}, {click: g, label_symbol: ";", long_click: {commit: ";", label: ";"}, swipe_up: {commit: ";", label: ";"}}, {click: h, label_symbol: "(", long_click: {commit: "(", label: "("}, swipe_up: {commit: "(", label: "("}}, {click: j, label_symbol: ")", long_click: {commit: ")", label: ")"}, swipe_up: {commit: ")", label: ")"}}, {click: k, label_symbol: "\"", long_click: {commit: "\"", label: "\""}, swipe_up: {commit: "\"", label: "\""}}, {click: l, label_symbol: "@", long_click: {commit: "@", label: "@"}, swipe_up: {commit: "@", label: "@"}}, {width: 5}, {click: ios_shift, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, width: 15}, {click: z, label_symbol: "'", long_click: {commit: "'", label: "'"}, swipe_up: {commit: "'", label: "'"}}, {click: x, label_symbol: "ic@content-cut", long_click: cut}, {click: c, label_symbol: "ic@content-copy", long_click: copy}, {click: v, label_symbol: "ic@content-paste", long_click: paste}, {click: b, label_symbol: "?", long_click: {commit: "?", label: "?"}, swipe_up: {commit: "?", label: "?"}}, {click: n, label_symbol: "!", long_click: {commit: "!", label: "!"}, swipe_up: {commit: "!", label: "!"}}, {click: m, label_symbol: "#", long_click: {commit: "#", label: "#"}, swipe_up: {commit: "#", label: "#"}}, {click: ios_backspace, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, swipe_left: Escape, width: 15}, {click: ios_symbols_en, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, label_symbol: " ", long_click: ios_number, swipe_up: liquid_keyboard_switch, width: 12}, {click: {commit: ",", label: ","}, width: 10}, {click: ios_space, width: 34}, {click: {commit: ., label: .}, width: 10}, {click: ios_to_zh, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, label_symbol: " ", long_click: Menu, width: 12}, {click: ios_return, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 22}, {click: ios_globe, height: 44, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, label_symbol: " ", long_click: IME_switch, width: 12}, {click: ios_emoji, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}, {hide_in_landscape: true, width: 64}, {click: ios_mic, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}]
+    lock: true
+    name: "iOS 英文"
+    reset_ascii_mode: true
+    width: 10
+  number:
+    ascii_mode: 1
+    author: generated
+    height: 53
+    keys: [{click: KP_1, label: 1}, {click: KP_2, label: 2}, {click: KP_3, label: 3}, {click: ios_backspace, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22}, {click: KP_4, label: 4}, {click: KP_5, label: 5}, {click: KP_6, label: 6}, {click: {commit: "-", label: "-"}}, {click: KP_7, label: 7}, {click: KP_8, label: 8}, {click: KP_9, label: 9}, {click: {commit: ., label: .}}, {click: ios_abc, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color}, {click: KP_0, label: 0}, {click: {commit: ",", label: ","}}, {click: ios_return, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color}, {click: ios_globe, height: 44, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, label_symbol: " ", long_click: IME_switch, width: 12}, {click: ios_emoji, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}, {hide_in_landscape: true, width: 64}, {click: ios_mic, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}]
+    name: "iOS 数字键盘"
+    width: 25
+  symbols:
+    ascii_mode: 0
+    author: generated
+    height: 53
+    keys: [{click: KP_1, label: 1}, {click: KP_2, label: 2}, {click: KP_3, label: 3}, {click: KP_4, label: 4}, {click: KP_5, label: 5}, {click: KP_6, label: 6}, {click: KP_7, label: 7}, {click: KP_8, label: 8}, {click: KP_9, label: 9}, {click: KP_0, label: 0}, {click: "-"}, {click: "/", label: "/"}, {click: ":", label: "："}, {click: ";", label: "；"}, {click: "(", label: "（"}, {click: ")", label: "）"}, {click: "$", label: "￥"}, {click: "@"}, {click: "\"", label: "“”"}, {click: "'", label: "「」"}, {click: ios_symbols2, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 15}, {click: ., label: "。", width: 11.66}, {click: ",", label: "，", width: 11.66}, {click: "\\", label: "、", width: 11.66}, {click: "?", label: "？", width: 11.66}, {click: "!", label: "！", width: 11.66}, {click: {commit: ., label: .}, width: 11.66}, {click: ios_backspace, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, swipe_left: Escape, width: 15}, {click: ios_abc, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 12}, {click: ios_space, label: "空格", width: 66}, {click: ios_return, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 22}, {click: ios_globe, height: 44, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, label_symbol: " ", long_click: IME_switch, width: 12}, {click: ios_emoji, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}, {hide_in_landscape: true, width: 64}, {click: ios_mic, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}]
+    name: "iOS 数字符号"
+    width: 10
+  symbols2:
+    ascii_mode: 0
+    author: generated
+    height: 53
+    keys: [{click: {commit: "[", label: "["}}, {click: {commit: "]", label: "]"}}, {click: {commit: "{", label: "{"}}, {click: {commit: "}", label: "}"}}, {click: {commit: "#", label: "#"}}, {click: {commit: "%", label: "%"}}, {click: {commit: "^", label: "^"}}, {click: {commit: "*", label: "*"}}, {click: {commit: "+", label: "+"}}, {click: {commit: "=", label: "="}}, {click: {commit: _, label: _}}, {click: {commit: "\\", label: "\\"}}, {click: {commit: "|", label: "|"}}, {click: {commit: "~", label: "~"}}, {click: {commit: "《", label: "《"}}, {click: {commit: "》", label: "》"}}, {click: {commit: "€", label: "€"}}, {click: {commit: "&", label: "&"}}, {click: {commit: "·", label: "·"}}, {click: {commit: "…", label: "…"}}, {click: ios_symbols, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 15}, {click: ., label: "。", width: 14}, {click: ",", label: "，", width: 14}, {click: "?", label: "？", width: 14}, {click: "!", label: "！", width: 14}, {click: "'", label: "「」", width: 14}, {click: ios_backspace, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, swipe_left: Escape, width: 15}, {click: ios_abc, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 12}, {click: ios_space, label: "空格", width: 66}, {click: ios_return, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 22}, {click: ios_globe, height: 44, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, label_symbol: " ", long_click: IME_switch, width: 12}, {click: ios_emoji, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}, {hide_in_landscape: true, width: 64}, {click: ios_mic, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}]
+    name: "iOS 更多符号"
+    width: 10
+  symbols2_en:
+    ascii_mode: 1
+    author: generated
+    height: 53
+    keys: [{click: {commit: "[", label: "["}}, {click: {commit: "]", label: "]"}}, {click: {commit: "{", label: "{"}}, {click: {commit: "}", label: "}"}}, {click: {commit: "#", label: "#"}}, {click: {commit: "%", label: "%"}}, {click: {commit: "^", label: "^"}}, {click: {commit: "*", label: "*"}}, {click: {commit: "+", label: "+"}}, {click: {commit: "=", label: "="}}, {click: {commit: _, label: _}}, {click: {commit: "\\", label: "\\"}}, {click: {commit: "|", label: "|"}}, {click: {commit: "~", label: "~"}}, {click: {commit: "<", label: "<"}}, {click: {commit: ">", label: ">"}}, {click: {commit: "€", label: "€"}}, {click: {commit: "£", label: "£"}}, {click: {commit: "¥", label: "¥"}}, {click: {commit: "•", label: "•"}}, {click: ios_symbols_en, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 15}, {click: {commit: ., label: .}, width: 14}, {click: {commit: ",", label: ","}, width: 14}, {click: {commit: "?", label: "?"}, width: 14}, {click: {commit: "!", label: "!"}, width: 14}, {click: {commit: "'", label: "'"}, width: 14}, {click: ios_backspace, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, swipe_left: Escape, width: 15}, {click: ios_abc, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 12}, {click: ios_space, width: 66}, {click: ios_return, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 22}, {click: ios_globe, height: 44, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, label_symbol: " ", long_click: IME_switch, width: 12}, {click: ios_emoji, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}, {hide_in_landscape: true, width: 64}, {click: ios_mic, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}]
+    name: "iOS 英文更多符号"
+    width: 10
+  symbols_en:
+    ascii_mode: 1
+    author: generated
+    height: 53
+    keys: [{click: KP_1, label: 1}, {click: KP_2, label: 2}, {click: KP_3, label: 3}, {click: KP_4, label: 4}, {click: KP_5, label: 5}, {click: KP_6, label: 6}, {click: KP_7, label: 7}, {click: KP_8, label: 8}, {click: KP_9, label: 9}, {click: KP_0, label: 0}, {click: {commit: "-", label: "-"}}, {click: {commit: "/", label: "/"}}, {click: {commit: ":", label: ":"}}, {click: {commit: ";", label: ";"}}, {click: {commit: "(", label: "("}}, {click: {commit: ")", label: ")"}}, {click: {commit: "$", label: "$"}}, {click: {commit: "&", label: "&"}}, {click: {commit: "@", label: "@"}}, {click: {commit: "\"", label: "\""}}, {click: ios_symbols2_en, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 15}, {click: {commit: ., label: .}, width: 14}, {click: {commit: ",", label: ","}, width: 14}, {click: {commit: "?", label: "?"}, width: 14}, {click: {commit: "!", label: "!"}, width: 14}, {click: {commit: "'", label: "'"}, width: 14}, {click: ios_backspace, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, swipe_left: Escape, width: 15}, {click: ios_abc, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 12}, {click: ios_space, width: 66}, {click: ios_return, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 22}, {click: ios_globe, height: 44, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, label_symbol: " ", long_click: IME_switch, width: 12}, {click: ios_emoji, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}, {hide_in_landscape: true, width: 64}, {click: ios_mic, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}]
+    name: "iOS 英文数字符号"
+    width: 10
+  t9:
+    ascii_keyboard: english
+    ascii_mode: 0
+    author: generated
+    height: 53
+    keys: [{click: ",", hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 14}, {click: "'", key_text_size: 16, label: "分词", width: 22}, {click: 2, key_text_size: 20, label: ABC, width: 22}, {click: 3, key_text_size: 20, label: DEF, width: 22}, {click: ios_backspace, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, swipe_left: Escape, width: 20}, {click: ., hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 14}, {click: 4, key_text_size: 20, label: GHI, width: 22}, {click: 5, key_text_size: 20, label: JKL, width: 22}, {click: 6, key_text_size: 20, label: MNO, width: 22}, {click: Escape, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 16, label: "重输", width: 20}, {click: "?", hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 14}, {click: 7, key_text_size: 20, label: PQRS, width: 22}, {click: 8, key_text_size: 20, label: TUV, width: 22}, {click: 9, key_text_size: 20, label: WXYZ, width: 22}, {click: 0, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 20}, {click: "!", hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 14}, {click: ios_symbols, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, label: "符", width: 14}, {click: ios_number, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, label: 123, width: 14}, {click: ios_space, label: "空格", width: 30}, {click: ios_to_en, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, label: ZH, width: 14}, {click: ios_return, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 14}, {click: ios_globe, height: 44, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, label_symbol: " ", long_click: IME_switch, width: 12}, {hide_in_landscape: true, width: 76}, {click: ios_mic, hide_in_landscape: true, hilited_key_back_color: func_key_hilited_back_color, key_back_color: 0x00000000, key_text_size: 24, width: 12}]
+    lock: true
+    name: "iOS 九宫格"
+    reset_ascii_mode: true
+    width: 20
+  t9_land:
+    ascii_keyboard: english
+    ascii_mode: 0
+    author: generated
+    height: 53
+    keys: [{click: {commit: "+", label: "+"}, width: 10}, {click: {commit: 1, label: 1}, width: 10}, {click: {commit: 2, label: 2}, width: 10}, {click: {commit: 3, label: 3}, width: 10}, {click: ",", hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 9}, {click: "'", key_text_size: 16, label: "分词", width: 13}, {click: 2, key_text_size: 20, label: ABC, width: 13}, {click: 3, key_text_size: 20, label: DEF, width: 13}, {click: ios_backspace, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 22, swipe_left: Escape, width: 12}, {click: {commit: "-", label: "-"}, width: 10}, {click: {commit: 4, label: 4}, width: 10}, {click: {commit: 5, label: 5}, width: 10}, {click: {commit: 6, label: 6}, width: 10}, {click: ., hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 9}, {click: 4, key_text_size: 20, label: GHI, width: 13}, {click: 5, key_text_size: 20, label: JKL, width: 13}, {click: 6, key_text_size: 20, label: MNO, width: 13}, {click: Escape, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, key_text_size: 16, label: "重输", width: 12}, {click: {commit: "*", label: "*"}, width: 10}, {click: {commit: 7, label: 7}, width: 10}, {click: {commit: 8, label: 8}, width: 10}, {click: {commit: 9, label: 9}, width: 10}, {click: "?", hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 9}, {click: 7, key_text_size: 20, label: PQRS, width: 13}, {click: 8, key_text_size: 20, label: TUV, width: 13}, {click: 9, key_text_size: 20, label: WXYZ, width: 13}, {click: {commit: "@", label: "@"}, width: 12}, {click: {commit: "/", label: "/"}, width: 10}, {click: ios_symbols, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, label: "符", width: 10}, {click: {commit: 0, label: 0}, width: 10}, {click: {commit: ., label: .}, width: 10}, {click: "!", hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 9}, {click: ios_space, label: "空格", width: 25}, {click: ios_to_en, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, label: ZH, width: 13}, {click: ios_return, hilited_key_back_color: func_key_hilited_back_color, key_back_color: func_key_back_color, width: 13}]
+    lock: true
+    name: "iOS 九宫格（横屏）"
+    reset_ascii_mode: true
+    width: 20
+preset_keys:
+  BRIGHTNESS_DOWN:
+    label: "亮度-"
+    send: BRIGHTNESS_DOWN
+  BRIGHTNESS_UP:
+    label: "亮度+"
+    send: BRIGHTNESS_UP
+  BackSpace:
+    label: "退格"
+    repeatable: true
+    send: BackSpace
+  BackToPreviousSyllable:
+    label: "刪音節"
+    send: "Control+BackSpace"
+  Baidu:
+    command: run
+    label: "百度搜索"
+    option: "https://www.baidu.com/s?wd=%4$s"
+  CALCULATOR:
+    label: "計算機"
+    send: CALCULATOR
+  CALENDAR:
+    label: "日曆"
+    send: CALENDAR
+  CONTACTS:
+    label: "電話簿"
+    send: CONTACTS
+  Candidate_switch:
+    send: SWITCH_CHARSET
+    states: ["有候選", "無候選"]
+    toggle: _hide_candidate
+  Charset_switch:
+    send: SWITCH_CHARSET
+    states: ["常用", "增廣"]
+    toggle: extended_charset
+  ChineseDate:
+    command: date
+    label: "農曆"
+    option: "zh_CN@calendar=chinese"
+  Clear:
+    label: "清除"
+    text: "{Control+a}{BackSpace}"
+  Color_settings:
+    label: "配色"
+    option: color
+    send: SETTINGS
+  Color_switch:
+    label: "配色"
+    send: PROG_RED
+  Comment_switch:
+    send: SWITCH_CHARSET
+    states: ["有註釋", "無註釋"]
+    toggle: _hide_comment
+  CommitComment:
+    label: "編碼"
+    send: "Control+Shift+Return"
+  CommitHomepage:
+    commit: "https://github.com/osfans/trime"
+    label: "同文網址"
+  CommitRawInput:
+    label: "編碼"
+    send: "Control+Return"
+  CommitScriptText:
+    label: "編碼"
+    send: "Shift+Return"
+  Date:
+    command: date
+    label: "日期"
+    option: "yyyy-MM-dd"
+  Delete:
+    label: "刪除"
+    send: Delete
+  DeleteCandidate:
+    label: "刪詞"
+    send: "Control+Delete"
+  Deploy:
+    command: apply
+    label: "部署"
+    option: DEPLOY
+    send: FUNCTION
+  Down:
+    label: "↓"
+    send: Down
+  ENVELOPE:
+    label: "信箱"
+    send: ENVELOPE
+  EXPLORER:
+    label: "瀏覽器"
+    send: EXPLORER
+  End:
+    label: "行尾"
+    send: End
+  Escape:
+    label: Esc
+    send: Escape
+  F4:
+    label: "方案選單"
+    send: F4
+  Google:
+    command: run
+    label: "谷歌"
+    option: "https://www.google.com/search?q=%s"
+  Help:
+    label: "說明"
+    send: HELP
+  Henkan:
+    send: SWITCH_CHARSET
+    states: ["漢字", "汉字"]
+    toggle: simplification
+  Hide:
+    label: "隱藏"
+    send: BACK
+  Hint_switch:
+    send: SWITCH_CHARSET
+    states: ["有助記", "無助記"]
+    toggle: _hide_key_hint
+  Home:
+    label: "行首"
+    send: Home
+  Homepage:
+    command: run
+    label: "同文主頁"
+    option: "https://github.com/osfans/trime"
+  IME_last:
+    label: "上一輸入法"
+    select: .last
+    send: LANGUAGE_SWITCH
+  IME_next:
+    label: "下一輸入法"
+    select: .next
+    send: LANGUAGE_SWITCH
+  IME_switch:
+    label: "🌐"
+    send: LANGUAGE_SWITCH
+  Info:
+    label: "關於"
+    send: INFO
+  Insert:
+    label: "插入"
+    send: Insert
+  Keyboard_default:
+    label: "返回"
+    select: .default
+    send: Eisu_toggle
+  Keyboard_letter:
+    label: "字母"
+    select: default
+    send: Eisu_toggle
+  Keyboard_mini:
+    label: "迷你"
+    select: mini
+    send: Eisu_toggle
+  Keyboard_number:
+    label: "數字"
+    select: number
+    send: Eisu_toggle
+  Keyboard_switch:
+    label: "鍵盤"
+    select: .next
+    send: Eisu_toggle
+  Keyboard_symbols:
+    label: "符號"
+    select: symbols
+    send: Eisu_toggle
+  Left:
+    label: "←"
+    send: Left
+  MUSIC:
+    label: "音樂"
+    send: MUSIC
+  Menu:
+    label: "方案"
+    send: MENU
+  Mode_switch:
+    send: SWITCH_CHARSET
+    states: ["中文", "西文"]
+    toggle: ascii_mode
+  MoeDict:
+    command: run
+    label: "萌典"
+    option: "https://www.moedict.tw/%3$s"
+  POWER:
+    label: "電源"
+    send: POWER
+  Page_Down:
+    label: "下頁"
+    send: Page_Down
+  Page_Up:
+    label: "上頁"
+    send: Page_Up
+  Punct_switch:
+    send: SWITCH_CHARSET
+    states: ["。，", "．，"]
+    toggle: ascii_punct
+  RepeatCommit:
+    command: commit
+    label: "重复"
+    option: "%1$s"
+  Return:
+    label: enter_labels
+    send: Return
+  Return1:
+    label: Enter
+    send: Return
+  Return2:
+    label: "回车"
+    send: Return
+  Right:
+    label: "→"
+    send: Right
+  SEARCH:
+    label: "搜尋"
+    send: SEARCH
+  SLEEP:
+    label: "休眠"
+    send: SLEEP
+  Schema_settings:
+    label: "方案"
+    option: schema
+    send: SETTINGS
+  Schema_switch:
+    label: "下一方案"
+    send: "Control+Shift+1"
+  Search:
+    command: search
+    label: "搜索"
+    option: "%1$s"
+  Settings:
+    label: "設定"
+    send: SETTINGS
+  Share:
+    command: send
+    label: "分享"
+    option: "%s"
+  Shift_L:
+    label: Shift
+    send: Shift_L
+    shift_lock: ascii_long
+  Sync:
+    command: apply
+    label: "同步"
+    option: SYNC_USER_DATA
+    send: FUNCTION
+  Theme_settings:
+    label: "主題"
+    option: theme
+    send: SETTINGS
+  Time:
+    command: date
+    label: "時間"
+    option: "HH:mm:ss"
+  TrimeApp:
+    command: run
+    label: "同文"
+    option: com.osfans.trime
+  TrimeCmp:
+    command: run
+    label: "同文組件"
+    option: "com.osfans.trime/.ui.main.MainActivity"
+  Up:
+    label: "↑"
+    send: Up
+  VOICE_ASSIST:
+    label: "語音"
+    send: VOICE_ASSIST
+  VOLUME_DOWN:
+    label: "音量-"
+    send: VOLUME_DOWN
+  VOLUME_MUTE:
+    label: "靜音"
+    send: VOLUME_MUTE
+  VOLUME_UP:
+    label: "音量+"
+    send: VOLUME_UP
+  WebSearch:
+    command: web_search
+    label: "搜索網頁"
+    option: "%4$s"
+  Wiki:
+    command: run
+    label: "維基"
+    option: "https://zh.wikipedia.org/wiki/%s"
+  Zdic:
+    command: run
+    label: "漢典"
+    option: "http://www.zdic.net/sousuo/?q=%1$s"
+  Zdic2:
+    command: run
+    label: "漢典"
+    option: "http://www.zdic.net/sousuo/?q=%2$s"
+  Zenkaku_Hankaku:
+    send: SWITCH_CHARSET
+    states: ["半角", "全角"]
+    toggle: full_shape
+  clipboard_window:
+    command: clipboard_window
+    label: "剪贴"
+    option: 0
+    send: FUNCTION
+  copy:
+    label: "複製"
+    send: "Control+c"
+  copy_all:
+    label: "全謄"
+    text: "{Control+a}{Control+c}"
+  cut:
+    label: "剪下"
+    send: "Control+x"
+  cut_all:
+    label: "全挪"
+    text: "{Control+a}{Control+x}"
+  ios_abc:
+    label: ABC
+    select: .last_lock
+    send: Eisu_toggle
+  ios_backspace:
+    label: "ic@backspace-outline"
+    repeatable: true
+    send: BackSpace
+    slide_delete: true
+  ios_emoji:
+    command: liquid_keyboard
+    label: "ic@emoticon-outline"
+    option: emoji
+    send: FUNCTION
+  ios_globe:
+    label: "ic@web"
+    send: "Control+Shift+1"
+  ios_kaomoji:
+    command: liquid_keyboard
+    label: "^_^"
+    option: yanwenzi
+    send: FUNCTION
+  ios_mic:
+    command: voice_input
+    label: "ic@microphone-outline"
+  ios_number:
+    label: 123
+    select: number
+    send: Eisu_toggle
+  ios_return:
+    label: enter_labels
+    send: Return
+  ios_shift:
+    label: "ic@apple-keyboard-shift"
+    send: Shift_L
+    shift_lock: ascii_long
+  ios_space:
+    functional: false
+    label: space
+    repeatable: false
+    send: space
+    slide_cursor: true
+  ios_symbols:
+    label: 123
+    select: symbols
+    send: Eisu_toggle
+  ios_symbols2:
+    label: "#+="
+    select: symbols2
+    send: Eisu_toggle
+  ios_symbols2_en:
+    label: "#+="
+    select: symbols2_en
+    send: Eisu_toggle
+  ios_symbols_en:
+    label: 123
+    select: symbols_en
+    send: Eisu_toggle
+  ios_to_en:
+    label: ZH
+    select: english
+    send: Eisu_toggle
+  ios_to_zh:
+    label: EN
+    select: default
+    send: Eisu_toggle
+  liquid_keyboard_emoji:
+    command: liquid_keyboard
+    label: "🙂"
+    option: emoji
+    send: FUNCTION
+  liquid_keyboard_exit:
+    command: liquid_keyboard
+    label: "返回"
+    option: "-1"
+    send: FUNCTION
+  liquid_keyboard_switch:
+    command: liquid_keyboard
+    label: "更多"
+    option: "更多"
+    send: FUNCTION
+  one_hand_switch_1:
+    send: SWITCH_CHARSET
+    states: ["左手", "普通"]
+    toggle: _one_hand_mode_1
+  one_hand_switch_2:
+    send: SWITCH_CHARSET
+    states: ["右手", "普通"]
+    toggle: _one_hand_mode_2
+  one_hand_switch_3:
+    send: SWITCH_CHARSET
+    states: ["左手", "右手"]
+    toggle: _one_hand_mode_3
+  paste:
+    label: "貼上"
+    send: "Control+v"
+  paste_text:
+    label: "貼上文本"
+    send: "Control+Shift+Alt+v"
+  redo:
+    label: "重做"
+    send: "Control+Shift+z"
+  select_all:
+    label: "全選"
+    send: "Control+a"
+  set_color_ink:
+    command: set_color_scheme
+    label: "切换到ink配色"
+    option: ink
+    send: FUNCTION
+  set_theme_ink:
+    command: set_theme
+    label: "切换到ink主题"
+    option: ink
+    send: FUNCTION
+  share_text:
+    label: "分享文本"
+    send: "Control+Alt+s"
+  space:
+    functional: false
+    repeatable: false
+    send: space
+  space1:
+    functional: false
+    label: "空格"
+    repeatable: false
+    send: space
+  undo:
+    label: "撤銷"
+    send: "Control+z"
+  updateConfig:
+    command: apply
+    label: "更新配置"
+    option: UPDATE_CONFIG
+    send: FUNCTION
+style:
+  auto_caps: false
+  candidate_border: 0
+  candidate_border_round: 0
+  candidate_corner_radius: 6
+  candidate_font:
+    - "MiSans-Medium.ttf"
+  candidate_padding: 12
+  candidate_spacing: 0.0
+  candidate_text_size: 20
+  candidate_text_vertical_bias: 0.5
+  candidate_view_height: 52
+  candidate_view_height_land: 32
+  comment_font:
+    - "MiSans-Regular.ttf"
+  comment_height: 12
+  comment_position: right
+  comment_text_size: 14
+  comment_vertical_bias: 0.0
+  enter_label_mode: 0
+  enter_labels:
+    default: "换行"
+    done: "完成"
+    go: "前往"
+    next: "下一个"
+    pre: "上一个"
+    search: "搜索"
+    send: "发送"
+  hanb_font:
+    []
+  hilited_candidate_padding: 4
+  horizontal_gap: 6
+  key_border: 0
+  key_font:
+    - "MiSans-Medium.ttf"
+  key_height: 53
+  key_long_text_size: 16
+  key_press_offset_x: 0
+  key_press_offset_y: 0
+  key_symbol_offset_x: 10
+  key_symbol_offset_y: 1
+  key_text_size: 22
+  key_width: 10.0
+  keyboard_corner_radius: 26
+  keyboard_height: 256
+  keyboard_height_land: 160
+  keyboard_padding: 3
+  keyboard_padding_bottom: 4
+  keyboard_padding_land: 40
+  keyboard_padding_land_bottom: 4
+  keyboard_padding_left: 3
+  keyboard_padding_right: 3
+  label_font:
+    - "MiSans-Medium.ttf"
+  label_text_size: 16
+  latin_font:
+    []
+  popup_bottom_margin: 62
+  popup_font:
+    - "MiSans-Medium.ttf"
+  popup_height: 56
+  popup_key_height: 48
+  popup_text_size: 30
+  popup_width: 44
+  reset_ascii_mode_on_focus_change: false
+  round_corner: 6
+  shadow_radius: 0.0
+  symbol_font:
+    - "MiSans-Regular.ttf"
+  symbol_text_size: 10
+  text_font:
+    - "MiSans-Regular.ttf"
+  vertical_gap: 8
+window:
+  alpha: 1
+  border: 0
+  corner_radius: 10
+  foreground:
+    comment_font_size: 14
+    label_font_size: 16
+    text_font_size: 20
+  insets:
+    horizontal: 8
+    vertical: 6
+  item_padding:
+    horizontal: 8
+    vertical: 4
+  shadow: 4.0

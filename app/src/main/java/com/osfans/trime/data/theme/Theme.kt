@@ -22,16 +22,16 @@ import kotlinx.parcelize.Parcelize
 /** 主题和样式配置  */
 @Parcelize
 data class Theme(
-    val name: String,
-    val generalStyle: GeneralStyle,
-    val preedit: Preedit,
-    val window: Window,
-    val liquidKeyboard: LiquidKeyboard,
-    val presetKeys: Map<String, PresetKey>,
-    val presetKeyboards: Map<String, TextKeyboard>,
-    val colorSchemes: List<ColorScheme>,
-    val fallbackColors: Map<String, String>,
-    val toolBar: ToolBar,
+    val name: String = "",
+    val generalStyle: GeneralStyle = GeneralStyle(),
+    val preedit: Preedit = Preedit(),
+    val window: Window = Window(),
+    val liquidKeyboard: LiquidKeyboard = LiquidKeyboard(),
+    val presetKeys: Map<String, PresetKey> = emptyMap(),
+    val presetKeyboards: Map<String, TextKeyboard> = emptyMap(),
+    val colorSchemes: List<ColorScheme> = emptyList(),
+    val fallbackColors: Map<String, String> = emptyMap(),
+    val toolBar: ToolBar = ToolBar(),
 ) : Parcelable {
     companion object {
         fun decode(node: Node.Mapping): Theme = Theme(

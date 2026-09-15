@@ -21,16 +21,16 @@ import timber.log.Timber
 
 @Parcelize
 data class LiquidKeyboard(
-    val singleWidth: Int,
-    val keyHeight: Int,
-    val marginX: Float,
-    val fixedKeyBar: KeyBar,
-    val keyboards: List<Keyboard>,
+    val singleWidth: Int = 0,
+    val keyHeight: Int = 0,
+    val marginX: Float = 0f,
+    val fixedKeyBar: KeyBar = KeyBar(),
+    val keyboards: List<Keyboard> = emptyList(),
 ) : Parcelable {
     @Parcelize
     data class KeyBar(
-        val keys: List<String>,
-        val position: Position,
+        val keys: List<String> = emptyList(),
+        val position: Position = Position.BOTTOM,
     ) : Parcelable {
         enum class Position {
             TOP,
@@ -44,8 +44,8 @@ data class LiquidKeyboard(
     data class Keyboard(
         val id: String,
         val type: LiquidData.Type,
-        val name: String,
-        val keys: List<KeyItem>,
+        val name: String = id,
+        val keys: List<KeyItem> = emptyList(),
     ) : Parcelable
 
     @Parcelize
