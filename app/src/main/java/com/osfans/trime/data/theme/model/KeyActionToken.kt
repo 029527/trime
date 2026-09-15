@@ -6,8 +6,6 @@
 package com.osfans.trime.data.theme.model
 
 import android.os.Parcelable
-import com.osfans.trime.util.yaml.Node
-import com.osfans.trime.util.yaml.string
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -20,20 +18,6 @@ sealed class KeyActionToken : Parcelable {
             val text: String?,
             val label: String?,
         ) : Parcelable
-    }
-
-    companion object {
-        fun decode(node: Node?): KeyActionToken? = when (node) {
-            is Node.Scalar -> Plain(node.string)
-            is Node.Mapping -> Inline(
-                Inline.Token(
-                    commit = node["commit"]?.string,
-                    text = node["text"]?.string,
-                    label = node["label"]?.string,
-                ),
-            )
-            else -> null
-        }
     }
 }
 

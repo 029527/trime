@@ -14,9 +14,6 @@ import com.osfans.trime.data.theme.model.PresetKey
 import com.osfans.trime.data.theme.model.TextKeyboard
 import com.osfans.trime.data.theme.model.ToolBar
 import com.osfans.trime.data.theme.model.Window
-import com.osfans.trime.util.yaml.Node
-import com.osfans.trime.util.yaml.mapping
-import com.osfans.trime.util.yaml.string
 import kotlinx.parcelize.Parcelize
 
 /** 主题和样式配置  */
@@ -32,34 +29,4 @@ data class Theme(
     val colorSchemes: List<ColorScheme> = emptyList(),
     val fallbackColors: Map<String, String> = emptyMap(),
     val toolBar: ToolBar = ToolBar(),
-) : Parcelable {
-    companion object {
-        fun decode(node: Node.Mapping): Theme = Theme(
-            name = node["name"]?.string!!,
-            generalStyle = GeneralStyle.decode(node["style"]!!),
-            preedit = Preedit.decode(node["preedit"]?.mapping),
-            window = Window.decode(node["window"]?.mapping),
-            liquidKeyboard = LiquidKeyboard.decode(node["liquid_keyboard"]?.mapping),
-            toolBar = ToolBar.decode(node["tool_bar"]?.mapping),
-            presetKeys = node["preset_keys"]?.mapping?.entries?.associate {
-                it.key.string!! to PresetKey.decode(it.value.mapping!!)
-            } ?: emptyMap(),
-            presetKeyboards =
-            node["preset_keyboards"]?.mapping?.entries?.associate {
-                it.key.string!! to TextKeyboard.decode(it.value.mapping!!)
-            } ?: emptyMap(),
-            colorSchemes =
-            node["preset_color_schemes"]?.mapping?.map {
-                ColorScheme(
-                    it.key.string!!,
-                    it.value.mapping!!.entries.associate { (k, v) ->
-                        k.string!! to v.string!!
-                    },
-                )
-            } ?: emptyList(),
-            fallbackColors = node["fallback_colors"]?.mapping?.entries?.associate {
-                it.key.string!! to it.value.string!!
-            } ?: emptyMap(),
-        )
-    }
-}
+) : Parcelable

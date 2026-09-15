@@ -77,37 +77,11 @@ val Node.mapping: Node.Mapping?
 val Node.sequence: Node.Sequence?
     get() = this as? Node.Sequence
 
-val Node.alias: Node.Alias?
-    get() = this as? Node.Alias
-
 val Node.string: String?
     get() = scalar?.string
 
 val Node.int: Int?
     get() = scalar?.parseToIntLikeOrNull(String::toIntOrNull)
-
-val Node.long: Long?
-    get() = scalar?.parseToIntLikeOrNull(String::toLongOrNull)
-
-val Node.double: Double?
-    get() {
-        return when (val string = scalar?.string) {
-            ".inf", ".Inf", ".INF" -> Double.POSITIVE_INFINITY
-            "-.inf", "-.Inf", "-.INF" -> Double.NEGATIVE_INFINITY
-            ".nan", ".NaN", ".NAN" -> Double.NaN
-            else -> string?.toDoubleOrNull()
-        }
-    }
-
-val Node.float: Float?
-    get() {
-        return when (val string = scalar?.string) {
-            ".inf", ".Inf", ".INF" -> Float.POSITIVE_INFINITY
-            "-.inf", "-.Inf", "-.INF" -> Float.NEGATIVE_INFINITY
-            ".nan", ".NaN", ".NAN" -> Float.NaN
-            else -> string?.toFloatOrNull()
-        }
-    }
 
 val Node.boolean: Boolean?
     get() = when (scalar?.string) {
@@ -128,11 +102,6 @@ private fun <T : Any> Node.Scalar.parseToIntLikeOrNull(converter: (String, Int) 
     null
 }
 
-inline fun <reified T : Enum<T>> Node.enum(): T? {
-    val string = scalar?.string ?: return null
-    return enumValues<T>().firstOrNull { it.name.equals(string, ignoreCase = true) }
-}
-
 operator fun Node.get(node: Node): Node? = when (this) {
     is Node.Scalar, is Node.Alias -> null
     is Node.Mapping -> this[node]
@@ -147,7 +116,3 @@ operator fun Node.get(node: Node): Node? = when (this) {
 }
 
 operator fun Node.get(string: String): Node? = this[Node.Scalar(string)]
-
-fun Node(value: Boolean): Node = Node.Scalar(value.toString())
-
-fun Node(value: Number): Node = Node.Scalar(value.toString())

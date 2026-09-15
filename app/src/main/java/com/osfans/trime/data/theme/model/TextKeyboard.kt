@@ -7,14 +7,6 @@ package com.osfans.trime.data.theme.model
 
 import android.os.Parcelable
 import com.osfans.trime.ime.keyboard.KeyBehavior
-import com.osfans.trime.util.yaml.Node
-import com.osfans.trime.util.yaml.boolean
-import com.osfans.trime.util.yaml.enum
-import com.osfans.trime.util.yaml.float
-import com.osfans.trime.util.yaml.int
-import com.osfans.trime.util.yaml.mapping
-import com.osfans.trime.util.yaml.sequence
-import com.osfans.trime.util.yaml.string
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
@@ -133,98 +125,5 @@ data class TextKeyboard(
             KeyBehavior.SWIPE_RIGHT -> swipeRight
             KeyBehavior.EXTRA -> extra
         }
-
-        companion object {
-            private fun decodeToken(
-                node: Node.Mapping,
-                behavior: KeyBehavior,
-            ): KeyActionToken? = KeyActionToken.decode(node[behavior.name.lowercase()])?.takeIf {
-                when (it) {
-                    is KeyActionToken.Plain -> it.token.isNotEmpty()
-                    is KeyActionToken.Inline -> listOfNotNull(it.token.commit, it.token.text, it.token.label).isNotEmpty()
-                }
-            }
-
-            fun decode(node: Node.Mapping): TextKey = TextKey(
-                width = node["width"]?.float ?: 0f,
-                height = node["height"]?.float ?: 0f,
-                roundCorner = node["round_corner"]?.float ?: -1f,
-                keyBorder = node["key_border"]?.int ?: -1,
-                label = node["label"]?.string ?: "",
-                labelSymbol = node["label_symbol"]?.string ?: "",
-                hint = node["hint"]?.string ?: "",
-                sendBindings = node["send_bindings"]?.boolean ?: true,
-                keyTextSize = node["key_text_size"]?.float ?: 0f,
-                symbolTextSize = node["symbol_text_size"]?.float ?: 0f,
-                keyTextOffsetX = node["key_text_offset_x"]?.float ?: 0f,
-                keyTextOffsetY = node["key_text_offset_y"]?.float ?: 0f,
-                keySymbolOffsetX = node["key_symbol_offset_x"]?.float ?: 0f,
-                keySymbolOffsetY = node["key_symbol_offset_y"]?.float ?: 0f,
-                keyHintOffsetX = node["key_hint_offset_x"]?.float ?: 0f,
-                keyHintOffsetY = node["key_hint_offset_y"]?.float ?: 0f,
-                keyPressOffsetX = node["key_press_offset_x"]?.float ?: 0f,
-                keyPressOffsetY = node["key_press_offset_y"]?.float ?: 0f,
-                keyTextColor = node["key_text_color"]?.string ?: "",
-                keyBackColor = node["key_back_color"]?.string ?: "",
-                keyBorderColor = node["key_border_color"]?.string ?: "",
-                keySymbolColor = node["key_symbol_color"]?.string ?: "",
-                hlKeyTextColor = node["hilited_key_text_color"]?.string ?: "",
-                hlKeyBackColor = node["hilited_key_back_color"]?.string ?: "",
-                hlKeyBorderColor = node["hilited_key_border_color"]?.string ?: "",
-                hlKeySymbolColor = node["hilited_key_symbol_color"]?.string ?: "",
-                popup = node["popup"]?.sequence?.mapNotNull(Node::string) ?: emptyList(),
-                hideInLandscape = node["hide_in_landscape"]?.boolean ?: false,
-                composing = decodeToken(node, KeyBehavior.COMPOSING),
-                hasMenu = decodeToken(node, KeyBehavior.HAS_MENU),
-                paging = decodeToken(node, KeyBehavior.PAGING),
-                combo = decodeToken(node, KeyBehavior.COMBO),
-                ascii = decodeToken(node, KeyBehavior.ASCII),
-                click = decodeToken(node, KeyBehavior.CLICK),
-                doubleClick = decodeToken(node, KeyBehavior.DOUBLE_CLICK),
-                lazyDoubleClick = decodeToken(node, KeyBehavior.LAZY_DOUBLE_CLICK),
-                swipeUp = decodeToken(node, KeyBehavior.SWIPE_UP),
-                longClick = decodeToken(node, KeyBehavior.LONG_CLICK),
-                swipeDown = decodeToken(node, KeyBehavior.SWIPE_DOWN),
-                swipeLeft = decodeToken(node, KeyBehavior.SWIPE_LEFT),
-                swipeRight = decodeToken(node, KeyBehavior.SWIPE_RIGHT),
-                extra = decodeToken(node, KeyBehavior.EXTRA),
-            )
-        }
-    }
-
-    companion object {
-        fun decode(node: Node.Mapping): TextKeyboard = TextKeyboard(
-            name = node["name"]?.string ?: "",
-            author = node["author"]?.string ?: "",
-            width = node["width"]?.float ?: 0f,
-            height = node["height"]?.float ?: 0f,
-            keyboardHeight = node["keyboard_height"]?.int ?: 0,
-            keyboardHeightLand = node["keyboard_height_land"]?.int ?: 0,
-            autoHeightIndex = node["auto_height_index"]?.int ?: -1,
-            horizontalGap = node["horizontal_gap"]?.int ?: 0,
-            verticalGap = node["vertical_gap"]?.int ?: 0,
-            roundCorner = node["round_corner"]?.float ?: -1f,
-            keyBorder = node["key_border"]?.int ?: -1,
-            columns = node["columns"]?.int ?: 30,
-            asciiMode = (node["ascii_mode"]?.int ?: 1) == 1,
-            resetAsciiMode = node["reset_ascii_mode"]?.boolean ?: false,
-            labelTransform = node["label_transform"]?.enum<LabelTransform>() ?: LabelTransform.NONE,
-            lock = node["lock"]?.boolean ?: false,
-            asciiKeyboard = node["ascii_keyboard"]?.string ?: "",
-            landscapeKeyboard = node["landscape_keyboard"]?.string ?: "",
-            landscapeSplitPercent = node["landscape_split_percent"]?.int ?: 0,
-            keyTextOffsetX = node["key_text_offset_x"]?.float ?: 0f,
-            keyTextOffsetY = node["key_text_offset_y"]?.float ?: 0f,
-            keySymbolOffsetX = node["key_symbol_offset_x"]?.float ?: 0f,
-            keySymbolOffsetY = node["key_symbol_offset_y"]?.float ?: 0f,
-            keyHintOffsetX = node["key_hint_offset_x"]?.float ?: 0f,
-            keyHintOffsetY = node["key_hint_offset_y"]?.float ?: 0f,
-            keyPressOffsetX = node["key_press_offset_x"]?.float ?: 0f,
-            keyPressOffsetY = node["key_press_offset_y"]?.float ?: 0f,
-            importPreset = node["import_preset"]?.string ?: "",
-            keys = node["keys"]?.sequence?.mapNotNull {
-                TextKey.decode(it.mapping!!)
-            } ?: emptyList(),
-        )
     }
 }

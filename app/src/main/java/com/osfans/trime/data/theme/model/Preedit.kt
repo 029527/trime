@@ -6,10 +6,6 @@
 package com.osfans.trime.data.theme.model
 
 import android.os.Parcelable
-import com.osfans.trime.util.yaml.Node
-import com.osfans.trime.util.yaml.float
-import com.osfans.trime.util.yaml.int
-import com.osfans.trime.util.yaml.mapping
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -24,21 +20,5 @@ data class Preedit(
     @Parcelize
     data class Foreground(
         val fontSize: Float = 16f,
-    ) : Parcelable {
-        companion object {
-            fun decode(node: Node.Mapping?): Foreground = Foreground(
-                fontSize = node?.get("font_size")?.float ?: 16f,
-            )
-        }
-    }
-
-    companion object {
-        fun decode(node: Node.Mapping?): Preedit = Preedit(
-            horizontalPadding = node?.get("horizontal_padding")?.int ?: 8,
-            topStartRadius = node?.get("top_start_radius")?.float ?: 0f,
-            topEndRadius = node?.get("top_end_radius")?.float ?: 0f,
-            alpha = node?.get("alpha")?.float ?: 0.8f,
-            foreground = Foreground.decode(node?.get("foreground")?.mapping),
-        )
-    }
+    ) : Parcelable
 }
