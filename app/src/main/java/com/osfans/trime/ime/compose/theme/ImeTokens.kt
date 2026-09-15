@@ -201,6 +201,12 @@ data class ImeTokens(
     val editPanelIconLabelGap: Dp = 2.dp,
     /** Label beside the glyph instead of under it: a landscape row is too short for both stacked. */
     val editPanelLabelBesideIcon: Boolean = false,
+    // t9 pinyin column
+    // Drawn over the nine-key keyboard's left key column; cells are keys, so corners, gaps and shades come from the key group.
+    /** One syllable: shorter than a key body, so the four key rows show five syllables and hint that the list scrolls. */
+    val t9ColumnItemHeight: Dp = 36.dp,
+    /** Between two syllables; less than the key gap, they belong to one list. */
+    val t9ColumnItemSpacing: Dp = 4.dp,
 ) {
     companion object {
         val Portrait = ImeTokens()
@@ -236,6 +242,8 @@ data class ImeTokens(
             editPanelIconSize = 20.dp,
             editPanelIconLabelGap = 6.dp,
             editPanelLabelBesideIcon = true,
+            // t9 pinyin column
+            t9ColumnItemHeight = 28.dp,
         )
     }
 }

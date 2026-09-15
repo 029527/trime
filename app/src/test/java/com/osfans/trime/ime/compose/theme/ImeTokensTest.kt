@@ -94,6 +94,8 @@ class ImeTokensTest :
             "editPanelLabelTextSize" to t.editPanelLabelTextSize,
             "editPanelIconLabelGap" to t.editPanelIconLabelGap,
             "editPanelLabelBesideIcon" to t.editPanelLabelBesideIcon,
+            "t9ColumnItemHeight" to t.t9ColumnItemHeight,
+            "t9ColumnItemSpacing" to t.t9ColumnItemSpacing,
         )
 
         "portrait values" {
@@ -191,6 +193,9 @@ private val expectedPortrait: Map<String, Any> = mapOf(
     "editPanelLabelTextSize" to 14.sp,
     "editPanelIconLabelGap" to 2.dp,
     "editPanelLabelBesideIcon" to false,
+    // t9 pinyin column
+    "t9ColumnItemHeight" to 36.dp,
+    "t9ColumnItemSpacing" to 4.dp,
 )
 
 // a 40dp row takes smaller corners, glyphs and highlight insets; popup cells shrink; edit panel labels move beside their glyphs
@@ -207,4 +212,5 @@ private val expectedLandscape: Map<String, Any> = expectedPortrait + mapOf(
     "editPanelIconSize" to 20.dp,
     "editPanelIconLabelGap" to 6.dp,
     "editPanelLabelBesideIcon" to true,
+    "t9ColumnItemHeight" to 28.dp,
 )

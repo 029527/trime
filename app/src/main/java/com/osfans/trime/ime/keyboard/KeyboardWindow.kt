@@ -5,13 +5,19 @@
 package com.osfans.trime.ime.keyboard
 
 import android.graphics.Point
+import android.graphics.Rect
 import android.os.Build
 import android.text.InputType
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
@@ -28,7 +34,10 @@ import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.model.TextKeyboard
 import com.osfans.trime.ime.broadcast.EnterKeyDisplayDelegate
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
+import com.osfans.trime.ime.compose.imeComposeView
 import com.osfans.trime.ime.compose.keyboard.ComposeKeyboardView
+import com.osfans.trime.ime.compose.t9.T9PinyinChoices
+import com.osfans.trime.ime.compose.t9.T9PinyinColumn
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
 import com.osfans.trime.ime.popup.PopupDelegate
@@ -419,7 +428,7 @@ class KeyboardWindow :
         // every cached layout, not just the visible one: Key re-resolves its colours lazily
         // on the next draw, but a detached view would otherwise come back with a stale frame
         cachedKeyboards.values.forEach { (_, view) -> view.renderState.invalidate() }
-        t9Column?.refreshColors()
+        // the pinyin column recolours itself: ImeTheme listens to the tint
     }
 
     override fun onAttached() {
@@ -429,9 +438,13 @@ class KeyboardWindow :
         currentKeyboardView?.onDetach()
     }
 
-    // ---- nine-key (T9) assist: a "choose pinyin" column over the leftmost keys ----
+    // ---- nine-key (T9) assist: a "choose pinyin" column over the left key column ----
 
-    private var t9Column: T9PinyinColumn? = null
+    private var t9Column: ComposeView? = null
+
+    /** Orientation [t9Column] was built for: [imeComposeView] fixes the tokens at creation. */
+    private var t9ColumnLandscape = false
+    private var t9Choices by mutableStateOf(T9PinyinChoices("", emptyList()))
     private var t9Job: Job? = null
 
     override fun onCandidateListUpdate(data: Candidates.Bulk) {
@@ -449,45 +462,70 @@ class KeyboardWindow :
                 val choices =
                     rime.runOnReady {
                         val raw = getRawInput()
-                        if (!T9Assist.isT9Input(raw)) return@runOnReady emptyList<String>()
-                        T9Assist.syllableChoices(raw, getCandidates(0, 60).map { it.comment })
+                        if (!T9Assist.isT9Input(raw)) return@runOnReady T9PinyinChoices(raw, emptyList())
+                        T9PinyinChoices(raw, T9Assist.syllableChoices(raw, getCandidates(0, 60).map { it.comment }))
                     }
-                if (choices.isEmpty()) hideT9Column() else showT9Column(choices)
+                if (choices.syllables.isEmpty()) hideT9Column() else showT9Column(choices)
             }
     }
 
-    private fun showT9Column(choices: List<String>) {
+    /**
+     * The key cells the pinyin column covers, in px within the keyboard: the column of keys that
+     * starts at the `,` key of the first row (the left punctuation column of `t9` / `t9_land`) and
+     * runs down while the keys below share its x and width. That stops above the portrait bottom
+     * row, whose corner key is narrower, and leaves the numpad left of `t9_land` alone.
+     */
+    private fun t9ColumnBounds(keyboard: Keyboard): Rect? {
+        val keys = keyboard.keys
+        val anchor = keys.firstOrNull { it.row == 0 && it.code == KeyEvent.KEYCODE_COMMA } ?: return null
+        var bottom = anchor
+        while (true) {
+            val row = bottom.row + 1
+            bottom = keys.firstOrNull { it.row == row && it.x == anchor.x && it.width == anchor.width } ?: break
+        }
+        return Rect(anchor.x, anchor.y, anchor.x + anchor.width, bottom.y + bottom.height)
+    }
+
+    private fun showT9Column(choices: T9PinyinChoices) {
         val keyboard = currentKeyboard ?: return
-        val firstKey = keyboard.keys.firstOrNull() ?: return
-        // key cells include half a gap on each side; the visible key starts gap/2 in
-        val gapH = keyboard.horizontalGap
-        val gapV = keyboard.verticalGap
-        val visibleKeyWidth = firstKey.width - gapH
-        val chipWidth = visibleKeyWidth * 3 / 4
-        val top = firstKey.y + gapV / 2
-        val lp =
-            FrameLayout.LayoutParams(firstKey.width, keyboard.height - top - gapV / 2, Gravity.START or Gravity.TOP).apply {
-                leftMargin = firstKey.x
-                topMargin = top
-            }
+        val bounds = t9ColumnBounds(keyboard) ?: return hideT9Column()
+        t9Choices = choices
+        val landscape = context.isLandscapeMode()
+        t9Column?.takeIf { t9ColumnLandscape != landscape }?.let {
+            keyboardView.removeView(it)
+            t9Column = null
+        }
         val column =
-            t9Column ?: T9PinyinColumn(context, theme) { syllable ->
-                rime.launchOnReady { api ->
-                    val raw = api.getRawInput()
-                    if (!T9Assist.isT9Input(raw)) return@launchOnReady
-                    val next = T9Assist.applySyllable(raw, syllable)
-                    api.clearComposition()
-                    api.simulateKeySequence(next)
+            t9Column ?: context
+                .imeComposeView { T9PinyinColumn(t9Choices, onSyllable = ::applyT9Syllable) }
+                .also {
+                    t9Column = it
+                    t9ColumnLandscape = landscape
                 }
-            }.also { t9Column = it }
-        column.update(choices, chipWidth)
-        if (column.parent == null) {
-            keyboardView.addView(column, lp)
-        } else {
-            column.layoutParams = lp
+        val lp = column.layoutParams as? FrameLayout.LayoutParams
+        if (column.parent == null || lp == null ||
+            lp.width != bounds.width() || lp.height != bounds.height() ||
+            lp.leftMargin != bounds.left || lp.topMargin != bounds.top
+        ) {
+            val params =
+                FrameLayout.LayoutParams(bounds.width(), bounds.height(), Gravity.START or Gravity.TOP).apply {
+                    leftMargin = bounds.left
+                    topMargin = bounds.top
+                }
+            if (column.parent == null) keyboardView.addView(column, params) else column.layoutParams = params
         }
         column.bringToFront()
         column.visibility = View.VISIBLE
+    }
+
+    private fun applyT9Syllable(syllable: String) {
+        rime.launchOnReady { api ->
+            val raw = api.getRawInput()
+            if (!T9Assist.isT9Input(raw)) return@launchOnReady
+            val next = T9Assist.applySyllable(raw, syllable)
+            api.clearComposition()
+            api.simulateKeySequence(next)
+        }
     }
 
     private fun hideT9Column() {
