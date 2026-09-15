@@ -61,9 +61,9 @@ import com.osfans.trime.ime.edit.EditKey
  * │ ←  │ 选择 │ →  │ 剪切 │
  * │    ├──────┤    ├──────┤
  * │    │  ↓   │    │ 复制 │
- * ├────┴──┬───┴────┼──────┤
- * │ 行首  │  行尾  │ 粘贴 │
- * └───────┴────────┴──────┘
+ * ├────┴─┬────┴─┬────┼──────┤
+ * │ 行首 │ 补全 │行尾│ 粘贴 │
+ * └──────┴──────┴────┴──────┘
  * ```
  *
  * Cells share the window's height through weights; nothing here measures the window, so the
@@ -98,6 +98,7 @@ fun EditPanel(
             }
             Row(Modifier.weight(1f).fillMaxWidth()) {
                 KeyCell(EditKey.LineStart, onKey, Modifier.weight(1f).fillMaxHeight())
+                KeyCell(EditKey.Tab, onKey, Modifier.weight(1f).fillMaxHeight())
                 KeyCell(EditKey.LineEnd, onKey, Modifier.weight(1f).fillMaxHeight())
             }
         }
@@ -131,6 +132,7 @@ private fun KeyCell(
             EditKey.Right -> ImeIcons.EditRight to null
             EditKey.LineStart -> ImeIcons.EditLineStart to stringResource(R.string.edit_line_start)
             EditKey.LineEnd -> ImeIcons.EditLineEnd to stringResource(R.string.edit_line_end)
+            EditKey.Tab -> ImeIcons.EditTab to stringResource(R.string.edit_tab)
         }
     EditCell(
         icon = icon,

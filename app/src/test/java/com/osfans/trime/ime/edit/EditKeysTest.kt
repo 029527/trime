@@ -12,12 +12,12 @@ class EditKeysTest :
     FunSpec({
         test("plain keys move the cursor") {
             EditKey.entries.map { it.token(selecting = false, composing = false) } shouldBe
-                listOf("Up", "Down", "Left", "Right", "Home", "End")
+                listOf("Up", "Down", "Left", "Right", "Home", "End", "Tab")
         }
 
         test("select mode adds Shift so the editor extends the selection") {
             EditKey.entries.map { it.token(selecting = true, composing = false) } shouldBe
-                listOf("Shift+Up", "Shift+Down", "Shift+Left", "Shift+Right", "Shift+Home", "Shift+End")
+                listOf("Shift+Up", "Shift+Down", "Shift+Left", "Shift+Right", "Shift+Home", "Shift+End", "Tab")
         }
 
         test("a composition keeps plain keys, which move the caret inside the preedit") {

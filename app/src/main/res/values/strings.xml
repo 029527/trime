@@ -385,6 +385,7 @@
     <string name="edit_select">Select</string>
     <string name="edit_line_start">Line start</string>
     <string name="edit_line_end">Line end</string>
+    <string name="edit_tab">Tab</string>
     <string name="edit_select_all">Select all</string>
     <string name="edit_cut">Cut</string>
     <string name="edit_copy">Copy</string>

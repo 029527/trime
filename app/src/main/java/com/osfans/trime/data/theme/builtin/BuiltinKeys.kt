@@ -102,6 +102,7 @@ object BuiltinKeys {
             "Settings" to PresetKey(label = "設定", send = "SETTINGS"),
             "Share" to PresetKey(label = "分享", command = "send", option = "%s"),
             "Shift_L" to PresetKey(label = "Shift", send = "Shift_L", shiftLock = "ascii_long"),
+            "Tab" to PresetKey(label = "补全", send = "Tab"),
             "Sync" to PresetKey(label = "同步", send = "FUNCTION", command = "apply", option = "SYNC_USER_DATA"),
             "Theme_settings" to PresetKey(label = "主題", send = "SETTINGS", option = "theme"),
             "Time" to PresetKey(label = "時間", command = "date", option = "HH:mm:ss"),

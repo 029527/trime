@@ -383,6 +383,7 @@
     <string name="edit_select">选择</string>
     <string name="edit_line_start">行首</string>
     <string name="edit_line_end">行尾</string>
+    <string name="edit_tab">补全</string>
     <string name="edit_select_all">全选</string>
     <string name="edit_cut">剪切</string>
     <string name="edit_copy">复制</string>

@@ -223,10 +223,11 @@ class AppPrefs(
             val widthPercent: Int,
             val scale: Float,
         ) : PreferenceDelegateEnum {
-            SMALL(R.string.landscape_floating_size_small, 32, 0.8f),
-            MEDIUM(R.string.landscape_floating_size_medium, 40, 1f),
-            LARGE(R.string.landscape_floating_size_large, 50, 1.25f),
-            XLARGE(R.string.landscape_floating_size_xlarge, 60, 1.5f),
+            // widths are ~9% narrower than the height scale alone would give, so the keys look less squat
+            SMALL(R.string.landscape_floating_size_small, 29, 0.8f),
+            MEDIUM(R.string.landscape_floating_size_medium, 36, 1f),
+            LARGE(R.string.landscape_floating_size_large, 46, 1.25f),
+            XLARGE(R.string.landscape_floating_size_xlarge, 55, 1.5f),
             CUSTOM(R.string.landscape_floating_size_custom, 0, 0f),
         }
 
@@ -234,7 +235,7 @@ class AppPrefs(
         val landscapeFloatingWidth = int(
             R.string.landscape_floating_width,
             LANDSCAPE_FLOATING_WIDTH,
-            40,
+            36,
             25,
             80,
             "%",

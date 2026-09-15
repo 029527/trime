@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.KeyboardTab
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.ContentPaste
@@ -88,6 +89,7 @@ object ImeIcons {
     val EditSelect get() = Icons.Outlined.HighlightAlt
     val EditLineStart get() = Icons.Outlined.FirstPage
     val EditLineEnd get() = Icons.Outlined.LastPage
+    val EditTab get() = Icons.AutoMirrored.Outlined.KeyboardTab
     val SelectAll get() = Icons.Outlined.SelectAll
     val Cut get() = Icons.Outlined.ContentCut
     val Copy get() = Icons.Outlined.ContentCopy

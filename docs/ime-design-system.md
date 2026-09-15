@@ -333,9 +333,9 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 │ ←  │ 选择 │ →  │ 剪切 │
 │    ├──────┤    ├──────┤
 │    │  ↓   │    │ 复制 │
-├────┴──┬───┴────┼──────┤
-│ 行首  │  行尾  │ 粘贴 │
-└───────┴────────┴──────┘
+├────┴─┬────┴─┬────┼──────┤
+│ 行首 │ 补全 │行尾│ 粘贴 │
+└──────┴──────┴────┴──────┘
 ```
 
 | Token | 竖屏 | 横屏 | 理由 |
@@ -348,7 +348,8 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 | `editPanelIconLabelGap` | 2dp | 6dp | 竖排时紧贴；横排时隔开 |
 | `editPanelLabelBesideIcon` | false | true | 横屏一行只有 40dp 高，图标和文字叠不下，改成左右并排 |
 
-四个方向键长按连发，节奏和退格一致（`longPressTimeout` / `repeatInterval` 偏好）；行首行尾和命令不连发。
+四个方向键长按连发，节奏和退格一致（`longPressTimeout` / `repeatInterval` 偏好）；行首行尾、补全和命令不连发。
+「补全」发 `Tab`，选择模式下也不加 Shift：远程桌面、终端这类输入框里方向键和数字可能被 App 自己拦掉，Tab 能透过去做补全。
 
 **九宫格拼音列**（`t9Column*`，`ime/compose/t9/T9PinyinColumn.kt`）：九宫格打字时盖在左侧那列键上的「选拼音」列表，
 点一个拼音替换当前音节（`T9Assist.applySyllable`）。由 `KeyboardWindow` 用 ComposeView 挂在键盘上。

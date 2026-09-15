@@ -15,10 +15,13 @@ enum class EditKey(
     Right("Right"),
     LineStart("Home"),
     LineEnd("End"),
+
+    /** Completion in terminals, shells and remote desktops, where arrows and digits may not get through but Tab does. */
+    Tab("Tab"),
     ;
 
     /** Held arrows repeat like backspace; jumping to a line end twice goes nowhere new. */
-    val repeatable: Boolean get() = this != LineStart && this != LineEnd
+    val repeatable: Boolean get() = this != LineStart && this != LineEnd && this != Tab
 
     /**
      * The key action token to send. With [selecting] on it carries Shift, which is how editors
@@ -26,11 +29,12 @@ enum class EditKey(
      *
      * While a composition is in progress the key stays plain, so it moves the caret inside the
      * preedit exactly as the keyboard's arrow keys do, instead of selecting app text behind it.
+     * Tab never carries Shift: Shift+Tab goes back a completion or a field instead of selecting.
      */
     fun token(
         selecting: Boolean,
         composing: Boolean,
-    ): String = if (selecting && !composing) "Shift+$keysym" else keysym
+    ): String = if (selecting && !composing && this != Tab) "Shift+$keysym" else keysym
 }
 
 /** A clipboard command of the edit panel, sent as the preset key of the same meaning. */
