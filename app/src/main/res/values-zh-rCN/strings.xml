@@ -160,6 +160,8 @@
     <string name="licenses_of_third_party_libraries">第三方软件库许可证</string>
     <string name="clipboard">剪贴板</string>
     <string name="collection">收藏夹</string>
+    <string name="clipboard_empty">剪贴板里还没有内容，复制过的文字会出现在这里。</string>
+    <string name="collection_empty">收藏夹是空的。长按剪贴板里的条目，选「收藏」加进来。</string>
     <string name="simple_key_unpin">取消置顶</string>
     <string name="simple_key_pin">置顶</string>
     <string name="delete_all">删除全部</string>
