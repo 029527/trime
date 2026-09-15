@@ -41,6 +41,10 @@ import com.osfans.trime.voice.llm.LlmCorrectionException
 import com.osfans.trime.voice.llm.LlmCorrectionSettings
 import com.osfans.trime.voice.llm.LlmPreset
 import com.osfans.trime.voice.llm.OpenAiCompatibleCorrector
+import com.osfans.trime.voice.postprocess.PeriodStyle
+import com.osfans.trime.voice.postprocess.PunctuationFormatter
+import com.osfans.trime.voice.postprocess.PunctuationOptions
+import com.osfans.trime.voice.postprocess.PunctuationRule
 import com.osfans.trime.voice.vocab.VoiceVocabularyStore
 import com.osfans.trime.voice.volc.VolcConfig
 import kotlinx.coroutines.CancellationException
@@ -58,6 +62,8 @@ private enum class VoiceDialog {
     LLM_MODEL,
     LLM_API_KEY,
     LLM_PROMPT,
+    PERIOD_STYLE,
+    PUNCTUATION_RULE,
 }
 
 /**
@@ -116,6 +122,29 @@ fun VoiceInputScreen(
     val llmActive = enabled && llmEnabled
     val llmConfig = LlmCorrectionSettings.current()
     val llmPrompt = prefs.llmPrompt.getValue()
+
+    val periodStyle = PeriodStyle.of(prefs.periodStyle.getValue())
+    val punctuationRule = PunctuationRule.of(prefs.punctuationRule.getValue())
+    // 顺序跟 PeriodStyle.entries / PunctuationRule.entries 一致
+    val periodLabels = listOf(
+        stringResource(R.string.voice_period_chinese),
+        stringResource(R.string.voice_period_english),
+        stringResource(R.string.voice_period_space),
+        stringResource(R.string.voice_period_none),
+    )
+    val ruleLabels = listOf(
+        stringResource(R.string.voice_punctuation_preserve),
+        stringResource(R.string.voice_punctuation_strip_periods),
+        stringResource(R.string.voice_punctuation_strip_trailing),
+        stringResource(R.string.voice_punctuation_questions),
+        stringResource(R.string.voice_punctuation_remove_all),
+    )
+    val punctuationSample = stringResource(R.string.voice_punctuation_sample)
+    val punctuationExample = stringResource(R.string.voice_punctuation_example, punctuationSample)
+    val punctuationDialogMessage = stringResource(R.string.voice_punctuation_note) + "\n\n" + punctuationExample
+
+    /** 示例句子按 [options] 整理后的样子，设置页和选项对话框里实时显示。 */
+    fun punctuationPreview(options: PunctuationOptions) = "→ " + PunctuationFormatter.format(punctuationSample, options)
 
     TrimeScreen(
         title = stringResource(R.string.voice_input),
@@ -215,6 +244,21 @@ fun VoiceInputScreen(
                         revision++
                     },
                 )
+
+                PreferenceCategoryHeader(stringResource(R.string.voice_punctuation))
+                PreferenceRow(
+                    title = stringResource(R.string.voice_period_style),
+                    summary = periodLabels[periodStyle.ordinal],
+                    enabled = enabled,
+                    onClick = { dialog = VoiceDialog.PERIOD_STYLE },
+                )
+                PreferenceRow(
+                    title = stringResource(R.string.voice_punctuation_rule),
+                    summary = ruleLabels[punctuationRule.ordinal],
+                    enabled = enabled,
+                    onClick = { dialog = VoiceDialog.PUNCTUATION_RULE },
+                )
+                NoteText(punctuationExample + "\n" + punctuationPreview(PunctuationOptions(periodStyle, punctuationRule)))
 
                 PreferenceCategoryHeader(stringResource(R.string.voice_llm))
                 NoteText(stringResource(R.string.voice_llm_privacy))
@@ -450,6 +494,30 @@ fun VoiceInputScreen(
             onConfirm = {
                 val value = it.trim()
                 prefs.llmPrompt.setValue(if (value == ChatCompletionProtocol.DEFAULT_PROMPT) "" else value)
+                closeDialog()
+            },
+            onDismiss = { dialog = null },
+        )
+        VoiceDialog.PERIOD_STYLE -> SingleChoiceDialog(
+            title = stringResource(R.string.voice_period_style),
+            message = punctuationDialogMessage,
+            entries = periodLabels,
+            entrySummaries = PeriodStyle.entries.map { punctuationPreview(PunctuationOptions(it, punctuationRule)) },
+            selectedIndex = periodStyle.ordinal,
+            onSelect = {
+                prefs.periodStyle.setValue(PeriodStyle.entries[it].id)
+                closeDialog()
+            },
+            onDismiss = { dialog = null },
+        )
+        VoiceDialog.PUNCTUATION_RULE -> SingleChoiceDialog(
+            title = stringResource(R.string.voice_punctuation_rule),
+            message = punctuationDialogMessage,
+            entries = ruleLabels,
+            entrySummaries = PunctuationRule.entries.map { punctuationPreview(PunctuationOptions(periodStyle, it)) },
+            selectedIndex = punctuationRule.ordinal,
+            onSelect = {
+                prefs.punctuationRule.setValue(PunctuationRule.entries[it].id)
                 closeDialog()
             },
             onDismiss = { dialog = null },

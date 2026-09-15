@@ -593,6 +593,8 @@ class AppPrefs(
             const val LLM_SHORT_TEXT_THRESHOLD = "voice__llm_short_text_threshold"
             const val DEBUG_SIMULATE_CORRECTION = "voice__debug_simulate_correction"
             const val DEBUG_SIMULATED_CORRECTION = "voice__debug_simulated_correction"
+            const val PERIOD_STYLE = "voice__period_style"
+            const val PUNCTUATION_RULE = "voice__punctuation_rule"
 
             const val PROVIDER_VOLCANO = "volcano"
         }
@@ -615,6 +617,13 @@ class AppPrefs(
         /** 调试：用 `FakeTranscriptCorrector` 代替真服务，结果是 success / failure / timeout。同样要再判 `BuildConfig.DEBUG`。 */
         val debugSimulateCorrection = bool(DEBUG_SIMULATE_CORRECTION, false)
         val debugSimulatedCorrection = string(DEBUG_SIMULATED_CORRECTION, "success")
+
+        /**
+         * 听写结果的标点：句子之间的句号换成什么（`PeriodStyle.id`），再按什么规则删标点（`PunctuationRule.id`）。
+         * 默认「中文句号 + 保留」等于不整理，跟以前一样。
+         */
+        val periodStyle = string(PERIOD_STYLE, "chinese")
+        val punctuationRule = string(PUNCTUATION_RULE, "preserve")
 
         val enabled = bool(ENABLED, false)
         val provider = string(PROVIDER, PROVIDER_VOLCANO)

@@ -407,4 +407,19 @@
     <string name="settings_section_insets">Screen edges</string>
     <string name="voice_recording">Recording</string>
     <string name="voice_system_ime">System voice input</string>
+    <string name="voice_punctuation">Punctuation</string>
+    <string name="voice_punctuation_note">Only dictated text is changed. Periods between sentences are replaced first, then the punctuation rule removes marks. Dots in numbers (Qwen3.5), links and abbreviations such as e.g. are left alone.</string>
+    <string name="voice_period_style">Sentence period</string>
+    <string name="voice_period_chinese">Chinese full stop 「。」</string>
+    <string name="voice_period_english">English period 「.」</string>
+    <string name="voice_period_space">Space</string>
+    <string name="voice_period_none">Nothing (sentences run together)</string>
+    <string name="voice_punctuation_rule">Punctuation rule</string>
+    <string name="voice_punctuation_preserve">Keep all punctuation</string>
+    <string name="voice_punctuation_strip_periods">Remove the final period</string>
+    <string name="voice_punctuation_strip_trailing">Remove trailing punctuation</string>
+    <string name="voice_punctuation_questions">Keep only ? and !</string>
+    <string name="voice_punctuation_remove_all">Remove all punctuation</string>
+    <string name="voice_punctuation_sample">今天天气不错。要不要出去走走？好啊，我查一下 Qwen3.5 的资料。</string>
+    <string name="voice_punctuation_example">Example: %1$s</string>
 </resources>

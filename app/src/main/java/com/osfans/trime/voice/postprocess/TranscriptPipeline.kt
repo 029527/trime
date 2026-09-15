@@ -59,18 +59,33 @@ sealed interface CorrectionOutcome {
  *
  * - 中间结果：[process]，只过同步处理器，字照样边说边出；
  * - 最终结果：先 [process]，再 [correct] 交给 LLM 纠错，纠错结果**再过一遍** [process]
- *   （模型可能把映射好的词又改回去）。
+ *   （模型可能把映射好的词又改回去）；
+ * - 上屏前最后一步：[format]（标点整理），在映射和纠错**之后**。纠错拿到的是没整理过标点的原文，
+ *   模型怎么补标点都行，句号样式由 [format] 说了算。
  *
  * 规则只有一条：**任何一步出问题都退回原文**，加工失败绝不影响上屏。
  */
 class TranscriptPipeline(
     private val processors: List<TranscriptProcessor>,
+    private val formatters: List<TranscriptProcessor> = emptyList(),
 ) {
     /** 按顺序把文本喂给每一道处理器。任何一道抛异常都跳过它。 */
     fun process(
         text: String,
         isFinal: Boolean,
-    ): String = processors.fold(text) { acc, processor ->
+    ): String = run(processors, text, isFinal)
+
+    /** 输出格式（[formatters]），永远是上屏前的最后一步。要对整段文字做，分段上屏见 [TranscriptJoiner]。 */
+    fun format(
+        text: String,
+        isFinal: Boolean,
+    ): String = run(formatters, text, isFinal)
+
+    private fun run(
+        stages: List<TranscriptProcessor>,
+        text: String,
+        isFinal: Boolean,
+    ): String = stages.fold(text) { acc, processor ->
         runCatching { processor.process(acc, isFinal) }.getOrDefault(acc)
     }
 

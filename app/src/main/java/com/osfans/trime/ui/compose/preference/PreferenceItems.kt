@@ -300,7 +300,13 @@ private fun ValueBubble(
     }
 }
 
-/** Single-choice dialog, the Material 3 replacement for `ListPreference`'s dialog. */
+/**
+ * Single-choice dialog, the Material 3 replacement for `ListPreference`'s dialog.
+ *
+ * @param entrySummaries optional second line under each entry (same order), e.g. what the
+ *   option does to an example
+ * @param message optional text above the entries
+ */
 @Composable
 fun SingleChoiceDialog(
     title: String,
@@ -308,12 +314,21 @@ fun SingleChoiceDialog(
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     onDismiss: () -> Unit,
+    entrySummaries: List<CharSequence>? = null,
+    message: String? = null,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
+                if (!message.isNullOrEmpty()) {
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
                 entries.forEachIndexed { index, entry ->
                     Row(
                         modifier = Modifier
@@ -329,10 +344,21 @@ fun SingleChoiceDialog(
                             onClick = null,
                         )
                         Spacer(Modifier.width(16.dp))
-                        Text(
-                            text = entry.toString(),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
+                        Column {
+                            Text(
+                                text = entry.toString(),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            val summary = entrySummaries?.getOrNull(index)
+                            if (!summary.isNullOrEmpty()) {
+                                Text(
+                                    text = summary.toString(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 2.dp),
+                                )
+                            }
+                        }
                     }
                 }
             }

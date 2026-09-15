@@ -33,6 +33,11 @@ import com.osfans.trime.voice.llm.LlmCorrectionSettings
 import com.osfans.trime.voice.llm.OpenAiCompatibleCorrector
 import com.osfans.trime.voice.llm.TranscriptCorrector
 import com.osfans.trime.voice.postprocess.CorrectionOutcome
+import com.osfans.trime.voice.postprocess.PeriodStyle
+import com.osfans.trime.voice.postprocess.PunctuationOptions
+import com.osfans.trime.voice.postprocess.PunctuationProcessor
+import com.osfans.trime.voice.postprocess.PunctuationRule
+import com.osfans.trime.voice.postprocess.TranscriptJoiner
 import com.osfans.trime.voice.postprocess.TranscriptPipeline
 import com.osfans.trime.voice.postprocess.VocabularyMappingProcessor
 import com.osfans.trime.voice.provider.FakeVoiceRecognitionProvider
@@ -96,8 +101,17 @@ class VoiceInputManager(
 
     /** 当前会话用的词库快照。每次开始前取一次，所以外部改了文件下一次听写就生效。 */
     private var vocabulary: VoiceVocabulary = VoiceVocabulary.EMPTY
-    private val pipeline = TranscriptPipeline.of(VocabularyMappingProcessor { vocabulary })
+
+    /** 当前会话的标点整理方式，跟词库一样每次开始前取一次。 */
+    private var punctuation = PunctuationOptions()
+    private val pipeline = TranscriptPipeline(
+        processors = listOf(VocabularyMappingProcessor { vocabulary }),
+        formatters = listOf(PunctuationProcessor { punctuation }),
+    )
     private val segmenter = TranscriptSegmenter()
+
+    /** 标点整理对整段做：分段上屏时减掉已经上屏的部分，接缝处的句号/空格才对。 */
+    private val joiner = TranscriptJoiner { pipeline.format(it, isFinal = true) }
 
     /** 这一次会话怎么纠错；null 表示不纠错（没开、没配好），跟以前一样直接上屏。开始时定下来。 */
     private class CorrectionPlan(
@@ -110,8 +124,13 @@ class VoiceInputManager(
     /**
      * 要纠错时，会话中途定稿的句子**不上屏**，攒在这里，跟后面的字一起当待定文字，
      * 最后整段纠错 —— 已经上屏的字没法再替换，模型也需要完整的上下文。
+     *
+     * 存的是原文（映射过、没整理标点）：纠错要原文，显示时再交给 [joiner] 整理。
      */
     private var heldText = ""
+
+    /** 现在显示成待定文字的那段的原文，纠错和判断长短用它。 */
+    private var pendingRaw = ""
 
     private val matrixValues = FloatArray(9)
     private val mappedPoint = FloatArray(2)
@@ -215,6 +234,10 @@ class VoiceInputManager(
         }
         // 先取词库：热词要跟着这一次的识别请求发出去
         vocabulary = VoiceVocabularyStore.load()
+        punctuation = PunctuationOptions(
+            periodStyle = PeriodStyle.of(prefs.periodStyle.getValue()),
+            rule = PunctuationRule.of(prefs.punctuationRule.getValue()),
+        )
         val provider = createProvider()
         provider.unavailableReason()?.let {
             dispatch(DictationEvent.Failure(it))
@@ -302,7 +325,9 @@ class VoiceInputManager(
         val id = ++sessionId
         stopAudio = false
         segmenter.reset()
+        joiner.reset()
         heldText = ""
+        pendingRaw = ""
         handler.removeCallbacks(dismissError)
         indicator.clearCaret()
         service.setVoiceCursorMonitor(true)
@@ -363,19 +388,22 @@ class VoiceInputManager(
 
     private fun onRecognition(event: VoiceRecognitionEvent) {
         when (event) {
-            // 中间结果也过词库映射：边说边出的字就已经是对的，定稿时不会突然跳变
+            // 中间结果也过词库映射和标点整理：边说边出的字就已经是对的，定稿时不会突然跳变
             is VoiceRecognitionEvent.Partial -> {
                 val text = pipeline.process(segmenter.partial(event.text), isFinal = false)
-                dispatch(DictationEvent.Partial(heldText + text))
+                pendingRaw = heldText + text
+                dispatch(DictationEvent.Partial(joiner.display(pendingRaw)))
             }
             is VoiceRecognitionEvent.Final -> {
                 val text = pipeline.process(segmenter.final(event.text), isFinal = true)
                 if (correctionPlan == null) {
-                    dispatch(DictationEvent.Final(text))
+                    pendingRaw = ""
+                    dispatch(DictationEvent.Final(joiner.commit(text)))
                 } else {
                     // 要纠错：这一句先不上屏，跟后面的字一起留作待定文字
                     heldText += text
-                    dispatch(DictationEvent.Partial(heldText))
+                    pendingRaw = heldText
+                    dispatch(DictationEvent.Partial(joiner.display(heldText)))
                 }
             }
             is VoiceRecognitionEvent.Failure -> {
@@ -389,7 +417,8 @@ class VoiceInputManager(
     /** 识别结束：够长又开了纠错就去纠错，否则照旧上屏。 */
     private fun onRecognitionCompleted() {
         val plan = correctionPlan
-        val text = DictationMachine.pendingText(state)
+        // 按原文判断长短：去掉标点的设置不该让一句话变成「太短不纠」
+        val text = pendingRaw.ifEmpty { DictationMachine.pendingText(state) }
         if (plan != null && LlmCorrectionConfig.shouldCorrect(text, plan.shortTextThreshold)) {
             dispatch(DictationEvent.CompletedForCorrection)
         } else {
@@ -400,20 +429,24 @@ class VoiceInputManager(
     /**
      * 发纠错请求。结果投回主线程（不在当前 dispatch 里同步回来），编号过期（被打断了）就丢掉。
      * 失败、超时、结果不可用都由 [TranscriptPipeline.correct] 兜成原文，这里不会拿到异常。
+     *
+     * [text] 是显示着的待定文字（标点已整理）；发给模型的是它的原文 [pendingRaw]，
+     * 回来的结果再整理一遍标点才上屏。提示词里不提句号样式，标点样式只归 [PunctuationProcessor] 管。
      */
     private fun beginCorrection(text: String) {
         val corrector = correctionPlan?.corrector
         val id = sessionId
+        val raw = pendingRaw.ifEmpty { text }
         correctionJob =
             service.lifecycleScope.launch(Dispatchers.Main) {
-                val outcome = if (corrector == null) CorrectionOutcome.Corrected(text) else pipeline.correct(text, corrector)
+                val outcome = if (corrector == null) CorrectionOutcome.Corrected(raw) else pipeline.correct(raw, corrector)
                 if (id != sessionId) return@launch
                 when (outcome) {
-                    is CorrectionOutcome.Corrected -> dispatch(DictationEvent.Corrected(outcome.text))
+                    is CorrectionOutcome.Corrected -> dispatch(DictationEvent.Corrected(joiner.display(outcome.text)))
                     is CorrectionOutcome.Rejected -> {
                         // 只记原因，不记文字
                         Timber.i("纠错结果没通过校验（${outcome.reason}），上屏原文")
-                        dispatch(DictationEvent.Corrected(outcome.text))
+                        dispatch(DictationEvent.Corrected(joiner.display(outcome.text)))
                     }
                     is CorrectionOutcome.Failed -> {
                         Timber.w("纠错失败，上屏原文：${outcome.message}")

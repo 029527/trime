@@ -383,4 +383,19 @@
     <string name="settings_section_insets">佈局邊距</string>
     <string name="voice_recording">錄音</string>
     <string name="voice_system_ime">系統語音輸入法</string>
+    <string name="voice_punctuation">標點</string>
+    <string name="voice_punctuation_note">只改語音輸入的結果。先按「句號」換掉句子之間的句號，再按「標點規則」刪標點。小數（Qwen3.5）、網址和 e.g. 這類縮寫裡的點不動。</string>
+    <string name="voice_period_style">句號</string>
+    <string name="voice_period_chinese">中文句號「。」</string>
+    <string name="voice_period_english">英文句點「.」</string>
+    <string name="voice_period_space">空格</string>
+    <string name="voice_period_none">不加（句子直接連起來）</string>
+    <string name="voice_punctuation_rule">標點規則</string>
+    <string name="voice_punctuation_preserve">保留全部標點</string>
+    <string name="voice_punctuation_strip_periods">去掉句末句號</string>
+    <string name="voice_punctuation_strip_trailing">去掉句末標點</string>
+    <string name="voice_punctuation_questions">僅保留問號和感嘆號</string>
+    <string name="voice_punctuation_remove_all">去掉全部標點</string>
+    <string name="voice_punctuation_sample">今天天氣不錯。要不要出去走走？好啊，我查一下 Qwen3.5 的資料。</string>
+    <string name="voice_punctuation_example">示例：%1$s</string>
 </resources>

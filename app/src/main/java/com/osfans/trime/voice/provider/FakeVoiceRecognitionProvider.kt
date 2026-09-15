@@ -24,7 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 所以这里能感知到说完了，跟真的识别一样立刻收尾。
  *
  * 文案里带了 `Queen 3.5` 和 `克劳德`，跟词库模板里的映射词对得上，
- * 一眼就能看出映射有没有生效。
+ * 一眼就能看出映射有没有生效。第一句念完会像火山的 definite 分句一样**中途定稿**，
+ * 之后的假设照旧带着整段文字，用来验分段上屏和标点整理在接缝处的样子（句号换成空格、英文句点……）。
  */
 class FakeVoiceRecognitionProvider : VoiceRecognitionProvider {
     override val name = "fake"
@@ -42,7 +43,11 @@ class FakeVoiceRecognitionProvider : VoiceRecognitionProvider {
             delay(delayMs)
             if (speechEnded.get()) break
             lastText = text
-            send(VoiceRecognitionEvent.Partial(text))
+            if (text == SENTENCE_FINAL) {
+                send(VoiceRecognitionEvent.Final(text))
+            } else {
+                send(VoiceRecognitionEvent.Partial(text))
+            }
         }
         // 脚本念完了也不自己收尾：跟真服务端一样一直听，等管理器结束音频流（再点一下、静音自动停）
         gate.join()
@@ -63,6 +68,12 @@ class FakeVoiceRecognitionProvider : VoiceRecognitionProvider {
             500L to "我用 Queen 3.5 和克劳德",
             500L to "我用 Queen 3.5 和克劳德写带马",
             400L to "我用 Queen 3.5 和克劳德写代码",
+            300L to SENTENCE_FINAL,
+            500L to "${SENTENCE_FINAL}今天",
+            400L to "${SENTENCE_FINAL}今天天气不错。",
         )
+
+        /** 这一刻中途定稿（像火山的 definite 分句），后面的假设都以它开头。 */
+        private const val SENTENCE_FINAL = "我用 Queen 3.5 和克劳德写代码。"
     }
 }
