@@ -66,10 +66,9 @@ class ProfileScreenState {
     var backgroundSyncSummary by mutableStateOf<String?>(null)
     var backgroundSyncInterval by mutableStateOf(30)
     var gitEnabled by mutableStateOf(false)
-    var gitRepoUrl by mutableStateOf("")
-    var gitBranch by mutableStateOf("")
-    var gitUsername by mutableStateOf("")
-    var gitToken by mutableStateOf("")
+
+    /** Where the repository is, without any credentials, e.g. `gitcode.com/you/config · main`. */
+    var gitRepositorySummary by mutableStateOf("")
     var gitSyncSummary by mutableStateOf("")
 
     /** Shown as a blocking indeterminate dialog; see `withLoadingState`. */
@@ -113,13 +112,8 @@ interface ProfileActions {
 
     fun onGitEnabledChange(enabled: Boolean)
 
-    fun onGitRepoUrlChange(value: String)
-
-    fun onGitBranchChange(value: String)
-
-    fun onGitUsernameChange(value: String)
-
-    fun onGitTokenChange(value: String)
+    /** The repository address, branch and account live on their own page, see [GitRepositoryScreen]. */
+    fun onOpenGitRepository()
 
     fun onGitSyncNow()
 
@@ -144,6 +138,11 @@ interface ProfileActions {
 /** Lower bound of the background sync interval, as in the old `EditTextIntPreference`. */
 private const val MIN_SYNC_INTERVAL = 15
 
+/**
+ * The profile page. Sections run storage → sync → Git → maintenance, each switch before the rows
+ * it enables and the destructive "reset" last; the Git address and account are configuration and
+ * live on [GitRepositoryScreen], reached through one summary row.
+ */
 @Composable
 fun ProfileScreen(
     state: ProfileScreenState,
@@ -216,10 +215,6 @@ private fun SyncSection(
 
     Column {
         PreferenceCategoryHeader(stringResource(R.string.synchronization))
-        PreferenceRow(
-            title = stringResource(R.string.sync_user_data_immediately),
-            onClick = actions::onSyncNow,
-        )
         SwitchPreferenceItem(
             title = stringResource(R.string.periodic_background_sync),
             summary = state.backgroundSyncSummary,
@@ -231,6 +226,10 @@ private fun SyncSection(
             value = state.backgroundSyncInterval.toString(),
             enabled = state.backgroundSync,
             onClick = { showIntervalInput = true },
+        )
+        PreferenceRow(
+            title = stringResource(R.string.sync_user_data_immediately),
+            onClick = actions::onSyncNow,
         )
     }
     if (showIntervalInput) {
@@ -262,10 +261,12 @@ private fun GitSection(
             checked = state.gitEnabled,
             onCheckedChange = actions::onGitEnabledChange,
         )
-        TextPreferenceItem(R.string.git_repo_url, state.gitRepoUrl, actions::onGitRepoUrlChange)
-        TextPreferenceItem(R.string.git_branch, state.gitBranch, actions::onGitBranchChange)
-        TextPreferenceItem(R.string.git_username, state.gitUsername, actions::onGitUsernameChange)
-        SecretPreferenceItem(R.string.git_token, state.gitToken, actions::onGitTokenChange)
+        // the address and account are configuration: one summary row, the fields on their own page
+        PreferenceRow(
+            title = stringResource(R.string.git_repository),
+            summary = state.gitRepositorySummary,
+            onClick = actions::onOpenGitRepository,
+        )
         PreferenceRow(
             title = stringResource(R.string.git_sync_now),
             summary = state.gitSyncSummary,
@@ -289,78 +290,6 @@ private fun MaintenanceSection(actions: ProfileActions) {
             onClick = actions::onResetClick,
         )
         Spacer(Modifier.height(24.dp))
-    }
-}
-
-@Composable
-private fun TextPreferenceItem(
-    @StringRes title: Int,
-    value: String,
-    onConfirm: (String) -> Unit,
-) {
-    var showDialog by remember { mutableStateOf(false) }
-    val text = stringResource(title)
-    DialogPreferenceItem(
-        title = text,
-        value = value.ifEmpty { stringResource(R.string.not_set) },
-        onClick = { showDialog = true },
-    )
-    if (showDialog) {
-        TextInputDialog(
-            title = text,
-            initialValue = value,
-            onDismiss = { showDialog = false },
-            onConfirm = {
-                showDialog = false
-                onConfirm(it)
-            },
-        )
-    }
-}
-
-/** Like [TextPreferenceItem], but the value is masked and never shown as a summary. */
-@Composable
-private fun SecretPreferenceItem(
-    @StringRes title: Int,
-    value: String,
-    onConfirm: (String) -> Unit,
-) {
-    var showDialog by remember { mutableStateOf(false) }
-    val text = stringResource(title)
-    DialogPreferenceItem(
-        title = text,
-        value = if (value.isEmpty()) "N/A" else stringResource(R.string.git_token_set),
-        onClick = { showDialog = true },
-    )
-    if (showDialog) {
-        var input by remember { mutableStateOf(value) }
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text) },
-            text = {
-                OutlinedTextField(
-                    value = input,
-                    onValueChange = { input = it },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDialog = false
-                        onConfirm(input)
-                    },
-                ) { Text(stringResource(android.R.string.ok)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
     }
 }
 

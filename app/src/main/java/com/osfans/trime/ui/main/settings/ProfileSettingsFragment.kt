@@ -21,6 +21,7 @@ import com.osfans.trime.data.sync.SafDisplayPath
 import com.osfans.trime.data.sync.UserDbMigration
 import com.osfans.trime.ui.compose.ComposeFragment
 import com.osfans.trime.ui.compose.preference.withLoadingState
+import com.osfans.trime.ui.main.NavigationRoute
 import com.osfans.trime.util.ResourceUtils
 import com.osfans.trime.util.buildDocumentsProviderIntent
 import com.osfans.trime.util.customFormatTimeInDefault
@@ -132,10 +133,7 @@ class ProfileSettingsFragment :
         state.backgroundSyncSummary = backgroundSyncSummary()
         state.backgroundSyncInterval = prefs.periodicBackgroundSyncInterval.getValue()
         state.gitEnabled = prefs.gitSyncEnabled.getValue()
-        state.gitRepoUrl = prefs.gitRepoUrl.getValue()
-        state.gitBranch = prefs.gitBranch.getValue()
-        state.gitUsername = prefs.gitUsername.getValue()
-        state.gitToken = prefs.gitToken.getValue()
+        state.gitRepositorySummary = gitRepositorySummary()
         state.gitSyncSummary = gitSyncSummary()
     }
 
@@ -174,6 +172,20 @@ class ProfileSettingsFragment :
                 "$commit @ ${customFormatTimeInDefault("yyyy-MM-dd HH:mm", time)}"
             }
         return getString(R.string.git_sync_last, text)
+    }
+
+    /**
+     * Host and path of the repository plus the branch. An https address may carry `user:token@`,
+     * so the summary never shows the raw address.
+     */
+    private fun gitRepositorySummary(): String {
+        val url = prefs.gitRepoUrl.getValue().trim()
+        if (url.isEmpty()) return getString(R.string.not_set)
+        val uri = runCatching { Uri.parse(url) }.getOrNull()
+        val host = uri?.host
+        val place = if (host != null) host + uri.path.orEmpty() else url.substringAfterLast('@')
+        val branch = prefs.gitBranch.getValue().trim()
+        return if (branch.isEmpty()) place else "$place · $branch"
     }
 
     /** Blocks the screen while [action] runs, unless it is quick; see `withLoadingState`. */
@@ -327,24 +339,8 @@ class ProfileSettingsFragment :
         refresh()
     }
 
-    override fun onGitRepoUrlChange(value: String) {
-        prefs.gitRepoUrl.setValue(value)
-        refresh()
-    }
-
-    override fun onGitBranchChange(value: String) {
-        prefs.gitBranch.setValue(value)
-        refresh()
-    }
-
-    override fun onGitUsernameChange(value: String) {
-        prefs.gitUsername.setValue(value)
-        refresh()
-    }
-
-    override fun onGitTokenChange(value: String) {
-        prefs.gitToken.setValue(value)
-        refresh()
+    override fun onOpenGitRepository() {
+        navigate(NavigationRoute.GitRepository)
     }
 
     override fun onGitSyncNow() {

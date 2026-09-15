@@ -241,24 +241,60 @@ class KeyboardUiSettingsFragment :
 
 ### 设置的信息架构（2026-09）
 
-首页三张卡，每页只属于一张。哪一行在哪一页以 `ui/main/settings/SettingsPages.kt` 为准，
-`SettingsPagesTest` 保证每行恰好出现在一页、key 没改。
+首页三张卡，每页只属于一张。哪一行在哪一页以 `ui/main/settings/SettingsPages.kt` 为准（语音输入、配置两页手写），
+`SettingsPagesTest` 保证每行恰好出现在一页、key 没改。「└」是从上一页的一行进去的子页面。
 
 | 卡 | 页（路由） | 段 → 行 |
 | --- | --- | --- |
-| 输入 | 常规（`General`） | 打字：嵌入编码、中英切换提示、内联建议、显示候选词窗口 · 横屏：横屏方案、横屏全屏 · 其他：显示应用图标 |
-| 输入 | 按键与手势（`VirtualKeyboard`） | 触摸：扩大按键区域、滑动距离/速度、长按、重复、双击、滑动步长 · 快捷键：`hook_ctrl_*`、`hook_shift_*` |
+| 输入 | 常规（`General`） | 打字：嵌入式预编辑、预编辑区插入符号、中英切换提示、横屏方案 · 系统集成：内嵌自动填充建议、启动器图标 |
+| 输入 | 按键与手势（`VirtualKeyboard`） | 触摸：扩大按键区域、长按、连按间隔、双击 · 滑动：滑动距离、速度、步长 · Ctrl 快捷键：`hook_ctrl_*` · Shift 锁定：`hook_shift_*` |
 | 输入 | 按键反馈（`KeyFeedback`） | 声音：按键音、音量、自定义音效 · 振动：按下/抬起/重复、效果、时长、强度 · 朗读：按键/上屏朗读 |
-| 输入 | 剪贴板（`Clipboard`） | 整个 `AppPrefs.Clipboard` |
-| 输入 | 语音输入（`VoiceInput`，手写） | 开关/权限 · 火山凭证 · 录音 · LLM 纠错 · 系统语音输入法 · 识别词库 |
-| 外观 | 配色（`Theme`） | 整个 `ThemePrefs` |
-| 外观 | 键盘界面（`KeyboardUi`） | 键盘显示：隐藏输入栏/符号/提示、按键气泡、软光标 · 候选窗口：布局、位置 · 横屏与小窗：横屏模式、分割空格、小窗及尺寸/边距 · 布局边距：刘海区、忽略手势区 |
-| 数据 | 方案、用户词典、热词、配置 | 不变 |
+| 输入 | 剪贴板（`Clipboard`） | 历史记录：记录历史、上限 · 粘贴：剪贴板提示、提示超时、粘贴后返回 · 规则：去重规则、过滤规则 |
+| 输入 | 语音输入（`VoiceInput`，手写） | 启用、录音权限、首选语音输入法 · 听写：自动停止、最长录音 · 标点：句号、标点规则、示例 · 大模型纠错：隐私提示、开关、字数阈值 · 服务：识别服务 ›、纠错服务 › · 识别词库：文件位置、重新加载、生成示例 |
+| 输入 | └ 识别服务（`VoiceRecognitionService`，手写） | 识别：提供方、识别模型、云端热词表 ID · 火山凭证：鉴权方式、密钥、清空凭证 |
+| 输入 | └ 纠错服务（`VoiceCorrectionService`，手写） | 接口：服务商、服务地址、模型、API Key · 请求：提示词、测试连接 |
+| 外观 | 配色（`Theme`） | 模式：跟随壁纸、深浅色、导航栏背景 · 微调：暖度、亮度、不透明度，之后是页脚「试一试」「恢复配色默认值」 |
+| 外观 | 键盘界面（`KeyboardUi`） | 按键与输入栏：隐藏输入栏/符号/提示、按键气泡 · 候选窗口：显示候选词窗口、布局、位置 · 横屏：键盘上方输入框、横屏模式、分割空格 · 横屏小窗：小窗、尺寸、宽、高、边距 · 布局边距：刘海区、忽略手势区 |
+| 数据 | 方案、用户词典、热词 | 列表页。右下角按钮带文字：「启用方案」「从文件恢复」「添加热词」；方案页顶栏「移除方案」进多选 |
+| 数据 | 配置（`Profile`，手写） | 存储：存储模式、数据目录 · 同步：定期后台同步、间隔、立即同步 · Git 配置仓库：部署前拉取、仓库与账号 ›、立即拉取并部署 · 维护：浏览数据目录、恢复默认设置 |
+| 数据 | └ 仓库与账号（`GitRepository`，手写） | 仓库地址、分支、用户名、令牌 |
 
-开发者、关于在首页右上角菜单。原来的「候选窗口」「高级」页和它们的路由已删掉（没有深链指向它们）。
+开发者、关于在首页右上角菜单；开发者页是「语音输入（调试）」（只有 debug 包）· 日志（实时日志、清空日志）。
+原来的「候选窗口」「高级」页和它们的路由已删掉（没有深链指向它们）。
 深链：键盘「…」面板的「配色」格 → `Theme`，「键盘界面」格 → `KeyboardUi`
 （`AppUtils.launchMainToKeyboard`）。`VirtualKeyboard` 这个名字是历史遗留，
 路由对象按类名打进 PendingIntent，**别改名**，要换页面内容就换 fragment。
+
+### 二级页的整理原则
+
+用户反馈「分不清哪块是设置、哪块是配置」，一级菜单分好了，二级页里还混着。每一页都按下面几条排，加新设置时照着放：
+
+1. **分段**：超过 4 行左右的页面必须分段；段标题不重复页标题；不要「其他」这种只有一行的兜底段，给那一行找个真正的归处。
+   `SettingsPagesTest` 检查渲染器页面：多于 4 行时每段有标题、每段至少两行、段标题 ≠ 页标题。
+2. **页内顺序**：总开关 → 日常行为 → 微调（时长、阈值、滑块）→ **服务配置**（账号、密钥、地址、模型、云端 ID）
+   → 数据 / 文件 → 维护和破坏性操作（清空凭证、恢复默认、清空日志）放最后。
+3. **行为和配置不同段**：行为开关和服务配置不放在同一段。配置多的挪进子页面，主页面只留一行带摘要的入口
+   （语音输入 → 识别服务 / 纠错服务，配置 → 仓库与账号）；语音页把两个入口放进单独的「服务」段。
+   子页面入口**不随功能开关置灰**：先填好配置再打开开关是正常用法。
+4. **子项跟着开关**：依赖某个开关的行紧跟在它下面，开关关着就置灰（渲染器用 `enableUiOn`，手写页面自己传 `enabled`）。
+   `SettingsPagesTest` 检查依赖组在同一页、连续、开关在最前。
+5. **同类不同对象分开**：比如「Ctrl 快捷键」和「Shift 锁定」，剪贴板的「历史记录」「粘贴」「规则」，配色的「模式」「微调」。
+6. **摘要显示当前状态**：「API Key 已配置 · 流式识别 2.0」「DeepSeek · deepseek-chat」「DeepSeek · 未配置」
+   「gitcode.com/you/config · main」。**摘要里绝不出现密钥**，连打码后的样子也不放：只说配没配；
+   Git 地址只显示主机和路径，`user:token@` 不显示。
+7. **存储不动**：偏好 key 一个都不改，owner 也不换；`SettingsPagesTest` 保证每一行恰好出现在一页
+   （渲染器页面 + 已知的手写行）。
+
+2026-09 这一轮的取舍：
+
+- 「显示候选词窗口」和布局、位置放在一起（键盘界面 › 候选窗口），窗口关掉时布局、位置置灰。
+- 「预编辑区使用插入符号」挪到常规 › 打字，挨着「嵌入式预编辑」：它改的是正在输入的编码怎么显示，不是键盘长什么样。
+- 「显示应用图标」原来独占「其他」段，现在和「内嵌自动填充建议」组成「系统集成」：两行都是跟系统（启动器、自动填充）打交道。
+- 「横屏时在键盘上方显示输入框」从常规挪到键盘界面 › 横屏：它决定横屏的布局，跟分割键盘、小窗是一类。
+  分割空格比例在横屏模式为「从不」时置灰，小窗的尺寸、宽高、边距在小窗关着时置灰。
+- 云端热词表 ID 是火山控制台里的 ID，算服务配置，放识别服务子页；词库文件是数据，留在语音主页面最后。
+- 纠错的「少于多少字不纠错」是行为微调，留在主页面开关下面；隐私提示（「超过下面字数的文字会发出去」）跟着它留在主页面。
+- 首选语音输入法（语音键切到别的输入法）是行为设置，放在语音页开头，挨着「启用语音输入」。
 
 ### 迁一个设置页要写多少代码
 
@@ -347,14 +383,17 @@ if (loading) LoadingDialog(R.string.hot_word_deploying)
 | 按键与手势 | `VirtualKeyboard` | 同上（`PreferencePage`） |
 | 按键反馈 | `KeyFeedback` | 同上 + `Dialogs()`（音效选择器） |
 | 键盘界面 | `KeyboardUi` | 同上（跨 3 个 owner） |
-| 配色 | `Theme` | `PreferenceDelegateComposeFragment`（整个 owner）+ `Footer()` |
-| 剪贴板 | `Clipboard` | 同上 |
+| 配色 | `Theme` | `PreferenceDelegateComposeFragment` + `PreferencePage` + `Footer()` |
+| 剪贴板 | `Clipboard` | `PreferenceDelegateComposeFragment` + `PreferencePage` |
 | 语音输入 | `VoiceInput` | `VoiceInputScreen.kt`（手写） |
+| 识别服务 | `VoiceRecognitionService` | `voice/VoiceRecognitionServiceScreen.kt`（手写，fragment 同文件） |
+| 纠错服务 | `VoiceCorrectionService` | `voice/VoiceCorrectionServiceScreen.kt`（手写，fragment 同文件） |
 | 开发者 | `Developer` | `DeveloperScreen.kt`（手写） |
 | 方案列表 | `SchemaList` | `SchemaListScreen.kt`（`ListScreen` + contextual 多选） |
 | 用户词典 | `UserDict` | `UserDictListScreen.kt` |
 | 热词 | `HotWords` | `HotWordListScreen.kt` |
 | 用户配置 | `Profile` | `ProfileScreen.kt`（手写，最重） |
+| 仓库与账号 | `GitRepository` | `GitRepositoryScreen.kt`（手写，fragment 同文件） |
 | 关于 | `About` | `AboutScreen.kt` |
 | 开源许可 | `License` | `LicenseScreen.kt` |
 | 首次引导 | `SetupActivity` | `ui/setup/SetupScreen.kt`（`HorizontalPager`） |

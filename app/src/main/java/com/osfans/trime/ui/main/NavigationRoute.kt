@@ -12,6 +12,7 @@ import androidx.navigation.fragment.fragment
 import com.osfans.trime.R
 import com.osfans.trime.ui.main.settings.ClipboardSettingsFragment
 import com.osfans.trime.ui.main.settings.GeneralSettingsFragment
+import com.osfans.trime.ui.main.settings.GitRepositoryFragment
 import com.osfans.trime.ui.main.settings.KeyFeedbackSettingsFragment
 import com.osfans.trime.ui.main.settings.KeyboardSettingsFragment
 import com.osfans.trime.ui.main.settings.KeyboardUiSettingsFragment
@@ -20,7 +21,9 @@ import com.osfans.trime.ui.main.settings.hotwords.HotWordFragment
 import com.osfans.trime.ui.main.settings.schema.SchemaListFragment
 import com.osfans.trime.ui.main.settings.theme.ThemeSettingsFragment
 import com.osfans.trime.ui.main.settings.userdict.UserDictionaryFragment
+import com.osfans.trime.ui.main.settings.voice.VoiceCorrectionServiceFragment
 import com.osfans.trime.ui.main.settings.voice.VoiceInputSettingsFragment
+import com.osfans.trime.ui.main.settings.voice.VoiceRecognitionServiceFragment
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -48,6 +51,10 @@ sealed class NavigationRoute : Parcelable {
     @Serializable
     data object Profile : NavigationRoute()
 
+    /** 配置 › 仓库与账号: the Git repository the profile pulls from. */
+    @Serializable
+    data object GitRepository : NavigationRoute()
+
     @Serializable
     data object General : NavigationRoute()
 
@@ -72,6 +79,14 @@ sealed class NavigationRoute : Parcelable {
 
     @Serializable
     data object VoiceInput : NavigationRoute()
+
+    /** 语音输入 › 识别服务: Volcengine credentials, model, cloud hot word table. */
+    @Serializable
+    data object VoiceRecognitionService : NavigationRoute()
+
+    /** 语音输入 › 纠错服务: the language model provider, address, model, key and prompt. */
+    @Serializable
+    data object VoiceCorrectionService : NavigationRoute()
 
     @Serializable
     data object Developer : NavigationRoute()
@@ -102,6 +117,9 @@ sealed class NavigationRoute : Parcelable {
             fragment<ProfileSettingsFragment, Profile> {
                 label = ctx.getString(R.string.profile)
             }
+            fragment<GitRepositoryFragment, GitRepository> {
+                label = ctx.getString(R.string.git_repository)
+            }
 
             fragment<GeneralSettingsFragment, General> {
                 label = ctx.getString(R.string.general)
@@ -123,6 +141,12 @@ sealed class NavigationRoute : Parcelable {
             }
             fragment<VoiceInputSettingsFragment, VoiceInput> {
                 label = ctx.getString(R.string.voice_input)
+            }
+            fragment<VoiceRecognitionServiceFragment, VoiceRecognitionService> {
+                label = ctx.getString(R.string.voice_recognition_service)
+            }
+            fragment<VoiceCorrectionServiceFragment, VoiceCorrectionService> {
+                label = ctx.getString(R.string.voice_correction_service)
             }
             fragment<DeveloperFragment, Developer> {
                 label = ctx.getString(R.string.developer)

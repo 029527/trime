@@ -185,7 +185,7 @@ class AppPrefs(
             0,
             200,
             "%",
-        )
+        ) { landscapeMode.getValue() != LandscapeMode.NEVER }
 
         /** Schema to switch to in landscape; empty means "same as portrait". */
         val landscapeSchema = list(
@@ -231,7 +231,9 @@ class AppPrefs(
             CUSTOM(R.string.landscape_floating_size_custom, 0, 0f),
         }
 
-        val landscapeFloatingSize = enum(R.string.landscape_floating_size, LANDSCAPE_FLOATING_SIZE, LandscapeFloatingSize.MEDIUM)
+        val landscapeFloatingSize = enum(R.string.landscape_floating_size, LANDSCAPE_FLOATING_SIZE, LandscapeFloatingSize.MEDIUM) {
+            landscapeFloating.getValue()
+        }
         val landscapeFloatingWidth = int(
             R.string.landscape_floating_width,
             LANDSCAPE_FLOATING_WIDTH,
@@ -239,7 +241,7 @@ class AppPrefs(
             25,
             80,
             "%",
-        ) { landscapeFloatingSize.getValue() == LandscapeFloatingSize.CUSTOM }
+        ) { landscapeFloating.getValue() && landscapeFloatingSize.getValue() == LandscapeFloatingSize.CUSTOM }
         val landscapeFloatingHeight = int(
             R.string.landscape_floating_height,
             LANDSCAPE_FLOATING_HEIGHT,
@@ -247,7 +249,7 @@ class AppPrefs(
             50,
             200,
             "%",
-        ) { landscapeFloatingSize.getValue() == LandscapeFloatingSize.CUSTOM }
+        ) { landscapeFloating.getValue() && landscapeFloatingSize.getValue() == LandscapeFloatingSize.CUSTOM }
 
         /** Width of the floating keyboard as a percent of the screen, per preset. */
         fun floatingWidthPercent(): Int {
@@ -267,7 +269,7 @@ class AppPrefs(
             0,
             64,
             "dp",
-        )
+        ) { landscapeFloating.getValue() }
 
         /** Where the user dragged the floating keyboard to, in dp from its default bottom-end spot (≤ 0). */
         val landscapeFloatingOffsetX = int(LANDSCAPE_FLOATING_OFFSET_X, 0)
@@ -443,8 +445,14 @@ class AppPrefs(
         }
 
         val mode = enum(R.string.show_candidates_window, MODE, PopupCandidatesMode.DISABLED)
-        val layout = enum(R.string.candidates_layout, LAYOUT, PopupCandidatesLayout.AUTOMATIC)
-        val position = enum(R.string.candidates_window_position, POSITION, PopupPosition.BOTTOM_LEFT)
+
+        // layout and position only matter while the window can show
+        val layout = enum(R.string.candidates_layout, LAYOUT, PopupCandidatesLayout.AUTOMATIC) {
+            mode.getValue() != PopupCandidatesMode.DISABLED
+        }
+        val position = enum(R.string.candidates_window_position, POSITION, PopupPosition.BOTTOM_LEFT) {
+            mode.getValue() != PopupCandidatesMode.DISABLED
+        }
     }
 
     /**

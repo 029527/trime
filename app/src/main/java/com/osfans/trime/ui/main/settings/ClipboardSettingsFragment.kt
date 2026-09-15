@@ -8,4 +8,9 @@ package com.osfans.trime.ui.main.settings
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.ui.compose.preference.PreferenceDelegateComposeFragment
 
-class ClipboardSettingsFragment : PreferenceDelegateComposeFragment(AppPrefs.defaultInstance().clipboard)
+/** 输入 › 剪贴板, see [SettingsPages.Clipboard]. */
+class ClipboardSettingsFragment :
+    PreferenceDelegateComposeFragment(
+        SettingsPages.Clipboard,
+        AppPrefs.defaultInstance().clipboard,
+    )

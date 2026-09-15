@@ -37,13 +37,14 @@ import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.data.theme.ThemePrefs
 import com.osfans.trime.ui.compose.preference.PreferenceDelegateComposeFragment
 import com.osfans.trime.ui.compose.preference.PreferenceRow
+import com.osfans.trime.ui.main.settings.SettingsPages
 
 /**
- * Keyboard style page. The theme itself is built in; what is left to set is the day / night
- * mode and the wallpaper colours (both also apply to this app), the navigation bar background
- * and the colour tint sliders, all plain preference rows.
+ * 外观 › 配色, see [SettingsPages.Theme]. The theme itself is built in; what is left to set is the
+ * mode (wallpaper colours, day / night — both also apply to this app — and the navigation bar
+ * background) and the colour tint sliders, with the try-it field and the reset row after them.
  */
-class ThemeSettingsFragment : PreferenceDelegateComposeFragment(ThemeManager.prefs) {
+class ThemeSettingsFragment : PreferenceDelegateComposeFragment(SettingsPages.Theme, ThemeManager.prefs) {
     private val prefs = ThemeManager.prefs
 
     /**

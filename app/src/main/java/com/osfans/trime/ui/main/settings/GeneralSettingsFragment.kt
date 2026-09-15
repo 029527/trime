@@ -19,7 +19,6 @@ class GeneralSettingsFragment :
     PreferenceDelegateComposeFragment(
         SettingsPages.General,
         AppPrefs.defaultInstance().general,
-        AppPrefs.defaultInstance().candidates,
         AppPrefs.defaultInstance().keyboard,
         AppPrefs.defaultInstance().advanced,
     ) {

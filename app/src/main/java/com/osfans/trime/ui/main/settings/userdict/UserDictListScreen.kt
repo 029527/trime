@@ -44,8 +44,9 @@ fun UserDictListScreen(
         onNavigateUp = onNavigateUp,
         fab = {
             AddFloatingActionButton(
-                contentDescription = stringResource(R.string.restore),
+                label = stringResource(R.string.restore_from_file),
                 onClick = onRestore,
+                icon = null,
             )
         },
     ) { padding ->

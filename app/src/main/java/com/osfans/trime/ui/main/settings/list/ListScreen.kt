@@ -5,6 +5,7 @@
 
 package com.osfans.trime.ui.main.settings.list
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -26,6 +27,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -105,16 +107,24 @@ fun ListScreen(
     }
 }
 
-/** The list's own "add" button, shared by all three pages. */
+/**
+ * The list's own floating action button, shared by all three pages. It always says what it does
+ * ([label]): a bare "+" on the user dictionary page used to mean "restore from a file".
+ * Pass [icon] null for an action that does not add an entry.
+ */
 @Composable
 fun AddFloatingActionButton(
-    contentDescription: String,
+    label: String,
     onClick: () -> Unit,
+    @DrawableRes icon: Int? = R.drawable.ic_baseline_add_24,
 ) {
-    FloatingActionButton(onClick = onClick) {
-        Icon(
-            painter = painterResource(R.drawable.ic_baseline_add_24),
-            contentDescription = contentDescription,
+    if (icon == null) {
+        ExtendedFloatingActionButton(onClick = onClick) { Text(label) }
+    } else {
+        ExtendedFloatingActionButton(
+            text = { Text(label) },
+            icon = { Icon(painter = painterResource(icon), contentDescription = null) },
+            onClick = onClick,
         )
     }
 }

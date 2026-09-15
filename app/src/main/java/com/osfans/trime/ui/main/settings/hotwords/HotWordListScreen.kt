@@ -65,7 +65,7 @@ fun HotWordListScreen(
         onNavigateUp = onNavigateUp,
         fab = {
             AddFloatingActionButton(
-                contentDescription = stringResource(R.string.hot_word_add),
+                label = stringResource(R.string.hot_word_add),
                 onClick = { editing = EditTarget(null) },
             )
         },

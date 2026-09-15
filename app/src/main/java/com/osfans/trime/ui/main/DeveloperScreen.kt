@@ -26,8 +26,8 @@ import com.osfans.trime.ui.compose.preference.SliderPreferenceItem
 import com.osfans.trime.ui.compose.preference.SwitchPreferenceItem
 
 /**
- * The developer page: actions on the logcat reader, and in debug builds the switches that let
- * dictation run without credentials or a voice.
+ * The developer page: in debug builds the switches that let dictation run without credentials or a
+ * voice, then the logcat reader, whose "clear" is the destructive action and comes last.
  */
 @Composable
 fun DeveloperScreen(
@@ -41,7 +41,11 @@ fun DeveloperScreen(
         onNavigateUp = onNavigateUp,
     ) { padding ->
         LazyColumn(contentPadding = padding) {
+            if (BuildConfig.DEBUG) {
+                item { VoiceDebugSection() }
+            }
             item {
+                PreferenceCategoryHeader(stringResource(R.string.settings_section_logs))
                 PreferenceRow(
                     title = stringResource(R.string.real_time_logs),
                     onClick = onOpenLogs,
@@ -50,9 +54,6 @@ fun DeveloperScreen(
                     title = stringResource(R.string.real_time_logs_clear),
                     onClick = { confirmClear = true },
                 )
-            }
-            if (BuildConfig.DEBUG) {
-                item { VoiceDebugSection() }
             }
         }
     }

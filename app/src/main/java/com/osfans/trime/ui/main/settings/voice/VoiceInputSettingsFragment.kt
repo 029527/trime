@@ -8,6 +8,7 @@ package com.osfans.trime.ui.main.settings.voice
 import android.content.Intent
 import androidx.compose.runtime.Composable
 import com.osfans.trime.ui.compose.ComposeFragment
+import com.osfans.trime.ui.main.NavigationRoute
 import com.osfans.trime.voice.VoicePermissionActivity
 
 class VoiceInputSettingsFragment : ComposeFragment() {
@@ -18,6 +19,8 @@ class VoiceInputSettingsFragment : ComposeFragment() {
             onRequestPermission = {
                 startActivity(Intent(requireContext(), VoicePermissionActivity::class.java))
             },
+            onOpenRecognitionService = { navigate(NavigationRoute.VoiceRecognitionService) },
+            onOpenCorrectionService = { navigate(NavigationRoute.VoiceCorrectionService) },
         )
     }
 }

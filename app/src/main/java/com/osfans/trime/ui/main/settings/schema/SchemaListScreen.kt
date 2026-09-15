@@ -99,9 +99,10 @@ fun SchemaListScreen(
                     },
                 )
             } else if (entries.isNotEmpty()) {
+                // enters the multi-select mode whose only action is removing, so say that
                 TopBarIconButton(
-                    icon = R.drawable.ic_baseline_edit_24,
-                    contentDescription = stringResource(R.string.edit),
+                    icon = R.drawable.ic_baseline_delete_sweep_24,
+                    contentDescription = stringResource(R.string.remove_schemata),
                     onClick = { selecting = true },
                 )
             }
@@ -109,7 +110,7 @@ fun SchemaListScreen(
         fab = if (!selecting && addable.isNotEmpty()) {
             {
                 AddFloatingActionButton(
-                    contentDescription = stringResource(R.string.enable_schemata),
+                    label = stringResource(R.string.enable_schemata),
                     onClick = { showAddDialog = true },
                 )
             }
