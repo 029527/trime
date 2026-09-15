@@ -339,6 +339,9 @@
     <string name="voice_vocabulary_create">Create a sample vocabulary file</string>
     <string name="voice_vocabulary_created">Sample file written</string>
     <string name="voice_vocabulary_exists">The file already exists</string>
+    <string name="voice_boosting_table_id">Cloud hotword table ID</string>
+    <string name="voice_boosting_table_id_unset">Not set: the hotwords in the vocabulary are sent with each request</string>
+    <string name="voice_boosting_table_id_note">A hotword table created in the Volcengine console. When set, it is used instead of the hotwords in the vocabulary file. Confirm an empty value to clear it.</string>
     <string name="voice_theme_hint">Theme key</string>
     <string name="voice_theme_hint_summary">Write the mic key as {command: voice_input} in preset_keys</string>
     <string name="voice_auto_stop">Auto stop</string>

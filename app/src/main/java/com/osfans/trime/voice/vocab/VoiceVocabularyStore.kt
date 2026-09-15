@@ -58,7 +58,10 @@ object VoiceVocabularyStore {
             runCatching { VoiceVocabulary.parse(f.readText()) }
                 .onFailure { Timber.w(it, "读取语音词库失败: ${f.absolutePath}") }
                 .getOrDefault(VoiceVocabulary.EMPTY)
-                .also { lastLoadSummary = "映射词 ${it.rules.size} 条，热词 ${it.hotwords.size} 条" }
+                .also {
+                    lastLoadSummary = "映射词 ${it.rules.size} 条，热词 ${it.hotwords.size} 条，" +
+                        "送识别 ${it.recognitionHotwords.size} 个"
+                }
         }
         cachedStamp = stamp
         return cached

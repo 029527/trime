@@ -580,6 +580,7 @@ class AppPrefs(
             const val AUTH_MODE = "voice__auth_mode"
             const val RESOURCE_ID = "voice__resource_id"
             const val MAX_DURATION = "voice__max_duration"
+            const val BOOSTING_TABLE_ID = "voice__boosting_table_id"
             const val DEBUG_SIMULATE_RECOGNITION = "voice__debug_simulate_recognition"
             const val DEBUG_SIMULATE_MICROPHONE = "voice__debug_simulate_microphone"
             const val DEBUG_SIMULATED_SPEECH = "voice__debug_simulated_speech"
@@ -594,6 +595,9 @@ class AppPrefs(
 
         /** 单次听写最长多少秒，到了就像静音一样收尾，防止忘了关一直录。 */
         val maxDuration = int(MAX_DURATION, 60)
+
+        /** 火山控制台里的云端热词表 ID，不是密钥。填了就代替词库里的热词。 */
+        val boostingTableId = string(BOOSTING_TABLE_ID, "")
 
         /**
          * 调试开关（「开发者」页）。界面只在 debug 包里露出来，读的地方也要再判一次

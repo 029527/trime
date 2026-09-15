@@ -36,7 +36,7 @@ import com.osfans.trime.voice.audio.VoiceAudioSource
 import com.osfans.trime.voice.vocab.VoiceVocabularyStore
 import com.osfans.trime.voice.volc.VolcConfig
 
-private enum class VoiceDialog { AUTH_MODE, RESOURCE, API_KEY, APP_KEY, ACCESS_KEY }
+private enum class VoiceDialog { AUTH_MODE, RESOURCE, API_KEY, APP_KEY, ACCESS_KEY, BOOSTING_TABLE }
 
 /**
  * 语音输入设置页。手写页面（不走 preference 渲染器），因为火山凭证不能存在
@@ -203,6 +203,14 @@ fun VoiceInputScreen(
                         },
                     )
                     PreferenceRow(
+                        title = stringResource(R.string.voice_boosting_table_id),
+                        summary = prefs.boostingTableId.getValue().ifEmpty {
+                            stringResource(R.string.voice_boosting_table_id_unset)
+                        },
+                        enabled = enabled,
+                        onClick = { dialog = VoiceDialog.BOOSTING_TABLE },
+                    )
+                    PreferenceRow(
                         title = stringResource(R.string.voice_vocabulary_create),
                         onClick = {
                             val created = VoiceVocabularyStore.createTemplateIfAbsent()
@@ -263,6 +271,17 @@ fun VoiceInputScreen(
                 revision++
                 dialog = null
             },
+        )
+        VoiceDialog.BOOSTING_TABLE -> TextInputDialog(
+            title = stringResource(R.string.voice_boosting_table_id),
+            initialValue = prefs.boostingTableId.getValue(),
+            message = stringResource(R.string.voice_boosting_table_id_note),
+            onConfirm = {
+                prefs.boostingTableId.setValue(it.trim())
+                revision++
+                dialog = null
+            },
+            onDismiss = { dialog = null },
         )
         null -> Unit
     }

@@ -329,6 +329,9 @@
     <string name="voice_vocabulary_create">產生一份範例詞庫</string>
     <string name="voice_vocabulary_created">範例詞庫已寫入</string>
     <string name="voice_vocabulary_exists">檔案已經存在，沒有覆蓋</string>
+    <string name="voice_boosting_table_id">雲端熱詞表 ID</string>
+    <string name="voice_boosting_table_id_unset">未填寫：每次辨識直接帶上詞庫裏的熱詞</string>
+    <string name="voice_boosting_table_id_note">在火山控制台建好的熱詞表。填了就用它，不再帶詞庫裏的熱詞；留空確認就是清掉。</string>
     <string name="voice_theme_hint">主題裏怎麼寫</string>
     <string name="voice_theme_hint_summary">preset_keys 裏把麥克風鍵寫成 {command: voice_input}</string>
     <string name="edit_select">選取</string>

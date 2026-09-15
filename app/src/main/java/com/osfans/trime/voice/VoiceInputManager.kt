@@ -182,6 +182,8 @@ class VoiceInputManager(
             dispatch(DictationEvent.Failure("语音输入没打开，去「设置 → 语音输入」开启"))
             return
         }
+        // 先取词库：热词要跟着这一次的识别请求发出去
+        vocabulary = VoiceVocabularyStore.load()
         val provider = createProvider()
         provider.unavailableReason()?.let {
             dispatch(DictationEvent.Failure(it))
@@ -199,7 +201,6 @@ class VoiceInputManager(
             } else {
                 VoiceAudioSource.pcmFlow()
             }
-        vocabulary = VoiceVocabularyStore.load()
         dispatch(DictationEvent.Start)
     }
 
@@ -354,12 +355,15 @@ class VoiceInputManager(
     private fun createProvider(): VoiceRecognitionProvider = if (simulateRecognition) {
         FakeVoiceRecognitionProvider()
     } else {
+        // 请求在连接建好后才在 OkHttp 线程上组，这里先把这一次会话的参数定下来
+        val options = VolcRequestOptions(
+            enablePunc = true,
+            hotwords = vocabulary.recognitionHotwords,
+            boostingTableId = prefs.boostingTableId.getValue().trim().ifEmpty { null },
+        )
         VolcVoiceRecognitionProvider(
             configProvider = ::volcConfigOrNull,
-            optionsProvider = {
-                // 热词这期只存不用，先不往请求里塞
-                VolcRequestOptions(enablePunc = true)
-            },
+            optionsProvider = { options },
         )
     }
 

@@ -162,6 +162,36 @@ class VolcProtocolTest :
             request["corpus"] shouldBe null
         }
 
+        test("词库合并出的热词原样进 context，带 scale") {
+            val vocab = com.osfans.trime.voice.vocab.VoiceVocabulary.parse(
+                """
+                hotwords: [Trime, 小鹤双拼]
+                mappings:
+                  克劳德: Claude
+                  trime: TRIME
+                """.trimIndent(),
+            )
+            val payload = VolcProtocol.buildClientRequest(
+                uid = "u",
+                options = VolcRequestOptions(hotwords = vocab.recognitionHotwords),
+            )
+            val request = Json.parseToJsonElement(payload.decodeToString()).jsonObject["request"]!!.jsonObject
+            val context = Json.parseToJsonElement(request["context"]!!.jsonPrimitive.content).jsonObject
+            val words = context["hotwords"]!!.jsonArray.map { it.jsonObject }
+            words.map { it["word"]!!.jsonPrimitive.content } shouldBe listOf("Trime", "小鹤双拼", "Claude")
+            words.forEach { it["scale"]!!.jsonPrimitive.content shouldBe "5.0" }
+        }
+
+        test("空白热词表不带 context，空白的热词表 ID 不算数") {
+            val payload = VolcProtocol.buildClientRequest(
+                uid = "u",
+                options = VolcRequestOptions(hotwords = listOf(" ", ""), boostingTableId = "  "),
+            )
+            val request = Json.parseToJsonElement(payload.decodeToString()).jsonObject["request"]!!.jsonObject
+            request["context"] shouldBe null
+            request["corpus"] shouldBe null
+        }
+
         // MARK: - 整帧编码
 
         test("encodeMessage_withSequenceNumber") {

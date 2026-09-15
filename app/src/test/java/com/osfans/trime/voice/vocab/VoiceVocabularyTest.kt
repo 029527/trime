@@ -175,6 +175,47 @@ class VoiceVocabularyTest :
             vocab.replace("Queen 3.5") shouldBe "Qwen3.5"
         }
 
+        // MARK: - 送识别的热词
+
+        test("热词在前、映射词的目标词在后，大小写不敏感去重，保留先出现的写法") {
+            val vocab = VoiceVocabulary.parse(
+                """
+                hotwords:
+                  - Claude
+                  - 小鹤双拼
+                  - claude
+                mappings:
+                  克劳德: CLAUDE
+                  Queen 3.5: Qwen3.5
+                rules:
+                  - to: Claude Code
+                    from: [克劳德 code, 克劳德扣的]
+                  - to: iOS
+                    from: [ios]
+                """.trimIndent(),
+            )
+            vocab.recognitionHotwords shouldContainExactly listOf("Claude", "小鹤双拼", "Qwen3.5", "Claude Code", "iOS")
+        }
+
+        test("跳过空的、纯标点的和太长的词条") {
+            val long = "很".repeat(VoiceVocabulary.MAX_HOTWORD_LENGTH + 1)
+            val edge = "很".repeat(VoiceVocabulary.MAX_HOTWORD_LENGTH)
+            VoiceVocabulary.mergeHotwords(listOf("  Trime  ", "", "   ", long, edge), listOf("，", "", "OK")) shouldContainExactly
+                listOf("Trime", edge, "OK")
+        }
+
+        test("截到上限，前面的来源先占名额") {
+            val hotwords = (1..VoiceVocabulary.MAX_RECOGNITION_HOTWORDS).map { "word$it" }
+            val merged = VoiceVocabulary.mergeHotwords(hotwords, listOf("mapped"))
+            merged.size shouldBe VoiceVocabulary.MAX_RECOGNITION_HOTWORDS
+            merged.last() shouldBe "word${VoiceVocabulary.MAX_RECOGNITION_HOTWORDS}"
+        }
+
+        test("模板里的热词和映射目标词都会送去识别") {
+            VoiceVocabulary.parse(VoiceVocabulary.TEMPLATE).recognitionHotwords shouldContainExactly
+                listOf("Trime", "小鹤双拼", "Qwen3.5", "Claude", "Claude Code", "iOS")
+        }
+
         // MARK: - 后处理管道
 
         test("管道按顺序执行，映射词是第一道") {

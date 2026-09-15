@@ -43,7 +43,14 @@ data class VolcServerResponse(
     val result: VolcASRResult,
 )
 
-/** 发起识别请求时可以带的参数。热词这期只存不用，先把字段留着。 */
+/**
+ * 发起识别请求时可以带的参数。
+ *
+ * @param hotwords 内联热词，拼成 `request.context` 里的 `{"hotwords":[{"word":…,"scale":5.0}]}`。
+ *   调用方负责去重和截断（见 `VoiceVocabulary.recognitionHotwords`），这里只去掉空白词条。
+ * @param boostingTableId 火山控制台里建好的云端热词表。给了就走 `corpus.boosting_table_id`，
+ *   不再内联 [hotwords]（跟 type4me 一样，云端表优先）。
+ */
 data class VolcRequestOptions(
     val enablePunc: Boolean = true,
     val hotwords: List<String> = emptyList(),
