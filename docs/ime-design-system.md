@@ -257,7 +257,7 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 | 两侧留白 | 3dp | 40dp | 防止键被拉成扁条 |
 | 候选栏 | 52dp（过渡期） | 32dp，关掉内嵌预编辑时上方再加 14dp 拼音行 | 横屏候选只能一行 |
 | 字号 | 候选 20 / 注释 14 / 字母 22 | 候选 18 / 注释 12 / 字母 20 | 行高从 53 降到 40，字号跟着降一级，不按比例降（按比例会低于 16sp） |
-| 九宫格 | `t9` | `t9_land`（左侧多一块数字小键盘） | 布局由主题决定，不属于固定部分 |
+| 九宫格 | `t9` | `t9_land`（左侧多一块数字小键盘）；悬浮键盘仍用 `t9` 等竖屏布局 | 布局由主题决定，不属于固定部分 |
 | 长按小键盘 | 格高 48dp、字 24sp | 格高 40dp、字 22sp | 跟着行高降；格宽不变，仍和气泡同宽 |
 
 ### 2.5 弹出层和面板
@@ -354,13 +354,14 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 点一个拼音替换当前音节（`T9Assist.applySyllable`）。由 `KeyboardWindow` 用 ComposeView 挂在键盘上。
 
 - **覆盖范围**：从第一行的 `,` 键开始，往下取 x 和宽度都相同的键，所以竖屏 `t9` 盖住 `, . ? !` 四行，
-  到按键行为止，**不盖底行**（左下角的方案键照常可点）；横屏 `t9_land` 盖的是九宫格左边那列，不是左侧数字小键盘。
+  到按键行为止，**不盖底行**（左下角的方案键照常可点）；横屏 `t9_land` 盖的是九宫格左边那列（宽 13，不是左侧数字小键盘）；
+  横屏悬浮键盘用竖屏的 `t9`。
   键盘上没有这样一列（非九宫格布局）就不显示。
 - **样式**：格子就是按键——`keyBack` 底、`keyCornerRadius` 圆角、按下 `highlightedKeyBack` / `highlightedKeyText`；
   列表四周内缩半个键距，边缘和下面的键身对齐；列表**不铺底色**：拼音列显示时键盘画布不画被盖住的键
   （`KeyboardRenderState.coveredArea`），露出的就是键盘本身的底，配色微调让底色半透明时也和周围一致。
 - **文字**：`keyTextWeight`（500，和九宫格字母组同级：点拼音是在打字，不是控制）、最大 `keyLabelTextSize`，
-  放不下时按步缩小到 `keySymbolTextSize`，`zhuang` 在窄键上也不截断。
+  放不下时按步缩小到 `t9ColumnMinTextSize`，`zhuang` 在窄键（悬浮键盘里那列约 25dp 宽）上也不截断。
 - **滚动**：`LazyColumn`，没有滚动条，关掉了过度滚动效果（`LocalOverscrollFactory provides null`）；
   原始输入一变就回到顶部。宽度不靠 `BoxWithConstraints`，空闲时不重组。
 
@@ -368,6 +369,8 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 |---|---|---|---|
 | `t9ColumnItemHeight` | 36dp | 28dp | 比键身（45 / 34dp）矮：竖屏四行键的高度里露出五个多拼音，一眼看出能往下滑 |
 | `t9ColumnItemSpacing` | 4dp | 4dp | 比键距小，读成一个列表 |
+| `t9ColumnMinTextSize` | 8sp | 8sp | 长拼音最小缩到这里；比右上角提示还小，悬浮键盘的窄列也放得下 `zhuang` |
+| `t9ColumnTextHorizontalPadding` | 2dp | 2dp | 左右只留一点，文字不贴圆角边就行，宽度尽量给字 |
 
 ### 2.6 语音听写
 

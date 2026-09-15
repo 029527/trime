@@ -26,6 +26,13 @@ object KeyboardPrefs {
     /** The floating window is landscape only; this is independent of the landscape-mode setting. */
     fun Context.isFloatingKeyboard(): Boolean = prefs.keyboard.landscapeFloating.getValue() && resources.configuration.isLandscape()
 
+    /**
+     * Whether keyboards take their landscape layout (`_land` variants, `hideInLandscape` / `hideInPortrait`,
+     * `widthLand`): a landscape screen without the floating window. The floating window is about as
+     * narrow as a phone held upright, so it keeps the portrait layout.
+     */
+    fun Context.usesLandscapeLayout(): Boolean = resources.configuration.isLandscape() && !isFloatingKeyboard()
+
     /** Height of one candidate item (dp): the landscape value of the theme when set. */
     fun Context.candidateViewHeight(theme: Theme): Int {
         val land = theme.generalStyle.candidateViewHeightLand

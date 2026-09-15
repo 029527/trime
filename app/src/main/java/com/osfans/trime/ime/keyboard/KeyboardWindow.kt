@@ -40,6 +40,7 @@ import com.osfans.trime.ime.compose.t9.T9PinyinChoices
 import com.osfans.trime.ime.compose.t9.T9PinyinColumn
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.usesLandscapeLayout
 import com.osfans.trime.ime.popup.PopupDelegate
 import com.osfans.trime.ime.window.BoardWindow
 import com.osfans.trime.ime.window.ResidentWindow
@@ -307,7 +308,7 @@ class KeyboardWindow :
      */
     private fun landscapeVariantOf(name: String): String {
         if (name.isEmpty() || name.endsWith(LANDSCAPE_SUFFIX)) return name
-        if (!context.resources.configuration.isLandscape()) return name
+        if (!context.usesLandscapeLayout()) return name
         val landscapeName = name + LANDSCAPE_SUFFIX
         return if (presetKeyboardIds.contains(landscapeName)) landscapeName else name
     }

@@ -207,6 +207,10 @@ data class ImeTokens(
     val t9ColumnItemHeight: Dp = 36.dp,
     /** Between two syllables; less than the key gap, they belong to one list. */
     val t9ColumnItemSpacing: Dp = 4.dp,
+    /** A long syllable (`zhuang`) shrinks down to this; smaller than a key hint, so it fits the floating keyboard's narrow column. */
+    val t9ColumnMinTextSize: TextUnit = 8.sp,
+    /** Side inset of a syllable: just enough that the text does not touch the rounded edge. */
+    val t9ColumnTextHorizontalPadding: Dp = 2.dp,
     // voice
     // Dictation wears the accent, like the enter key: the pill at the caret and the mic key while it listens.
     /** The pill at the caret: about a text line tall, so it reads as part of the line it sits on. */

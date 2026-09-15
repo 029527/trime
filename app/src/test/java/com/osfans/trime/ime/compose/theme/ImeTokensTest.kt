@@ -96,6 +96,8 @@ class ImeTokensTest :
             "editPanelLabelBesideIcon" to t.editPanelLabelBesideIcon,
             "t9ColumnItemHeight" to t.t9ColumnItemHeight,
             "t9ColumnItemSpacing" to t.t9ColumnItemSpacing,
+            "t9ColumnMinTextSize" to t.t9ColumnMinTextSize,
+            "t9ColumnTextHorizontalPadding" to t.t9ColumnTextHorizontalPadding,
             "voicePillHeight" to t.voicePillHeight,
             "voicePillHorizontalPadding" to t.voicePillHorizontalPadding,
             "voicePillIconSize" to t.voicePillIconSize,
@@ -211,6 +213,8 @@ private val expectedPortrait: Map<String, Any> = mapOf(
     // t9 pinyin column
     "t9ColumnItemHeight" to 36.dp,
     "t9ColumnItemSpacing" to 4.dp,
+    "t9ColumnMinTextSize" to 8.sp,
+    "t9ColumnTextHorizontalPadding" to 2.dp,
     // voice
     "voicePillHeight" to 28.dp,
     "voicePillHorizontalPadding" to 9.dp,

@@ -11,8 +11,9 @@ import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.model.TextKeyboard
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.floatingScale
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.isFloatingKeyboard
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
-import com.osfans.trime.util.isLandscape
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.usesLandscapeLayout
 import splitties.bitflags.hasFlag
 import splitties.dimensions.dp
 import kotlin.math.abs
@@ -134,8 +135,9 @@ class Keyboard(
             }
 
             // keys marked hideInLandscape (the bottom bar) disappear in landscape, keys marked
-            // hideInPortrait (its landscape mic) in portrait; a row whose keys are all hidden is not laid out at all
-            val landscape = context.resources.configuration.isLandscape()
+            // hideInPortrait (its landscape mic) in portrait; a row whose keys are all hidden is not laid out at all.
+            // The floating window counts as portrait: it is as narrow as an upright phone
+            val landscape = context.usesLandscapeLayout()
             val keys = selfConfig.keys.filter { if (landscape) !it.hideInLandscape else !it.hideInPortrait }
             val keyboardKeyWidth = selfConfig.width
 
@@ -149,7 +151,7 @@ class Keyboard(
 
             // the split layout (gap in the middle) is meant for a full-width landscape keyboard;
             // a floating keyboard is already narrow, never split it
-            val floating = AppPrefs.defaultInstance().keyboard.landscapeFloating.getValue() && landscape
+            val floating = context.isFloatingKeyboard()
             val isSplit = context.isLandscapeMode() && landscapePercent > 0 && !floating
             val splitRatio = if (isSplit) landscapePercent / 100f else 0f
 

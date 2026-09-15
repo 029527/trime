@@ -82,13 +82,16 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 | `default`、`english` | 符号键 12、逗号 10、**麦克风 10**、空格 24、句号 10、**切换 12**、回车 22 | 空格 46 → 24 |
 | `symbols`、`symbols2`、`symbols_en`、`symbols2_en` | ABC 12、**麦克风 10**、空格 56、回车 22 | 空格 66 → 56 |
 | `number` | ABC 15、**麦克风 10**、0、逗号、回车（各 25） | ABC 25 → 15，数字列不动 |
-| `t9_land` | 左边数字区不变；`!` 9、**麦克风 12**、空格 13、**切换 13**、回车 13 | 空格 25 → 13 |
+| `t9_land` | 数字区每格 9；`!` 13、**麦克风 12**、空格 13、**切换 13**、回车 13 | 空格 25 → 13 |
 
 - 前几个键盘的麦克风是共用的 `landscapeMic`（带 `hideInPortrait`），让宽度的键写 `widthLand`；`t9_land` 只在横屏用，直接改宽度。
 - 横屏同样没有左下角的切换键，所以 `default` / `english` 在回车左边放 `landscapeSwitch`（也带 `hideInPortrait`），
   `t9_land` 在同一位置放 `ios_schema`，点击长按和左下角一样。
 - 都放在空格左边：空格和右手边的切换、回车挨在一起，最常按的几个键不被隔开；麦克风一次听写只按一两下，放远一点也不碍事。
 - `t9_land` 的麦克风正好在 PQRS 下面、空格在 TUV 下面，最后一行和上面的列对齐。
+- `t9_land` 中间的标点列（`,` `.` `?` `!`）宽 13，左边数字小键盘每格让到 9：打字时拼音列盖在这一列上，9 宽放不下 `zhuang`。
+- 横屏开了悬浮键盘时不算横屏布局（`KeyboardPrefs.usesLandscapeLayout`）：悬浮窗和竖屏手机差不多窄，用 `t9` 而不是 `t9_land`，
+  底行照常显示，`hideInPortrait` 的键隐藏、`widthLand` 不生效。
 
 ## 改工具栏
 

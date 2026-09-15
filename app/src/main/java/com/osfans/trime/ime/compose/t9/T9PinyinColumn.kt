@@ -91,12 +91,12 @@ private fun SyllableCell(
         Box(Modifier.matchParentSize().clip(shape).background(if (pressed) colors.highlightedKeyBack else colors.keyBack))
         BasicText(
             text = syllable,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = tokens.symbolLongTextHorizontalPadding).align(Alignment.Center),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = tokens.t9ColumnTextHorizontalPadding).align(Alignment.Center),
             style = style,
             color = { if (pressed) colors.highlightedKeyText else colors.keyText },
             maxLines = 1,
             // `zhuang` shrinks to fit a narrow key instead of being cut
-            autoSize = TextAutoSize.StepBased(minFontSize = tokens.keySymbolTextSize, maxFontSize = tokens.keyLabelTextSize),
+            autoSize = TextAutoSize.StepBased(minFontSize = tokens.t9ColumnMinTextSize, maxFontSize = tokens.keyLabelTextSize),
         )
     }
 }
