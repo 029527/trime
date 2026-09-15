@@ -6,8 +6,6 @@
 package com.osfans.trime.data.theme.model
 
 import android.os.Parcelable
-import com.osfans.trime.util.yaml.Node
-import com.osfans.trime.util.yaml.string
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -21,18 +19,19 @@ sealed class KeyActionToken : Parcelable {
             val label: String?,
         ) : Parcelable
     }
-
-    companion object {
-        fun decode(node: Node?): KeyActionToken? = when (node) {
-            is Node.Scalar -> Plain(node.string)
-            is Node.Mapping -> Inline(
-                Inline.Token(
-                    commit = node["commit"]?.string,
-                    text = node["text"]?.string,
-                    label = node["label"]?.string,
-                ),
-            )
-            else -> null
-        }
-    }
 }
+
+/** A [KeyActionToken.Plain]: a preset key name (`ios_shift`), a keysym (`Escape`, `q`) or plain text. */
+fun key(token: String): KeyActionToken = KeyActionToken.Plain(token)
+
+/** Commits [commit] straight to the editor, bypassing Rime; the key shows [label]. */
+fun commit(
+    commit: String,
+    label: String? = commit,
+): KeyActionToken = KeyActionToken.Inline(KeyActionToken.Inline.Token(commit = commit, text = null, label = label))
+
+/** Sends [text] through Rime key by key (`{Left}` style keysyms allowed); the key shows [label]. */
+fun text(
+    text: String,
+    label: String? = text,
+): KeyActionToken = KeyActionToken.Inline(KeyActionToken.Inline.Token(commit = null, text = text, label = label))

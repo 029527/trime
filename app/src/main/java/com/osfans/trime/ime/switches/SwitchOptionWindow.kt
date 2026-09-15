@@ -31,7 +31,6 @@ import com.osfans.trime.ime.compose.switches.SwitchOptionGrid
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.dialog.EnabledSchemaPickerDialog
 import com.osfans.trime.ime.window.BoardWindow
-import com.osfans.trime.ui.main.settings.ThemePickerDialog
 import com.osfans.trime.util.AppUtils
 import kotlinx.coroutines.launch
 import org.kodein.di.instance
@@ -109,11 +108,8 @@ class SwitchOptionWindow :
                     }
                 }
                 SwitchOptionEntry.Static.Type.Keyboard -> AppUtils.launchMainToKeyboard(context)
-                SwitchOptionEntry.Static.Type.ThemeList -> showDialog { r ->
-                    ThemePickerDialog.build(service.lifecycleScope, context) {
-                        r.commitComposition()
-                    }
-                }
+                // 主题已内置，没有主题可选；这里改为打开键盘样式设置页（深浅色、配色微调）
+                SwitchOptionEntry.Static.Type.ThemeList -> AppUtils.launchMainToTheme(context)
             }
             // a switch with a list of options opens its menu instead, see menuFor
             is SwitchOptionEntry.Custom -> rime.launchOnReady {

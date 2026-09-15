@@ -19,10 +19,6 @@
     <string name="license">許可證</string>
     <string name="privacy_policy">隱私權政策</string>
     <string name="build_info_format">建構者：%1$s\n建構 Git 雜湊值：%2$s\n建構時間：%3$s</string>
-    <string name="selected_theme">主題</string>
-    <string name="selected_theme_summary">選取想要的主題</string>
-    <string name="normal_mode_color">配色</string>
-    <string name="normal_mode_color_summary">選取想要的配色</string>
     <string name="reset">回廠</string>
     <string name="reset_hint">使用預設的內建設置覆蓋共享資料夾下相同檔案</string>
     <string name="sound_on_keypress">按鍵聲音</string>
@@ -102,7 +98,6 @@
     <string name="setup__skip_hint">您確定要跳過嚮導嗎？</string>
     <string name="setup__skip_hint_yes">好的，謝謝</string>
     <string name="setup__skip_hint_no">不，我想留在這兒</string>
-    <string name="follow_system_day_night_color">跟隨系統設定主題色調</string>
     <string name="hook_ctrl_a">攔截 Ctrl+A</string>
     <string name="hook_ctrl_cv">攔截 Ctrl+C/V/X</string>
     <string name="hook_ctrl_lr">攔截 Ctrl+Left/Right</string>
@@ -198,8 +193,6 @@
     <string name="no_schema_to_enable">沒有方案可啟用。請確保您已在使用者資料夾中放入了前置檔案和方案檔案。</string>
     <string name="schemata">方案</string>
     <string name="navbar_background">導航欄背景</string>
-    <string name="no_theme_to_select">當前沒有主題可選擇。</string>
-    <string name="no_color_to_select">當前沒有配色方案可選擇。</string>
     <string name="no_effect_to_select">當前沒有按鍵音效可選擇。</string>
     <string name="setup_channel">設定精靈</string>
     <string name="forget_this_word">忘記該詞</string>
@@ -228,6 +221,10 @@
     <string name="navbar_bkg_none">無背景</string>
     <string name="navbar_bkg_color_only">跟隨鍵盤背景色</string>
     <string name="navbar_bkg_full">鍵盤背景圖片</string>
+    <string name="day_night_mode">深淺色</string>
+    <string name="day_night_follow_system">跟隨系統</string>
+    <string name="day_night_light">淺色</string>
+    <string name="day_night_dark">深色</string>
     <string name="undo">撤銷</string>
     <string name="added_x">已新增 %1$s</string>
     <string name="removed_x">已移除 %1$s</string>

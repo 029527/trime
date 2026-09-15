@@ -29,9 +29,7 @@ import com.osfans.trime.ime.switches.SwitchOptionWindow
 import com.osfans.trime.ime.symbol.LiquidData
 import com.osfans.trime.ime.symbol.LiquidWindow
 import com.osfans.trime.ime.window.BoardWindowManager
-import com.osfans.trime.ui.main.settings.ColorPickerDialog
 import com.osfans.trime.ui.main.settings.SoundEffectPickerDialog
-import com.osfans.trime.ui.main.settings.ThemePickerDialog
 import com.osfans.trime.util.AppUtils
 import com.osfans.trime.util.InputMethodUtils
 import com.osfans.trime.util.buildIntentFromAction
@@ -61,22 +59,6 @@ class CommonKeyboardActionListener {
         rime.launchOnReady { api ->
             service.lifecycleScope.launch {
                 service.showDialog(dialog(api))
-            }
-        }
-    }
-
-    private fun showThemePicker() {
-        showDialog { api ->
-            ThemePickerDialog.build(service.lifecycleScope, context) {
-                api.commitComposition()
-            }
-        }
-    }
-
-    private fun showColorPicker() {
-        showDialog { api ->
-            ColorPickerDialog.build(service.lifecycleScope, context) {
-                api.commitComposition()
             }
         }
     }
@@ -153,7 +135,7 @@ class CommonKeyboardActionListener {
                         KeyEvent.KEYCODE_LANGUAGE_SWITCH -> handleLanguageSwitch(action)
                         KeyEvent.KEYCODE_FUNCTION -> handleFunctionCommand(action)
                         KeyEvent.KEYCODE_SETTINGS -> handleSettings(action)
-                        KeyEvent.KEYCODE_PROG_RED -> showColorPicker()
+                        KeyEvent.KEYCODE_PROG_RED -> Timber.i("Ignore PROG_RED (colour picker): the theme is built into the app")
                         KeyEvent.KEYCODE_MENU -> showEnabledSchemaPicker()
                         KeyEvent.KEYCODE_VOICE_ASSIST -> switchToVoiceInputMethod()
                         else -> handleDefaultKeyAction(action)
@@ -243,22 +225,13 @@ class CommonKeyboardActionListener {
             }
 
             private fun handleColorScheme(arg: String) {
-                ThemeManager.activeTheme.colorSchemes
-                    .find { it.id == arg }
-                    ?.let { ColorManager.setColorScheme(it) }
+                // 深浅色在设置页三选一，老配置里的 set_color_scheme 键不再切配色
+                Timber.i("Ignore set_color_scheme '$arg': the theme is built into the app")
             }
 
             private fun handleTheme(arg: String) {
-                if (arg.isEmpty()) {
-                    // 参数为空时，刷新当前主题
-                    ThemeManager.selectTheme(ThemeManager.prefs.selectedTheme.getValue())
-                } else {
-                    // 通过主题名称查找对应的配置ID并切换主题
-                    ThemeManager.getAllThemes()
-                        .find { it.name.equals(arg, ignoreCase = true) }?.let {
-                            ThemeManager.selectTheme(it.configId)
-                        }
-                }
+                // 老配置里可能还留着 set_theme 键：主题已经内置进 App，没有别的主题可切
+                Timber.i("Ignore set_theme '$arg': the theme is built into the app")
             }
 
             private fun handleClipboard() {
@@ -326,8 +299,8 @@ class CommonKeyboardActionListener {
 
             private fun handleSettings(action: KeyAction) {
                 when (action.option) {
-                    "theme" -> showThemePicker()
-                    "color" -> showColorPicker()
+                    "theme" -> Timber.i("Ignore SETTINGS theme: the theme is built into the app")
+                    "color" -> Timber.i("Ignore SETTINGS color: the theme is built into the app")
                     "schema" -> AppUtils.launchMainToSchemaList(context)
                     "sound" -> showSoundEffectPicker()
                     else -> AppUtils.launchMainActivity(service)
