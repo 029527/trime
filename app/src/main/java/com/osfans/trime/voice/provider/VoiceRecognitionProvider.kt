@@ -42,9 +42,6 @@ sealed interface VoiceRecognitionEvent {
 interface VoiceRecognitionProvider {
     val name: String
 
-    /** 为 false 时管理器不去开麦克风，也就不需要 `RECORD_AUDIO`（假识别提供方就是这样）。 */
-    val requiresAudio: Boolean get() = true
-
     /** 配置不全时返回一句给用户看的原因；返回 null 表示可用。 */
     fun unavailableReason(): String? = null
 

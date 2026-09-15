@@ -201,6 +201,30 @@ data class ImeTokens(
     val editPanelIconLabelGap: Dp = 2.dp,
     /** Label beside the glyph instead of under it: a landscape row is too short for both stacked. */
     val editPanelLabelBesideIcon: Boolean = false,
+    // voice
+    // Dictation wears the accent, like the enter key: the pill at the caret and the mic key while it listens.
+    /** The pill at the caret: about a text line tall, so it reads as part of the line it sits on. */
+    val voicePillHeight: Dp = 28.dp,
+    val voicePillHorizontalPadding: Dp = 9.dp,
+    val voicePillIconSize: Dp = 16.dp,
+    /** Between the glyph and the level bars or the error text. */
+    val voicePillContentGap: Dp = 4.dp,
+    /** Error messages in the pill. */
+    val voicePillTextSize: TextUnit = 13.sp,
+    val voicePillMessageMaxLines: Int = 2,
+    /** From the caret to the pill's start edge. */
+    val voicePillCaretGap: Dp = 4.dp,
+    /** The pill keeps this far from the screen sides and from the keyboard. */
+    val voicePillScreenMargin: Dp = 8.dp,
+    /** Same lift as the key preview bubble: it floats over the app. */
+    val voicePillShadowElevation: Dp = 3.dp,
+    val voiceLevelBarWidth: Dp = 2.5.dp,
+    val voiceLevelBarGap: Dp = 2.dp,
+    val voiceLevelBarMinHeight: Dp = 3.dp,
+    val voiceLevelBarMaxHeight: Dp = 12.dp,
+    /** The mic key's halo grows this far out of the key body at full voice; within the key gaps. */
+    val voiceKeyLevelSpread: Dp = 3.dp,
+    val voiceKeyLevelAlpha: Float = 0.24f,
 ) {
     companion object {
         val Portrait = ImeTokens()
@@ -236,6 +260,10 @@ data class ImeTokens(
             editPanelIconSize = 20.dp,
             editPanelIconLabelGap = 6.dp,
             editPanelLabelBesideIcon = true,
+            voicePillHeight = 24.dp,
+            voicePillIconSize = 14.dp,
+            voicePillTextSize = 12.sp,
+            voiceLevelBarMaxHeight = 10.dp,
         )
     }
 }

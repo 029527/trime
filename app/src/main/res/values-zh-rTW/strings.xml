@@ -306,11 +306,6 @@
     <string name="voice_enabled_summary">麥克風鍵改成錄音上屏，不再切到系統語音輸入法</string>
     <string name="voice_provider">辨識提供方</string>
     <string name="voice_provider_volcano">火山引擎串流辨識</string>
-    <string name="voice_provider_fake">假辨識（除錯用，不連網路）</string>
-    <string name="voice_trigger_mode">觸發方式</string>
-    <string name="voice_trigger_hold">按住說話，放開結束</string>
-    <string name="voice_trigger_toggle">點一下開始，再點一下結束</string>
-    <string name="voice_trigger_both">按住說話；輕點一下則一直錄，再點結束</string>
     <string name="voice_credentials">火山憑證</string>
     <string name="voice_credentials_note">憑證存在應用私有目錄裏，用 EncryptedSharedPreferences 加密。絕不會寫進 Rime 使用者目錄 —— 那個目錄會 push 到 git 遠端。</string>
     <string name="voice_auth_mode">鑑權方式</string>
@@ -324,7 +319,6 @@
     <string name="voice_resource_big">串流語音辨識大模型（bigasr）</string>
     <string name="voice_credential_unset">未填寫</string>
     <string name="voice_clear_credentials">清空憑證</string>
-    <string name="voice_silence_timeout">靜音逾時（秒）</string>
     <string name="voice_max_duration">單次最長錄音（秒）</string>
     <string name="voice_permission">錄音權限</string>
     <string name="voice_permission_granted">已授予</string>

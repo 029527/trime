@@ -28,6 +28,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InlineSuggestionsRequest
 import android.view.inputmethod.InlineSuggestionsResponse
+import android.view.inputmethod.InputConnection
 import android.widget.FrameLayout
 import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
@@ -402,7 +403,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     override fun onDestroy() {
-        voiceInput.abort()
+        voiceInput.interrupt()
         InputFeedbackManager.destroy()
         inputView = null
         extractInputUi = null
@@ -486,6 +487,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private val anchorPosition = RectF()
 
     override fun onUpdateCursorAnchorInfo(info: CursorAnchorInfo) {
+        voiceInput.onCursorAnchorInfo(info)
+        // otherwise only the candidates view (physical keyboard) asks for cursor updates
+        if (!inputDeviceManager.useCandidatesView) return
         val bounds = info.getCharacterBounds(0)
         // update anchorPosition
         if (bounds == null) {
@@ -534,8 +538,31 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             candidatesEnd,
         )
         cursorUpdateIndex += 1
-        handleCursorUpdate(newSelStart, newSelEnd, candidatesStart, candidatesEnd, cursorUpdateIndex)
+        if (voiceInput.isActive) {
+            // the composing text belongs to dictation, not to Rime
+            voiceInput.onSelectionUpdate(newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        } else {
+            handleCursorUpdate(newSelStart, newSelEnd, candidatesStart, candidatesEnd, cursorUpdateIndex)
+        }
         inputView?.updateSelection(newSelStart, newSelEnd)
+    }
+
+    /**
+     * Dictation puts its pill at the caret, so it watches the caret while it runs; afterwards the
+     * monitoring goes back to what the candidates view needs.
+     */
+    fun setVoiceCursorMonitor(enabled: Boolean) {
+        val ic = currentInputConnection ?: return
+        if (enabled) {
+            ic.requestCursorUpdates(InputConnection.CURSOR_UPDATE_IMMEDIATE or InputConnection.CURSOR_UPDATE_MONITOR)
+        } else {
+            ic.monitorCursorAnchor(inputDeviceManager.useCandidatesView)
+        }
+    }
+
+    /** One cursor update, for a dictation error shown before any session watched the caret. */
+    fun requestVoiceCursorOnce() {
+        currentInputConnection?.requestCursorUpdates(InputConnection.CURSOR_UPDATE_IMMEDIATE)
     }
 
     private fun handleCursorUpdate(
@@ -719,6 +746,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         attribute: EditorInfo,
         restarting: Boolean,
     ) {
+        // a restart (rotation, the app calling restartInput) brings a new InputConnection without
+        // dictation's composing span, and onFinishInput is not called for it
+        voiceInput.interrupt()
         composingText = ""
         Timber.d("onStartInput: restarting=$restarting")
         val isNullType = attribute.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL
@@ -772,10 +802,20 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         }
     }
 
+    /**
+     * The editor went away (another field, the keyboard closing). The framework commits the
+     * composing text right after this, so dictation must end first, or it would compose its text
+     * again at the next cursor.
+     */
+    override fun onFinishInput() {
+        voiceInput.interrupt()
+        super.onFinishInput()
+    }
+
     override fun onFinishInputView(finishingInput: Boolean) {
         Timber.d("onFinishInputView: finishingInput=$finishingInput")
         // 输入框换了/键盘收了/息屏，录音必须停掉并释放麦克风
-        voiceInput.abort()
+        voiceInput.interrupt()
         decorLocationUpdated = false
         inputView?.dismissCandidateActionMenu()
         candidatesView?.dismissCandidateActionMenu()

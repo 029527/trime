@@ -42,6 +42,8 @@ import com.osfans.trime.data.theme.SourceHanSans
 import com.osfans.trime.ime.compose.theme.ImeIcons
 import com.osfans.trime.ime.compose.theme.ImeTokens
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
+import com.osfans.trime.ime.compose.voice.DictationGlyphs
+import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.Key
 import com.osfans.trime.ime.keyboard.Keyboard
 import com.osfans.trime.ime.keyboard.isIconFont
@@ -71,7 +73,8 @@ import androidx.compose.ui.graphics.ColorFilter as ComposeColorFilter
  * - `ic@` glyphs are Material vectors (see [ImeIcons]) drawn through remembered vector painters,
  *   or `IconicsDrawable`s for a name `ImeIcons` does not map.
  *
- * The enter key is the one key in the accent colour, drawn as a pill ([ImeTokens.enterKeyPill]).
+ * The enter key is the one key in the accent colour, drawn as a pill ([ImeTokens.enterKeyPill]). While
+ * dictating, the mic key joins it: an accent capsule with a filled mic and a halo that follows the voice.
  */
 @Composable
 fun KeyboardCanvas(
@@ -95,7 +98,8 @@ fun KeyboardCanvas(
     for (name in iconNames) {
         key(name) { vectorIcons[name] = rememberVectorPainter(ImeIcons.vector(name)!!) }
     }
-    val painter = remember(keyboard, state, tokens, density) { KeyPainter(context, keyboard, state, tokens, density, vectorIcons) }
+    val activeMic = rememberVectorPainter(DictationGlyphs.Mic)
+    val painter = remember(keyboard, state, tokens, density, activeMic) { KeyPainter(context, keyboard, state, tokens, density, vectorIcons, activeMic) }
     Canvas(modifier) {
         state.observe()
         Trace.beginSection("KeyboardCanvas")
@@ -116,6 +120,8 @@ private class KeyPainter(
     private val tokens: ImeTokens,
     density: Density,
     private val vectorIcons: Map<String, Painter>,
+    /** The filled mic of the mic key while dictating. */
+    private val activeMicIcon: Painter,
 ) {
     private val keys = keyboard.keys
     private val count = keys.size
@@ -126,6 +132,11 @@ private class KeyPainter(
     /** Whether the key types a character, as opposed to switching keyboards or sending a command. */
     private val typesCharacter = BooleanArray(count)
     private val borders = arrayOfNulls<Stroke>(count)
+
+    /** Keys that start dictation (`command: voice_input`). */
+    private val voiceKeys = BooleanArray(count)
+    private val hasVoiceKey: Boolean
+    private val voiceLevelSpread: Float
 
     private val cornerRadius: CornerRadius
     private val iconSize: Float
@@ -162,6 +173,7 @@ private class KeyPainter(
                 bodies[i * 4 + 2] = key.x + key.width - halfH
                 bodies[i * 4 + 3] = key.y + key.height - halfV
                 typesCharacter[i] = characterMap.isPrintingKey(key.code)
+                voiceKeys[i] = key.click?.command == CommonKeyboardActionListener.VOICE_INPUT_COMMAND
                 (key.keyBorder ?: keyboard.keyBorder).takeIf { it > 0 }?.let { borders[i] = Stroke(it.dp.toPx()) }
             }
             cornerRadius = CornerRadius(tokens.keyCornerRadius.toPx())
@@ -174,7 +186,9 @@ private class KeyPainter(
             symbolPaint = textPaint(tokens.keySymbolTextSize, scale, symbolFont, Paint.Align.RIGHT)
             hintPaint = textPaint(tokens.keySymbolTextSize, scale, symbolFont, Paint.Align.CENTER)
             symbolIconSize = tokens.keySymbolIconSize.toPx() * scale
+            voiceLevelSpread = tokens.voiceKeyLevelSpread.toPx()
         }
+        hasVoiceKey = voiceKeys.any { it }
         val fm = symbolPaint.fontMetrics
         symbolAscent = fm.ascent
         symbolDescent = fm.descent
@@ -185,12 +199,20 @@ private class KeyPainter(
         val canvas = scope.drawContext.canvas.nativeCanvas
         val hideSymbol = state.hideKeySymbol
         val hideHint = state.hideKeyHint
+        // only a layout with a mic key reads dictation, so the others do not redraw with the voice level
+        val dictating = hasVoiceKey && state.voice.keyActive
+        val dictationLevel = if (dictating) state.voice.level else 0f
         for (i in 0 until count) {
             val key = keys[i]
             val l = bodies[i * 4]
             val t = bodies[i * 4 + 1]
             val r = bodies[i * 4 + 2]
             val b = bodies[i * 4 + 3]
+
+            if (dictating && voiceKeys[i]) {
+                scope.drawDictationKey(l, t, r, b, dictationLevel)
+                continue
+            }
 
             var text = key.getLabel()
             // the enter key always wears the accent, not only when the editor asks to go / search / send
@@ -243,6 +265,34 @@ private class KeyPainter(
             radius,
             style = border,
         )
+    }
+
+    /** The mic key while dictating: an accent capsule with a filled mic, haloed by the voice [level]. */
+    private fun DrawScope.drawDictationKey(
+        l: Float,
+        t: Float,
+        r: Float,
+        b: Float,
+        level: Float,
+    ) {
+        val accent = Color(state.accentBackColor)
+        val height = b - t
+        val spread = voiceLevelSpread * level
+        if (spread >= 0.5f) {
+            drawRoundRect(
+                accent,
+                Offset(l - spread, t - spread),
+                Size(r - l + 2 * spread, height + 2 * spread),
+                CornerRadius(height / 2 + spread),
+                alpha = tokens.voiceKeyLevelAlpha,
+            )
+        }
+        drawRoundRect(accent, Offset(l, t), Size(r - l, height), CornerRadius(height / 2))
+        val color = state.accentTextColor
+        val filter = vectorFilters[color] ?: ComposeColorFilter.tint(Color(color)).also { vectorFilters.put(color, it) }
+        translate((l + r) / 2 - iconSize / 2, (t + b) / 2 - iconSize / 2) {
+            with(activeMicIcon) { draw(Size(iconSize, iconSize), colorFilter = filter) }
+        }
     }
 
     private fun DrawScope.drawLabel(
