@@ -96,6 +96,21 @@ class ImeTokensTest :
             "editPanelLabelBesideIcon" to t.editPanelLabelBesideIcon,
             "t9ColumnItemHeight" to t.t9ColumnItemHeight,
             "t9ColumnItemSpacing" to t.t9ColumnItemSpacing,
+            "voicePillHeight" to t.voicePillHeight,
+            "voicePillHorizontalPadding" to t.voicePillHorizontalPadding,
+            "voicePillIconSize" to t.voicePillIconSize,
+            "voicePillContentGap" to t.voicePillContentGap,
+            "voicePillTextSize" to t.voicePillTextSize,
+            "voicePillMessageMaxLines" to t.voicePillMessageMaxLines,
+            "voicePillCaretGap" to t.voicePillCaretGap,
+            "voicePillScreenMargin" to t.voicePillScreenMargin,
+            "voicePillShadowElevation" to t.voicePillShadowElevation,
+            "voiceLevelBarWidth" to t.voiceLevelBarWidth,
+            "voiceLevelBarGap" to t.voiceLevelBarGap,
+            "voiceLevelBarMinHeight" to t.voiceLevelBarMinHeight,
+            "voiceLevelBarMaxHeight" to t.voiceLevelBarMaxHeight,
+            "voiceKeyLevelSpread" to t.voiceKeyLevelSpread,
+            "voiceKeyLevelAlpha" to t.voiceKeyLevelAlpha,
         )
 
         "portrait values" {
@@ -196,6 +211,22 @@ private val expectedPortrait: Map<String, Any> = mapOf(
     // t9 pinyin column
     "t9ColumnItemHeight" to 36.dp,
     "t9ColumnItemSpacing" to 4.dp,
+    // voice
+    "voicePillHeight" to 28.dp,
+    "voicePillHorizontalPadding" to 9.dp,
+    "voicePillIconSize" to 16.dp,
+    "voicePillContentGap" to 4.dp,
+    "voicePillTextSize" to 13.sp,
+    "voicePillMessageMaxLines" to 2,
+    "voicePillCaretGap" to 4.dp,
+    "voicePillScreenMargin" to 8.dp,
+    "voicePillShadowElevation" to 3.dp,
+    "voiceLevelBarWidth" to 2.5.dp,
+    "voiceLevelBarGap" to 2.dp,
+    "voiceLevelBarMinHeight" to 3.dp,
+    "voiceLevelBarMaxHeight" to 12.dp,
+    "voiceKeyLevelSpread" to 3.dp,
+    "voiceKeyLevelAlpha" to 0.24f,
 )
 
 // a 40dp row takes smaller corners, glyphs and highlight insets; popup cells shrink; edit panel labels move beside their glyphs
@@ -213,4 +244,8 @@ private val expectedLandscape: Map<String, Any> = expectedPortrait + mapOf(
     "editPanelIconLabelGap" to 6.dp,
     "editPanelLabelBesideIcon" to true,
     "t9ColumnItemHeight" to 28.dp,
+    "voicePillHeight" to 24.dp,
+    "voicePillIconSize" to 14.dp,
+    "voicePillTextSize" to 12.sp,
+    "voiceLevelBarMaxHeight" to 10.dp,
 )

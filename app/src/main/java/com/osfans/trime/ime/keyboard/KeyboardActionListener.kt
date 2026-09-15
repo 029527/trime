@@ -18,17 +18,6 @@ interface KeyboardActionListener {
     fun onAction(action: KeyAction)
 
     /**
-     * 按下时问一句：这个键要不要走"按住不放"的交互（语音输入的麦克风键）。
-     *
-     * 返回 true 表示这一次按压被接管了 —— 松手时只会收到 [onHoldEnd]，
-     * **不会**再触发 [onAction]。返回 false 是默认行为，一切照旧。
-     */
-    fun onHoldStart(action: KeyAction): Boolean = false
-
-    /** 与 [onHoldStart] 配对：松手、滑走、被取消都会走到这里。 */
-    fun onHoldEnd(action: KeyAction) {}
-
-    /**
      * Send a key press to the listener.
      *
      * @param keyEventCode this is the key that was pressed

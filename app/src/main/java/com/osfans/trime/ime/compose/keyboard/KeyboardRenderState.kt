@@ -12,6 +12,7 @@ import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.colorCached
+import com.osfans.trime.ime.compose.voice.DictationIndicator
 
 /**
  * What the key canvas needs besides the [com.osfans.trime.ime.keyboard.Keyboard] model.
@@ -33,6 +34,8 @@ class KeyboardRenderState(
     val textScale: Float,
     private val enterLabel: () -> String,
     private val enterPrimaryAction: () -> Boolean,
+    /** Dictation, for the mic key. Read while drawing, so a change redraws without [invalidate]. */
+    val voice: DictationIndicator,
 ) {
     val hideKeySymbol by AppPrefs.defaultInstance().keyboard.hideKeySymbol
     val hideKeyHint by AppPrefs.defaultInstance().keyboard.hideKeyHint
@@ -52,6 +55,14 @@ class KeyboardRenderState(
     }
     val actionKeyTextColor: Int? by colorCached {
         runCatching { ColorManager.getColor("enter_key_action_text_color") }.getOrNull()
+    }
+
+    // The accent as plain colours, for the mic key while dictating (it is never an image there).
+    val accentBackColor: Int by colorCached {
+        runCatching { ColorManager.getColor("enter_key_action_back_color") }.getOrElse { ColorManager.getColor("key_text_color") }
+    }
+    val accentTextColor: Int by colorCached {
+        runCatching { ColorManager.getColor("enter_key_action_text_color") }.getOrElse { ColorManager.getColor("key_back_color") }
     }
 
     private val revision = mutableIntStateOf(0)

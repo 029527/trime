@@ -11,17 +11,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import com.osfans.trime.BuildConfig
 import com.osfans.trime.R
+import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.ui.compose.TrimeScreen
+import com.osfans.trime.ui.compose.preference.PreferenceCategoryHeader
 import com.osfans.trime.ui.compose.preference.PreferenceRow
+import com.osfans.trime.ui.compose.preference.SliderPreferenceItem
+import com.osfans.trime.ui.compose.preference.SwitchPreferenceItem
 
 /**
- * The developer page. Unlike the other settings pages it has no preference model
- * behind it — the two rows are plain actions on the logcat reader.
+ * The developer page: actions on the logcat reader, and in debug builds the switches that let
+ * dictation run without credentials or a voice.
  */
 @Composable
 fun DeveloperScreen(
@@ -44,6 +50,9 @@ fun DeveloperScreen(
                     title = stringResource(R.string.real_time_logs_clear),
                     onClick = { confirmClear = true },
                 )
+            }
+            if (BuildConfig.DEBUG) {
+                item { VoiceDebugSection() }
             }
         }
     }
@@ -68,4 +77,53 @@ fun DeveloperScreen(
             },
         )
     }
+}
+
+/**
+ * Debug builds only. Simulated recognition replaces Volcengine with the scripted
+ * `FakeVoiceRecognitionProvider`; the simulated microphone talks for a set time and then stays
+ * silent, which drives the automatic stop on an emulator. `VoiceInputManager` checks
+ * `BuildConfig.DEBUG` again, so leftover values do nothing in a release build.
+ */
+@Composable
+private fun VoiceDebugSection() {
+    val prefs = AppPrefs.defaultInstance().voice
+    var simulateRecognition by remember { mutableStateOf(prefs.debugSimulateRecognition.getValue()) }
+    var simulateMicrophone by remember { mutableStateOf(prefs.debugSimulateMicrophone.getValue()) }
+    var speechSeconds by remember { mutableIntStateOf(prefs.debugSimulatedSpeechSeconds.getValue()) }
+    PreferenceCategoryHeader(stringResource(R.string.voice_debug))
+    SwitchPreferenceItem(
+        title = stringResource(R.string.voice_debug_simulate_recognition),
+        summary = stringResource(R.string.voice_debug_simulate_recognition_summary),
+        checked = simulateRecognition,
+        onCheckedChange = {
+            prefs.debugSimulateRecognition.setValue(it)
+            simulateRecognition = it
+        },
+    )
+    SwitchPreferenceItem(
+        title = stringResource(R.string.voice_debug_simulate_microphone),
+        summary = stringResource(R.string.voice_debug_simulate_microphone_summary),
+        checked = simulateMicrophone,
+        enabled = simulateRecognition,
+        onCheckedChange = {
+            prefs.debugSimulateMicrophone.setValue(it)
+            simulateMicrophone = it
+        },
+    )
+    SliderPreferenceItem(
+        title = stringResource(R.string.voice_debug_simulated_speech),
+        value = speechSeconds,
+        min = 0,
+        max = 10,
+        step = 1,
+        valueLabel = "$speechSeconds s",
+        unit = "s",
+        defaultValue = 4,
+        enabled = simulateRecognition && simulateMicrophone,
+        onValueChangeFinished = {
+            prefs.debugSimulatedSpeechSeconds.setValue(it)
+            speechSeconds = it
+        },
+    )
 }

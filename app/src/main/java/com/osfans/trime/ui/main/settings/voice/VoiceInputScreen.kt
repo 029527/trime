@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.osfans.trime.BuildConfig
 import com.osfans.trime.R
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.ui.compose.TrimeScreen
@@ -37,12 +36,14 @@ import com.osfans.trime.voice.audio.VoiceAudioSource
 import com.osfans.trime.voice.vocab.VoiceVocabularyStore
 import com.osfans.trime.voice.volc.VolcConfig
 
-private enum class VoiceDialog { PROVIDER, TRIGGER, AUTH_MODE, RESOURCE, API_KEY, APP_KEY, ACCESS_KEY }
+private enum class VoiceDialog { AUTH_MODE, RESOURCE, API_KEY, APP_KEY, ACCESS_KEY }
 
 /**
  * 语音输入设置页。手写页面（不走 preference 渲染器），因为火山凭证不能存在
  * 普通的 SharedPreferences 里 —— 它们走 [VoiceCredentialStore]
  * （EncryptedSharedPreferences），跟 `PreferenceDelegate` 的存取模型对不上。
+ *
+ * 没有凭证时验证听写界面用的「模拟识别」在「开发者」页，只有 debug 包有。
  */
 @Composable
 fun VoiceInputScreen(
@@ -60,34 +61,8 @@ fun VoiceInputScreen(
     revision
 
     val enabled = prefs.enabled.getValue()
-    val provider = prefs.provider.getValue()
-    val triggerMode = prefs.triggerMode.getValue()
     val authMode = prefs.authMode.getValue()
     val resourceId = prefs.resourceId.getValue()
-    val isVolcano = provider != AppPrefs.Voice.PROVIDER_FAKE
-
-    val providerValues = buildList {
-        add(AppPrefs.Voice.PROVIDER_VOLCANO)
-        // 假识别只在 debug 包里露出来：它是用来在没有凭证时验证整条链路的
-        if (BuildConfig.DEBUG) add(AppPrefs.Voice.PROVIDER_FAKE)
-    }
-    val providerLabels = providerValues.map {
-        when (it) {
-            AppPrefs.Voice.PROVIDER_FAKE -> stringResource(R.string.voice_provider_fake)
-            else -> stringResource(R.string.voice_provider_volcano)
-        }
-    }
-
-    val triggerValues = listOf(
-        AppPrefs.Voice.TRIGGER_BOTH,
-        AppPrefs.Voice.TRIGGER_HOLD,
-        AppPrefs.Voice.TRIGGER_TOGGLE,
-    )
-    val triggerLabels = listOf(
-        stringResource(R.string.voice_trigger_both),
-        stringResource(R.string.voice_trigger_hold),
-        stringResource(R.string.voice_trigger_toggle),
-    )
 
     val authValues = listOf(VolcConfig.AUTH_MODE_API_KEY, VolcConfig.AUTH_MODE_LEGACY)
     val authLabels = listOf(
@@ -119,15 +94,13 @@ fun VoiceInputScreen(
                 )
                 PreferenceRow(
                     title = stringResource(R.string.voice_provider),
-                    summary = providerLabels.getOrNull(providerValues.indexOf(provider)) ?: providerLabels.first(),
+                    summary = stringResource(R.string.voice_provider_volcano),
                     enabled = enabled,
-                    onClick = { dialog = VoiceDialog.PROVIDER },
                 )
                 PreferenceRow(
-                    title = stringResource(R.string.voice_trigger_mode),
-                    summary = triggerLabels.getOrNull(triggerValues.indexOf(triggerMode)) ?: triggerLabels.first(),
+                    title = stringResource(R.string.voice_auto_stop),
+                    summary = stringResource(R.string.voice_auto_stop_summary),
                     enabled = enabled,
-                    onClick = { dialog = VoiceDialog.TRIGGER },
                 )
                 PreferenceRow(
                     title = stringResource(R.string.voice_permission),
@@ -158,39 +131,38 @@ fun VoiceInputScreen(
                 PreferenceRow(
                     title = stringResource(R.string.voice_auth_mode),
                     summary = authLabels.getOrNull(authValues.indexOf(authMode)) ?: authLabels.first(),
-                    enabled = enabled && isVolcano,
+                    enabled = enabled,
                     onClick = { dialog = VoiceDialog.AUTH_MODE },
                 )
                 if (authMode == VolcConfig.AUTH_MODE_LEGACY) {
                     PreferenceRow(
                         title = stringResource(R.string.voice_app_key),
                         summary = VoiceCredentialStore.masked(VoiceCredentialStore.KEY_APP_KEY).ifEmpty { unset },
-                        enabled = enabled && isVolcano,
+                        enabled = enabled,
                         onClick = { dialog = VoiceDialog.APP_KEY },
                     )
                     PreferenceRow(
                         title = stringResource(R.string.voice_access_key),
                         summary = VoiceCredentialStore.masked(VoiceCredentialStore.KEY_ACCESS_KEY).ifEmpty { unset },
-                        enabled = enabled && isVolcano,
+                        enabled = enabled,
                         onClick = { dialog = VoiceDialog.ACCESS_KEY },
                     )
                 } else {
                     PreferenceRow(
                         title = stringResource(R.string.voice_api_key),
                         summary = VoiceCredentialStore.masked(VoiceCredentialStore.KEY_API_KEY).ifEmpty { unset },
-                        enabled = enabled && isVolcano,
+                        enabled = enabled,
                         onClick = { dialog = VoiceDialog.API_KEY },
                     )
                 }
                 PreferenceRow(
                     title = stringResource(R.string.voice_resource_id),
                     summary = resourceLabels.getOrNull(VolcConfig.RESOURCE_IDS.indexOf(resourceId)) ?: resourceLabels.first(),
-                    enabled = enabled && isVolcano,
+                    enabled = enabled,
                     onClick = { dialog = VoiceDialog.RESOURCE },
                 )
                 PreferenceRow(
                     title = stringResource(R.string.voice_clear_credentials),
-                    enabled = isVolcano,
                     onClick = {
                         VoiceCredentialStore.clearAll()
                         revision++
@@ -198,22 +170,6 @@ fun VoiceInputScreen(
                 )
 
                 PreferenceCategoryHeader(stringResource(R.string.voice_input))
-                val silence = prefs.silenceTimeout.getValue()
-                SliderPreferenceItem(
-                    title = stringResource(R.string.voice_silence_timeout),
-                    value = silence,
-                    min = 2,
-                    max = 30,
-                    step = 1,
-                    valueLabel = "$silence s",
-                    unit = "s",
-                    defaultValue = 6,
-                    enabled = enabled,
-                    onValueChangeFinished = {
-                        prefs.silenceTimeout.setValue(it)
-                        revision++
-                    },
-                )
                 val maxDuration = prefs.maxDuration.getValue()
                 SliderPreferenceItem(
                     title = stringResource(R.string.voice_max_duration),
@@ -262,28 +218,6 @@ fun VoiceInputScreen(
     }
 
     when (dialog) {
-        VoiceDialog.PROVIDER -> SingleChoiceDialog(
-            title = stringResource(R.string.voice_provider),
-            entries = providerLabels,
-            selectedIndex = providerValues.indexOf(provider),
-            onSelect = {
-                prefs.provider.setValue(providerValues[it])
-                revision++
-                dialog = null
-            },
-            onDismiss = { dialog = null },
-        )
-        VoiceDialog.TRIGGER -> SingleChoiceDialog(
-            title = stringResource(R.string.voice_trigger_mode),
-            entries = triggerLabels,
-            selectedIndex = triggerValues.indexOf(triggerMode),
-            onSelect = {
-                prefs.triggerMode.setValue(triggerValues[it])
-                revision++
-                dialog = null
-            },
-            onDismiss = { dialog = null },
-        )
         VoiceDialog.AUTH_MODE -> SingleChoiceDialog(
             title = stringResource(R.string.voice_auth_mode),
             entries = authLabels,

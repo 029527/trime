@@ -46,6 +46,7 @@ class ComposeKeyboardView(
             context.floatingScale(),
             enterLabel = { enterKeyDisplay.keyLabel },
             enterPrimaryAction = { enterKeyDisplay.isPrimaryAction },
+            voice = service.voiceInput.indicator,
         )
 
     private val interaction = KeyInteraction(this, keyboard, keyboardActionListener)

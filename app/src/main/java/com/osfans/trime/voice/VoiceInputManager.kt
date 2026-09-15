@@ -6,12 +6,27 @@
 package com.osfans.trime.voice
 
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
+import android.view.inputmethod.CursorAnchorInfo
 import androidx.lifecycle.lifecycleScope
+import com.osfans.trime.BuildConfig
 import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.ime.compose.voice.DictationIndicator
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.util.toast
+import com.osfans.trime.voice.audio.FakeVoiceAudioSource
 import com.osfans.trime.voice.audio.VoiceAudioSource
+import com.osfans.trime.voice.dictation.DictationEffect
+import com.osfans.trime.voice.dictation.DictationEvent
+import com.osfans.trime.voice.dictation.DictationMachine
+import com.osfans.trime.voice.dictation.DictationPillPlacement
+import com.osfans.trime.voice.dictation.DictationState
+import com.osfans.trime.voice.dictation.StopReason
+import com.osfans.trime.voice.dictation.TranscriptSegmenter
+import com.osfans.trime.voice.dictation.VoiceActivityDetector
+import com.osfans.trime.voice.dictation.pcm16RmsDbfs
 import com.osfans.trime.voice.postprocess.TranscriptPipeline
 import com.osfans.trime.voice.postprocess.VocabularyMappingProcessor
 import com.osfans.trime.voice.provider.FakeVoiceRecognitionProvider
@@ -24,294 +39,322 @@ import com.osfans.trime.voice.volc.VolcConfig
 import com.osfans.trime.voice.volc.VolcRequestOptions
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import timber.log.Timber
-
-/** 语音输入当前处于什么状态，键盘上的状态条按它画。 */
-sealed interface VoiceInputState {
-    data object Idle : VoiceInputState
-
-    /**
-     * 正在录。[text] 是当前的中间结果（已经过后处理），
-     * [latched] 表示这是"点一下开始"的长录，需要再点一下才停。
-     */
-    data class Listening(
-        val text: String,
-        val latched: Boolean,
-    ) : VoiceInputState
-
-    /** 松手了，在等服务端的最终结果。 */
-    data class Finishing(
-        val text: String,
-    ) : VoiceInputState
-
-    data class Error(
-        val message: String,
-    ) : VoiceInputState
-}
+import kotlin.math.abs
 
 /**
- * 语音输入的总调度：按键 → 录音 → 识别 → 后处理 → 上屏。
+ * 语音听写的总调度，交互照 iOS：点麦克风键开始，再点一下结束，3 秒没声音自动结束。
  *
- * 和 Rime 的关系：**语音文本完全不经过 Rime**，直接走 `InputConnection`。
- * 开始录音前会先把 Rime 里没上屏的编码 commit 掉再清空，免得两边抢同一段 composing 区。
+ * - 状态怎么走由纯逻辑的 [DictationMachine] 决定，这里只负责执行它给出的副作用
+ *   （开关麦克风和识别、写 `InputConnection`）并把状态画到 [indicator] 上；
+ * - 识别中的文字是输入框里的待定文字（`setComposingText`），定稿时 commit；
+ *   **语音文本完全不经过 Rime**，开始前先把 Rime 里没上屏的编码按首选上屏再清空；
+ * - 什么时候结束、已识别的字怎么处理，规则都写在 [DictationMachine] 的 KDoc 里。
  *
- * 生命周期：挂在 [TrimeInputMethodService] 上。松手、切走、息屏、输入框结束
- * 都会走到 [abort] 或 [onRelease]，录音协程一取消，`AudioRecord` 就在 `finally` 里释放。
+ * 挂在 [TrimeInputMethodService] 上，跟输入法进程同生命周期；所有入口都在主线程执行。
  */
 class VoiceInputManager(
     private val service: TrimeInputMethodService,
 ) {
     private val prefs get() = AppPrefs.defaultInstance().voice
 
-    private val _state = MutableStateFlow<VoiceInputState>(VoiceInputState.Idle)
-    val state: StateFlow<VoiceInputState> = _state.asStateFlow()
+    /** 胶囊和麦克风键读的状态。 */
+    val indicator = DictationIndicator()
 
+    private val handler = Handler(Looper.getMainLooper())
+
+    private var state: DictationState = DictationState.Idle
+
+    /** [state] 不是空闲。按键可能在 Rime 线程上问，所以单独做成 volatile。 */
+    @Volatile
+    private var engaged = false
+
+    /** 每开一次会话加一；会话里发出来的事件带着自己的编号，过期的直接丢。 */
+    private var sessionId = 0
     private var sessionJob: Job? = null
-    private var pressStartAt = 0L
-    private var suppressNextRelease = false
-    private var latched = false
-
-    /** 当前会话用的词库快照。每次开始录音前取一次，所以外部改了文件下一次录音就生效。 */
-    private var vocabulary: VoiceVocabulary = VoiceVocabulary.EMPTY
-
-    private val pipeline = TranscriptPipeline.of(VocabularyMappingProcessor { vocabulary })
-
-    val isActive: Boolean get() = sessionJob?.isActive == true
-
-    // MARK: - 按键入口
-
-    /** 麦克风键按下。 */
-    fun onPress() {
-        if (isActive) {
-            // 长录状态下再按一次 = 停
-            suppressNextRelease = true
-            finish()
-            return
-        }
-        suppressNextRelease = false
-        pressStartAt = SystemClock.elapsedRealtime()
-        start()
-    }
-
-    /** 麦克风键松开（或者手指滑走被取消）。 */
-    fun onRelease() {
-        if (suppressNextRelease) {
-            suppressNextRelease = false
-            return
-        }
-        if (!isActive) return
-        when (prefs.triggerMode.getValue()) {
-            AppPrefs.Voice.TRIGGER_TOGGLE -> {
-                // 只点按开关：松手不停，等下一次按
-                latch()
-            }
-            AppPrefs.Voice.TRIGGER_HOLD -> finish()
-            else -> {
-                // both：按住说话；按得很短（轻点）就转成长录
-                if (SystemClock.elapsedRealtime() - pressStartAt < TAP_THRESHOLD_MS) latch() else finish()
-            }
-        }
-    }
-
-    private fun latch() {
-        if (!isActive || latched) return
-        latched = true
-        (_state.value as? VoiceInputState.Listening)?.let {
-            _state.value = it.copy(latched = true)
-        } ?: run { _state.value = VoiceInputState.Listening("", true) }
-    }
-
-    /** 正常收尾：停止送音频，等最终结果。 */
-    fun finish() {
-        if (!isActive) return
-        stopAudio = true
-        _state.value = VoiceInputState.Finishing(currentText)
-    }
-
-    /** 异常收尾：切走、息晕、输入框结束。已经出的字保留（commit 掉），不留半截 composing。 */
-    fun abort() {
-        val job = sessionJob ?: return
-        sessionJob = null
-        job.cancel()
-        commitPending()
-        reset()
-    }
-
-    // MARK: - 会话
 
     @Volatile
     private var stopAudio = false
-    private var currentText = ""
 
-    private fun start() {
-        val provider = createProvider()
-        if (!prefs.enabled.getValue()) {
-            fail("语音输入还没打开，去「设置 → 语音输入」开一下")
-            return
-        }
-        provider.unavailableReason()?.let {
-            fail(it)
-            return
-        }
-        if (provider.requiresAudio && !VoiceAudioSource.hasPermission()) {
-            requestPermission()
-            return
-        }
+    private var pendingProvider: VoiceRecognitionProvider? = null
+    private var pendingAudio: Flow<ByteArray>? = null
 
-        vocabulary = VoiceVocabularyStore.load()
-        stopAudio = false
-        latched = false
-        currentText = ""
-        _state.value = VoiceInputState.Listening("", false)
+    /** 当前会话用的词库快照。每次开始前取一次，所以外部改了文件下一次听写就生效。 */
+    private var vocabulary: VoiceVocabulary = VoiceVocabulary.EMPTY
+    private val pipeline = TranscriptPipeline.of(VocabularyMappingProcessor { vocabulary })
+    private val segmenter = TranscriptSegmenter()
 
-        sessionJob = service.lifecycleScope.launch {
-            try {
-                // 先把 Rime 里没上屏的编码结掉，免得跟语音的 composing 区打架
-                service.postRimeJob {
-                    if (statusCached.isComposing) commitComposition()
-                    clearComposition()
-                }.join()
+    private val matrixValues = FloatArray(9)
+    private val mappedPoint = FloatArray(2)
 
-                runSession(provider)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Timber.w(e, "语音输入会话异常")
-                fail("语音输入出错了：${e.message ?: e.javaClass.simpleName}")
-            } finally {
-                sessionJob = null
-            }
-        }
-    }
+    private val dismissError = Runnable { dispatch(DictationEvent.ErrorDismissed) }
+    private val finalizeTimeout = Runnable { dispatch(DictationEvent.Failure(FINALIZE_TIMEOUT_MESSAGE)) }
+    private val maxDurationReached = Runnable { dispatch(DictationEvent.Stop(StopReason.MAX_DURATION)) }
 
-    private suspend fun runSession(provider: VoiceRecognitionProvider) {
-        // 不需要麦克风的 provider（假识别）也要拿到一条流：这条流在"松手"时正常结束，
-        // provider 靠它感知用户说完了，跟真的识别是同一条语义。
-        val audio = if (provider.requiresAudio) gatedAudio() else idleGate()
-        var lastUpdateAt = SystemClock.elapsedRealtime()
-        val startedAt = lastUpdateAt
-        val silenceTimeoutMs = prefs.silenceTimeout.getValue().coerceIn(2, 60) * 1000L
-        val maxDurationMs = prefs.maxDuration.getValue().coerceIn(5, 600) * 1000L
+    private val simulateRecognition: Boolean
+        get() = BuildConfig.DEBUG && prefs.debugSimulateRecognition.getValue()
 
-        val watchdog = service.lifecycleScope.launch {
-            var stopRequestedAt = 0L
-            while (isActive) {
-                delay(500)
-                val now = SystemClock.elapsedRealtime()
-                if (stopAudio) {
-                    // 已经松手，在等服务端定稿。等太久就别等了，把已有的字落下来，
-                    // 免得状态条一直挂在那儿、用户以为键盘卡死了。
-                    if (stopRequestedAt == 0L) stopRequestedAt = now
-                    if (now - stopRequestedAt > FINALIZE_TIMEOUT_MS) {
-                        service.toast("识别超时，先把已有的字上屏了")
-                        sessionJob?.cancel()
-                        break
-                    }
-                    continue
-                }
-                if (now - startedAt > maxDurationMs) {
-                    service.toast("录得太久了，先停了")
-                    stopAudio = true
-                    continue
-                }
-                if (now - lastUpdateAt > silenceTimeoutMs) {
-                    service.toast("没听到声音，先停了")
-                    stopAudio = true
-                    continue
-                }
-            }
-        }
+    private val simulateMicrophone: Boolean
+        get() = simulateRecognition && prefs.debugSimulateMicrophone.getValue()
 
-        try {
-            provider.recognize(audio).collect { event ->
-                when (event) {
-                    is VoiceRecognitionEvent.Partial -> {
-                        lastUpdateAt = SystemClock.elapsedRealtime()
-                        val text = pipeline.process(event.text, isFinal = false)
-                        currentText = text
-                        setComposing(text)
-                        _state.value = if (stopAudio) {
-                            VoiceInputState.Finishing(text)
-                        } else {
-                            VoiceInputState.Listening(text, latched)
-                        }
-                    }
-                    is VoiceRecognitionEvent.Final -> {
-                        val text = pipeline.process(event.text, isFinal = true)
-                        currentText = text
-                        commitText(text)
-                        currentText = ""
-                        _state.value = VoiceInputState.Idle
-                    }
-                    is VoiceRecognitionEvent.Failure -> {
-                        Timber.w(event.cause, "语音识别失败: ${event.message}")
-                        commitPending()
-                        fail(event.message)
-                    }
-                    VoiceRecognitionEvent.Completed -> {
-                        commitPending()
-                        if (_state.value !is VoiceInputState.Error) _state.value = VoiceInputState.Idle
-                    }
-                }
-            }
-        } finally {
-            watchdog.cancel()
-            // 会话结束（含被取消）时兜底：绝不留下半截 composing 文本
-            commitPending()
-            latched = false
-            stopAudio = false
+    /** 麦克风开着，或者在等定稿。 */
+    val isActive: Boolean
+        get() = state is DictationState.Listening || state is DictationState.Finishing
+
+    // MARK: - 入口
+
+    /** 麦克风键：没在听就开始，正在听就结束（等定稿）。在等定稿时再点不做什么。 */
+    fun toggle() = onMain {
+        when (state) {
+            is DictationState.Listening -> dispatch(DictationEvent.Stop(StopReason.USER))
+            is DictationState.Finishing -> Unit
+            else -> start()
         }
     }
 
     /**
-     * 把 PCM 流包一层：[stopAudio] 一置位就**正常结束**（不是抛异常），
-     * 这样 provider 那边能走到"补一个空的结束包"的分支，服务端才会给最终结果。
-     * 上游取消后 `AudioRecord` 在 `finally` 里 stop + release。
+     * 打断：点了别的键、键盘收起、输入框结束、服务销毁。已识别的字立刻上屏，错误提示收起。
+     * 输入框结束时必须在 `InputConnection` 换掉之前调，所以在主线程上是同步执行的。
      */
-    private fun gatedAudio(): Flow<ByteArray> = VoiceAudioSource.pcmFlow().takeWhile { !stopAudio }
-
-    /** 不开麦克风时的替身：什么都不吐，[stopAudio] 一置位就正常结束。 */
-    private fun idleGate(): Flow<ByteArray> = flow {
-        while (!stopAudio) delay(50)
+    fun interrupt() {
+        if (engaged) onMain { dispatch(DictationEvent.Interrupt) }
     }
 
-    // MARK: - 上屏
-
-    private fun setComposing(text: String) {
-        val ic = service.currentInputConnection ?: return
-        ic.setComposingText(text, 1)
+    /** 用户把光标点到了别处（不在待定文字末尾），当作打断。 */
+    fun onSelectionUpdate(
+        selStart: Int,
+        selEnd: Int,
+        composingStart: Int,
+        composingEnd: Int,
+    ) {
+        if (isActive && DictationMachine.cursorLeftComposition(selStart, selEnd, composingStart, composingEnd)) {
+            dispatch(DictationEvent.Interrupt)
+        }
     }
 
-    private fun commitText(text: String) {
-        val ic = service.currentInputConnection ?: return
-        if (text.isEmpty()) {
-            ic.finishComposingText()
+    /** 听写期间（以及显示错误时）输入框报来的光标位置，换成屏幕坐标交给胶囊。 */
+    fun onCursorAnchorInfo(info: CursorAnchorInfo) {
+        if (state == DictationState.Idle) return
+        // 全屏（抽取）模式下 App 的输入框被盖住了，报来的位置没有意义，胶囊退回键盘上方
+        if (service.isFullscreenMode) {
+            indicator.clearCaret()
             return
         }
-        ic.setComposingText(text, 1)
-        ic.finishComposingText()
+        var x = info.insertionMarkerHorizontal
+        var top = info.insertionMarkerTop
+        var bottom = info.insertionMarkerBottom
+        val flags = info.insertionMarkerFlags
+        val hidden = flags and CursorAnchorInfo.FLAG_HAS_INVISIBLE_REGION != 0 &&
+            flags and CursorAnchorInfo.FLAG_HAS_VISIBLE_REGION == 0
+        if (x.isNaN() || hidden) {
+            // 不报光标的编辑器可能还报待定文字每个字的位置：取最后一个字的右边
+            val start = info.composingTextStart
+            val length = info.composingText?.length ?: 0
+            val bounds = if (start >= 0 && length > 0) info.getCharacterBounds(start + length - 1) else null
+            if (bounds == null) {
+                indicator.clearCaret()
+                return
+            }
+            x = bounds.right
+            top = bounds.top
+            bottom = bounds.bottom
+        }
+        info.matrix.getValues(matrixValues)
+        DictationPillPlacement.mapPoint(matrixValues, x, top, mappedPoint)
+        val screenX = mappedPoint[0]
+        val screenTop = mappedPoint[1]
+        DictationPillPlacement.mapPoint(matrixValues, x, bottom, mappedPoint)
+        indicator.setCaret(screenX, screenTop, mappedPoint[1])
     }
 
-    /** 有没上屏的 composing 就直接定下来，别让它被下一次输入吃掉。 */
-    private fun commitPending() {
-        if (currentText.isEmpty()) return
-        service.currentInputConnection?.finishComposingText()
-        currentText = ""
+    // MARK: - 状态机
+
+    private fun start() {
+        // 开始前就报错时胶囊也要贴着光标：先要一次光标位置
+        indicator.clearCaret()
+        service.requestVoiceCursorOnce()
+        if (!prefs.enabled.getValue()) {
+            dispatch(DictationEvent.Failure("语音输入没打开，去「设置 → 语音输入」开启"))
+            return
+        }
+        val provider = createProvider()
+        provider.unavailableReason()?.let {
+            dispatch(DictationEvent.Failure(it))
+            return
+        }
+        val simulatedMic = simulateMicrophone
+        if (!simulatedMic && !VoiceAudioSource.hasPermission()) {
+            requestPermission()
+            return
+        }
+        pendingProvider = provider
+        pendingAudio =
+            if (simulatedMic) {
+                FakeVoiceAudioSource.pcmFlow(prefs.debugSimulatedSpeechSeconds.getValue().coerceIn(0, 60) * 1000L)
+            } else {
+                VoiceAudioSource.pcmFlow()
+            }
+        vocabulary = VoiceVocabularyStore.load()
+        dispatch(DictationEvent.Start)
+    }
+
+    private fun dispatch(event: DictationEvent) {
+        val transition = DictationMachine.reduce(state, event)
+        if (transition.state::class != state::class) {
+            // 只记状态名：识别出的文字不进日志
+            Timber.d("dictation ${state::class.simpleName} -> ${transition.state::class.simpleName} on ${event::class.simpleName}")
+        }
+        state = transition.state
+        engaged = state != DictationState.Idle
+        transition.effects.forEach(::perform)
+        render()
+    }
+
+    private fun perform(effect: DictationEffect) {
+        when (effect) {
+            DictationEffect.BeginSession -> beginSession()
+            DictationEffect.StopAudio -> {
+                stopAudio = true
+                handler.removeCallbacks(maxDurationReached)
+                // 关麦之后等服务端定稿。等太久就别等了，已有的字先落下来
+                handler.postDelayed(finalizeTimeout, FINALIZE_TIMEOUT_MS)
+            }
+            DictationEffect.EndSession -> endSession()
+            is DictationEffect.SetComposing -> service.currentInputConnection?.setComposingText(effect.text, 1)
+            is DictationEffect.Commit -> service.currentInputConnection?.run {
+                beginBatchEdit()
+                if (effect.text.isNotEmpty()) setComposingText(effect.text, 1)
+                finishComposingText()
+                endBatchEdit()
+            }
+            DictationEffect.FinishComposing -> service.currentInputConnection?.finishComposingText()
+            DictationEffect.ScheduleErrorDismiss -> {
+                handler.removeCallbacks(dismissError)
+                handler.postDelayed(dismissError, ERROR_DISPLAY_MS)
+            }
+        }
+    }
+
+    private fun render() {
+        indicator.phase =
+            when (val s = state) {
+                DictationState.Idle -> DictationIndicator.Phase.HIDDEN
+                is DictationState.Listening -> DictationIndicator.Phase.LISTENING
+                is DictationState.Finishing -> DictationIndicator.Phase.FINISHING
+                is DictationState.Failed -> {
+                    indicator.message = s.message
+                    DictationIndicator.Phase.ERROR
+                }
+            }
+        if (state !is DictationState.Listening) indicator.level = 0f
+    }
+
+    // MARK: - 会话
+
+    private fun beginSession() {
+        val provider = pendingProvider ?: return
+        val audio = pendingAudio ?: return
+        pendingProvider = null
+        pendingAudio = null
+        val id = ++sessionId
+        stopAudio = false
+        segmenter.reset()
+        handler.removeCallbacks(dismissError)
+        indicator.clearCaret()
+        service.setVoiceCursorMonitor(true)
+        handler.postDelayed(maxDurationReached, prefs.maxDuration.getValue().coerceIn(10, 300) * 1000L)
+
+        sessionJob =
+            service.lifecycleScope.launch {
+                try {
+                    // 先把 Rime 里没上屏的编码按首选上屏，免得跟语音的待定文字抢同一段 composing 区
+                    service.postRimeJob {
+                        if (statusCached.isComposing) commitComposition()
+                        clearComposition()
+                    }.join()
+                    provider.recognize(monitored(audio, id)).collect { if (id == sessionId) onRecognition(it) }
+                    if (id == sessionId) dispatch(DictationEvent.Completed)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.w(e, "语音听写会话异常")
+                    if (id == sessionId) dispatch(DictationEvent.Failure("语音输入出错了：${e.message ?: e.javaClass.simpleName}"))
+                }
+            }
+    }
+
+    /**
+     * 给音频流接上音量检测：每包算一次分贝喂给 [VoiceActivityDetector]，结果投回主线程。
+     * [stopAudio] 一置位就**正常结束**这条流（不是抛异常），provider 才会补结束包、等最终结果。
+     */
+    private fun monitored(
+        source: Flow<ByteArray>,
+        id: Int,
+    ): Flow<ByteArray> {
+        val detector = VoiceActivityDetector()
+        return source
+            .onStart { detector.start(SystemClock.elapsedRealtime()) }
+            .onEach { chunk ->
+                val decision = detector.onAudio(pcm16RmsDbfs(chunk), SystemClock.elapsedRealtime())
+                val level = detector.level
+                handler.post { if (id == sessionId) onAudioLevel(level, decision) }
+            }.takeWhile { !stopAudio }
+    }
+
+    private fun onAudioLevel(
+        level: Float,
+        decision: VoiceActivityDetector.Decision,
+    ) {
+        if (state !is DictationState.Listening) return
+        // 小于一格的变化不写，免得麦克风键每包都重画
+        if (abs(level - indicator.level) >= LEVEL_STEP || (level < LEVEL_STEP && indicator.level != 0f)) {
+            indicator.level = if (level < LEVEL_STEP) 0f else level
+        }
+        when (decision) {
+            VoiceActivityDetector.Decision.STOP_SILENCE -> dispatch(DictationEvent.Stop(StopReason.SILENCE))
+            VoiceActivityDetector.Decision.STOP_NO_SPEECH -> dispatch(DictationEvent.Stop(StopReason.NO_SPEECH))
+            VoiceActivityDetector.Decision.CONTINUE -> Unit
+        }
+    }
+
+    private fun onRecognition(event: VoiceRecognitionEvent) {
+        when (event) {
+            // 中间结果也过词库映射：边说边出的字就已经是对的，定稿时不会突然跳变
+            is VoiceRecognitionEvent.Partial ->
+                dispatch(DictationEvent.Partial(pipeline.process(segmenter.partial(event.text), isFinal = false)))
+            is VoiceRecognitionEvent.Final ->
+                dispatch(DictationEvent.Final(pipeline.process(segmenter.final(event.text), isFinal = true)))
+            is VoiceRecognitionEvent.Failure -> {
+                Timber.w(event.cause, "语音识别失败: ${event.message}")
+                dispatch(DictationEvent.Failure(event.message))
+            }
+            VoiceRecognitionEvent.Completed -> dispatch(DictationEvent.Completed)
+        }
+    }
+
+    private fun endSession() {
+        // 先让编号过期，被取消的协程里再冒出来的事件就都丢了
+        sessionId++
+        stopAudio = true
+        sessionJob?.cancel()
+        sessionJob = null
+        handler.removeCallbacks(finalizeTimeout)
+        handler.removeCallbacks(maxDurationReached)
+        service.setVoiceCursorMonitor(false)
+        // the caret stays: the pill fades out, or shows an error, where it was
     }
 
     // MARK: - 杂项
 
-    private fun createProvider(): VoiceRecognitionProvider = when (prefs.provider.getValue()) {
-        AppPrefs.Voice.PROVIDER_FAKE -> FakeVoiceRecognitionProvider()
-        else -> VolcVoiceRecognitionProvider(
+    private fun createProvider(): VoiceRecognitionProvider = if (simulateRecognition) {
+        FakeVoiceRecognitionProvider()
+    } else {
+        VolcVoiceRecognitionProvider(
             configProvider = ::volcConfigOrNull,
             optionsProvider = {
                 // 热词这期只存不用，先不往请求里塞
@@ -344,32 +387,21 @@ class VoiceInputManager(
                 },
             )
         }.onFailure { Timber.w(it, "拉起录音权限界面失败") }
-        reset()
     }
 
-    private fun fail(message: String) {
-        _state.value = VoiceInputState.Error(message)
-        service.toast(message)
-        service.lifecycleScope.launch {
-            delay(ERROR_DISPLAY_MS)
-            if (_state.value is VoiceInputState.Error) _state.value = VoiceInputState.Idle
-        }
-    }
-
-    private fun reset() {
-        latched = false
-        stopAudio = false
-        currentText = ""
-        _state.value = VoiceInputState.Idle
+    private inline fun onMain(crossinline block: () -> Unit) {
+        if (Looper.myLooper() == Looper.getMainLooper()) block() else handler.post { block() }
     }
 
     companion object {
-        /** 按得比这短就当"轻点"，转成长录。 */
-        const val TAP_THRESHOLD_MS = 400L
+        private const val ERROR_DISPLAY_MS = 2500L
 
-        private const val ERROR_DISPLAY_MS = 3000L
-
-        /** 松手之后最多再等服务端多久给最终结果。 */
+        /** 关麦之后最多再等服务端多久给最终结果。 */
         private const val FINALIZE_TIMEOUT_MS = 8000L
+
+        private const val FINALIZE_TIMEOUT_MESSAGE = "识别超时，已保留识别出的文字"
+
+        /** 音量变化小于这个就不更新界面。 */
+        private const val LEVEL_STEP = 0.05f
     }
 }

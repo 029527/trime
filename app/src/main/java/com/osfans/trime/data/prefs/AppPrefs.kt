@@ -579,16 +579,12 @@ class AppPrefs(
             const val PROVIDER = "voice__provider"
             const val AUTH_MODE = "voice__auth_mode"
             const val RESOURCE_ID = "voice__resource_id"
-            const val TRIGGER_MODE = "voice__trigger_mode"
-            const val SILENCE_TIMEOUT = "voice__silence_timeout"
             const val MAX_DURATION = "voice__max_duration"
+            const val DEBUG_SIMULATE_RECOGNITION = "voice__debug_simulate_recognition"
+            const val DEBUG_SIMULATE_MICROPHONE = "voice__debug_simulate_microphone"
+            const val DEBUG_SIMULATED_SPEECH = "voice__debug_simulated_speech"
 
             const val PROVIDER_VOLCANO = "volcano"
-            const val PROVIDER_FAKE = "fake"
-
-            const val TRIGGER_HOLD = "hold"
-            const val TRIGGER_TOGGLE = "toggle"
-            const val TRIGGER_BOTH = "both"
         }
 
         val enabled = bool(ENABLED, false)
@@ -596,13 +592,15 @@ class AppPrefs(
         val authMode = string(AUTH_MODE, "apiKey")
         val resourceId = string(RESOURCE_ID, "volc.seedasr.sauc.duration")
 
-        /** hold=只按住说话；toggle=只点按开关；both=按住说话，轻点转成长录（默认）。 */
-        val triggerMode = string(TRIGGER_MODE, TRIGGER_BOTH)
-
-        /** 多少秒没有新文本就自动收尾。 */
-        val silenceTimeout = int(SILENCE_TIMEOUT, 6)
-
-        /** 单次录音最长多少秒，防止忘了松手一直录。 */
+        /** 单次听写最长多少秒，到了就像静音一样收尾，防止忘了关一直录。 */
         val maxDuration = int(MAX_DURATION, 60)
+
+        /**
+         * 调试开关（「开发者」页）。界面只在 debug 包里露出来，读的地方也要再判一次
+         * `BuildConfig.DEBUG`：release 包里就算偏好文件里留着也不生效。
+         */
+        val debugSimulateRecognition = bool(DEBUG_SIMULATE_RECOGNITION, false)
+        val debugSimulateMicrophone = bool(DEBUG_SIMULATE_MICROPHONE, true)
+        val debugSimulatedSpeechSeconds = int(DEBUG_SIMULATED_SPEECH, 4)
     }
 }

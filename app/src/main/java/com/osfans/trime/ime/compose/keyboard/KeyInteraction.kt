@@ -13,6 +13,7 @@ import com.osfans.trime.ime.compose.keyboard.gesture.KeyGestureListener
 import com.osfans.trime.ime.compose.keyboard.gesture.KeyGestureTarget
 import com.osfans.trime.ime.compose.keyboard.gesture.KeyHitTester
 import com.osfans.trime.ime.compose.keyboard.gesture.KeyTouchBox
+import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.Key
 import com.osfans.trime.ime.keyboard.KeyAction
 import com.osfans.trime.ime.keyboard.KeyBehavior
@@ -38,9 +39,6 @@ class KeyInteraction(
 
     private val popupOnKeyPress by AppPrefs.defaultInstance().keyboard.popupOnKeyPress
     private val hookShiftArrow by AppPrefs.defaultInstance().keyboard.hookShiftArrow
-
-    /** Presses taken over by [KeyboardActionListener.onHoldStart] (hold-to-talk), per key. */
-    private val holdActions = HashMap<Int, KeyAction>()
 
     private val deletedTextBuffer = ArrayDeque<String>()
 
@@ -80,8 +78,8 @@ class KeyInteraction(
         if (keyboard.firstPressedKeyIndex == -1) keyboard.firstPressedKeyIndex = key
         setPressedState(k, true)
         keyboardActionListener.onPress(k.getCode(KeyBehavior.CLICK))
-        // 「按住说话」这类键在按下的那一刻就要开始干活，松手才结束；被接管之后这次按压不会再走 onAction。
-        k.getAction(KeyBehavior.CLICK)?.takeIf { keyboardActionListener.onHoldStart(it) }?.let { holdActions[key] = it }
+        // touching any key but the mic ends dictation first, keeping what was recognised
+        if (k.click?.command != CommonKeyboardActionListener.VOICE_INPUT_COMMAND) service.voiceInput.interrupt()
         showPopupPreview(k)
     }
 
@@ -92,12 +90,7 @@ class KeyInteraction(
     ) {
         val k = keyboard.keys[key]
         Timber.d("Key release: label=${k.getLabel()}, behavior=$behavior, fromLongPress=$fromLongPress")
-        val held = holdActions.remove(key)
-        if (held != null) {
-            keyboardActionListener.onHoldEnd(held)
-            setPressedState(k, false)
-            dismissPopupPreview(k)
-        } else if (fromLongPress) {
+        if (fromLongPress) {
             if (caps[key].hasPopup) {
                 val triggerAction = PopupAction.TriggerAction(key)
                 popup.listener.onPopupAction(triggerAction)
@@ -168,10 +161,7 @@ class KeyInteraction(
 
     override fun onLongPress(key: Int) {
         val k = keyboard.keys[key]
-        if (holdActions.containsKey(key)) {
-            // 这次按压已经被「按住说话」接管了：长按不能再触发这个键原本的长按动作，
-            // 否则按住麦克风一秒就会顺手切走键盘。
-        } else if (k.popup.isNotEmpty()) {
+        if (k.popup.isNotEmpty()) {
             dismissPopupPreview(k)
             popup.listener.onPopupAction(PopupAction.ShowKeyboardAction(key, k.popup, host.keyBoundsInWindow(k)))
         } else if (caps[key].hasLongPress) {
@@ -189,14 +179,13 @@ class KeyInteraction(
         y: Float,
         longPressed: Boolean,
     ) {
-        if (longPressed && caps[key].hasPopup && !holdActions.containsKey(key)) {
+        if (longPressed && caps[key].hasPopup) {
             popup.listener.onPopupAction(PopupAction.ChangeFocusAction(key, x, y))
         }
     }
 
     override fun onCancel(key: Int) {
         val k = keyboard.keys[key]
-        holdActions.remove(key)?.let { keyboardActionListener.onHoldEnd(it) }
         deletedTextBuffer.clear()
         setPressedState(k, false)
         dismissPopupPreview(k)

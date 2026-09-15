@@ -32,7 +32,7 @@ Trime fork 的键盘外观分成两半：
 | `onSurface` | 键面文字、候选 | `18181B` | `FAFAFA` | onSurface |
 | `onSurfaceVariant` | 注释、提示 | `71717A` | `A1A1AA` | onSurfaceVariant |
 | `onFunctionKey` | 功能键文字 | `18181B` | `FAFAFA` | 浅 onSecondaryContainer / 深 onSurface |
-| `accent` | 回车键、开着的开关键、长按小键盘的焦点格 | `18181B` | `FAFAFA` | primary |
+| `accent` | 回车键、开着的开关键、长按小键盘的焦点格、听写的胶囊和听写中的麦克风键 | `18181B` | `FAFAFA` | primary |
 | `onAccent` | 强调色上的文字和图标 | `FAFAFA` | `18181B` | onPrimary |
 
 - **按下色不是角色**：对应的 on 色以 12% 叠在底色上（Material 的 pressed state layer），
@@ -368,6 +368,46 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
 |---|---|---|---|
 | `t9ColumnItemHeight` | 36dp | 28dp | 比键身（45 / 34dp）矮：竖屏四行键的高度里露出五个多拼音，一眼看出能往下滑 |
 | `t9ColumnItemSpacing` | 4dp | 4dp | 比键距小，读成一个列表 |
+
+### 2.6 语音听写
+
+交互向 iOS 听写看齐：**点一下麦克风键开始，再点一下结束**，没有按住说话；长按麦克风键不做任何事。
+
+| 事件 | 结果 | 已识别的文字 |
+|---|---|---|
+| 点麦克风键 | 开始听写。Rime 里没上屏的编码先按首选上屏（等于按了空格，打了的字不丢） | — |
+| 听写中再点麦克风键 | 关麦，等识别服务定稿（最多 8 秒） | 定稿后上屏 |
+| 3 秒没有人声 / 开始后 3 秒一直没人声 / 到单次最长时长 | 同上 | 同上 |
+| 按下别的键、点面板里的键 | 立刻结束，不等定稿，按下的键照常生效 | 待定文字按当前样子上屏 |
+| 光标被点到别处、键盘收起、换输入框 | 立刻结束 | 同上 |
+| 出错（没开启、没凭证、网络、识别失败、定稿超时） | 结束，胶囊显示错误 2.5 秒 | 同上 |
+| 没有录音权限 | Toast 提示并拉起权限页 | — |
+
+规则只有一条：**识别出来的字永远保留**，要么等定稿，要么按当前样子上屏，从不丢弃，也不留下半截待定文字。
+识别中的文字是输入框里带下划线的待定文字（`setComposingText`），中间结果也经过词库映射。
+
+**胶囊**：强调色底、实心麦克风加三根随音量起伏的竖条，出错时换成划掉的麦克风加文字。
+紧跟光标右边、和光标所在行垂直居中（光标位置来自 `CursorAnchorInfo`，按其矩阵换成屏幕坐标）；
+编辑器不报光标、光标被键盘挡住或滚出屏幕、横屏全屏输入时，退到键盘左上角上方。胶囊不接收触摸。
+
+**麦克风键**：听写开始到定稿之间是强调色胶囊加实心麦克风，外面一圈同色 24% 的光晕随音量向外扩最多 `voiceKeyLevelSpread`。
+音量由录音的 RMS 算出，每 100ms 更新一次，变化不到一格（0.05）不重画。
+
+**自动停止**（`VoiceActivityDetector`）：底噪取最近 5 秒里最安静的一包，比底噪高 10dB 算人声（阈值限制在 −55 到 −30 dBFS 之间）；
+前 300ms 只估底噪；连续两包过阈值才算开口，免得按键的咔哒声被当成说话。
+
+| Token | 竖屏 | 横屏 | 理由 |
+|---|---|---|---|
+| `voicePillHeight` | 28dp | 24dp | 大约一行字高，看起来是这一行的一部分 |
+| `voicePillHorizontalPadding` / `voicePillContentGap` | 9dp / 4dp | 同左 | |
+| `voicePillIconSize` | 16dp | 14dp | |
+| `voicePillTextSize` / `voicePillMessageMaxLines` | 13sp / 2 | 12sp / 2 | 错误文字，字重 `panelLabelWeight` |
+| `voicePillCaretGap` | 4dp | 4dp | 光标到胶囊左边 |
+| `voicePillScreenMargin` | 8dp | 8dp | 离屏幕两边和键盘的最小距离 |
+| `voicePillShadowElevation` | 3dp | 3dp | 和按键气泡一样浮在 App 上 |
+| `voiceLevelBarWidth` / `voiceLevelBarGap` | 2.5dp / 2dp | 同左 | |
+| `voiceLevelBarMinHeight` / `voiceLevelBarMaxHeight` | 3dp / 12dp | 3dp / 10dp | |
+| `voiceKeyLevelSpread` / `voiceKeyLevelAlpha` | 3dp / 0.24 | 同左 | 光晕不超出键距 |
 
 ---
 

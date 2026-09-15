@@ -25,7 +25,7 @@ class VoicePermissionActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (XXPermissions.isGranted(this, Permission.RECORD_AUDIO)) {
-            toast("录音权限已授予，回键盘按住麦克风试试")
+            toast("录音权限已授予，回键盘点一下麦克风试试")
             finish()
             return
         }
@@ -35,7 +35,7 @@ class VoicePermissionActivity : Activity() {
             .request(
                 object : OnPermissionCallback {
                     override fun onGranted(permissions: MutableList<String>, allGranted: Boolean) {
-                        if (allGranted) toast("录音权限已授予，回键盘按住麦克风试试")
+                        if (allGranted) toast("录音权限已授予，回键盘点一下麦克风试试")
                         finish()
                     }
 
