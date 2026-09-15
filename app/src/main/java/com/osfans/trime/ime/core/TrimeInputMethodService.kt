@@ -364,12 +364,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                         }
                     }
                 }
-            is RimeMessage.DeployMessage -> {
-                if (it.data == RimeMessage.DeployMessage.State.Success) {
-                    // 同步可能换了 fonts/ 里的字体文件
-                    ThemeManager.reloadFonts()
-                }
-            }
             else -> {}
         }
     }

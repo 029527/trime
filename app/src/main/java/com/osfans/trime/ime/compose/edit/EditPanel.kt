@@ -231,7 +231,7 @@ private fun EditCell(
             @Composable {
                 BasicText(
                     text = label,
-                    style = TextStyle(fontFamily = fonts.key, fontSize = tokens.editPanelLabelTextSize, textAlign = TextAlign.Center),
+                    style = TextStyle(fontFamily = fonts.family, fontWeight = tokens.panelLabelWeight, fontSize = tokens.editPanelLabelTextSize, textAlign = TextAlign.Center),
                     color = { foreground },
                     maxLines = 1,
                     softWrap = false,

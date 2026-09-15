@@ -190,8 +190,8 @@ fun UnrolledCandidates(
             },
     ) {
         val measurer = rememberTextMeasurer(cacheSize = 0)
-        val textStyle = remember(fonts, tokens) { TextStyle(fontFamily = fonts.candidate, fontSize = tokens.candidateTextSize) }
-        val commentStyle = remember(fonts, tokens) { TextStyle(fontFamily = fonts.comment, fontSize = tokens.candidateCommentTextSize) }
+        val textStyle = remember(fonts, tokens) { TextStyle(fontFamily = fonts.family, fontWeight = tokens.candidateWeight, fontSize = tokens.candidateTextSize) }
+        val commentStyle = remember(fonts, tokens) { TextStyle(fontFamily = fonts.family, fontWeight = tokens.candidateCommentWeight, fontSize = tokens.candidateCommentTextSize) }
         val items = state.items
         // natural widths only grow with the list, so a loaded page measures just its own items
         val widths = remember(state.generation, widthPx, textStyle) { ArrayList<Int>() }

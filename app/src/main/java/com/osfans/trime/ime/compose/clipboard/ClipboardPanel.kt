@@ -50,7 +50,6 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.osfans.trime.R
 import com.osfans.trime.data.db.DatabaseBean
-import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.ime.compose.theme.LocalImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeFonts
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
@@ -92,10 +91,9 @@ fun ClipboardBar(
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalImeColors.current
+    val fonts = LocalImeFonts.current
     val tokens = LocalImeTokens.current
     val scope = rememberCoroutineScope()
-    // a theme font loaded from a file has no bold face to pick, so embolden the typeface itself
-    val titleFont = remember { FontFamily(Typeface.create(FontManager.getTypeface("candidate_font"), Typeface.BOLD)) }
     Row(modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
         ClipboardPage.entries.forEach { page ->
             val selected = state.pagerState.targetPage == page.ordinal
@@ -108,7 +106,7 @@ fun ClipboardBar(
                         scope.launch { state.pagerState.animateScrollToPage(page.ordinal) }
                     }.wrapContentHeight()
                     .padding(horizontal = 8.dp),
-                style = TextStyle(fontFamily = titleFont, fontSize = tokens.candidateTextSize),
+                style = TextStyle(fontFamily = fonts.family, fontWeight = tokens.panelTitleWeight, fontSize = tokens.candidateTextSize),
                 color = { if (selected) colors.keyText else colors.keyText.copy(alpha = colors.keyText.alpha * 0.5f) },
                 maxLines = 1,
             )
@@ -219,7 +217,7 @@ private fun BeanEntry(
                     horizontal = tokens.panelEntryPaddingHorizontal,
                     vertical = tokens.panelEntryPaddingVertical,
                 ),
-            style = TextStyle(fontFamily = fonts.key, fontSize = tokens.panelEntryTextSize),
+            style = TextStyle(fontFamily = fonts.family, fontWeight = tokens.panelBodyWeight, fontSize = tokens.panelEntryTextSize),
             color = { colors.keyText },
             maxLines = tokens.panelEntryMaxLines,
             overflow = TextOverflow.Ellipsis,

@@ -81,7 +81,7 @@ internal fun ClipboardSuggestion(
             BasicText(
                 text = text,
                 modifier = Modifier.weight(1f, fill = false).widthIn(max = tokens.barClipboardMaxTextWidth),
-                style = TextStyle(fontFamily = fonts.candidate, fontSize = tokens.preeditTextSize),
+                style = TextStyle(fontFamily = fonts.family, fontWeight = tokens.panelBodyWeight, fontSize = tokens.preeditTextSize),
                 color = { colors.candidateText },
                 maxLines = 1,
                 softWrap = false,

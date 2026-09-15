@@ -46,7 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import com.osfans.trime.data.theme.FontManager
+import com.osfans.trime.data.theme.SourceHanSans
 import com.osfans.trime.ime.compose.theme.ImeTokens
 import com.osfans.trime.ime.compose.theme.LocalImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeFonts
@@ -173,10 +173,8 @@ private class CellPaints(
     tokens: ImeTokens,
     density: Density,
 ) {
-    private val typeface = FontManager.getTypeface("key_font")
-
-    val glyphPaint = paint(with(density) { tokens.keyTextSize.toPx() })
-    val longPaint = paint(with(density) { tokens.keyLabelTextSize.toPx() })
+    val glyphPaint = paint(with(density) { tokens.keyTextSize.toPx() }, tokens.keyTextWeight.weight)
+    val longPaint = paint(with(density) { tokens.keyLabelTextSize.toPx() }, tokens.panelLabelWeight.weight)
 
     /** Space around long text inside the cell, gaps included, per side. */
     val longPadding = with(density) { (tokens.keyHorizontalGap / 2 + tokens.symbolLongTextHorizontalPadding).toPx() }
@@ -184,8 +182,11 @@ private class CellPaints(
     private val glyphBaseline = centeredBaseline(glyphPaint)
     private val longBaseline = centeredBaseline(longPaint)
 
-    private fun paint(size: Float) = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        typeface = this@CellPaints.typeface
+    private fun paint(
+        size: Float,
+        weight: Int,
+    ) = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        typeface = SourceHanSans.typeface(weight)
         textSize = size
         textAlign = Paint.Align.CENTER
     }
@@ -314,7 +315,7 @@ private fun SymbolBarKeyView(
     val insetX = tokens.keyHorizontalGap / 2
     val insetY = tokens.keyVerticalGap / 2
     val style = remember(fonts, tokens) {
-        TextStyle(fontFamily = fonts.key, fontSize = tokens.keyLabelTextSize, textAlign = TextAlign.Center)
+        TextStyle(fontFamily = fonts.family, fontWeight = tokens.keyLabelWeight, fontSize = tokens.keyLabelTextSize, textAlign = TextAlign.Center)
     }
     val onPressedChange = remember { { value: Boolean -> pressed = value } }
     val onTrigger = remember(key, onClick) { { onClick(key) } }

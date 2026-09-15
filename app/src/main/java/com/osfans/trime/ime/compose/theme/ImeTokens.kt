@@ -7,17 +7,18 @@ package com.osfans.trime.ime.compose.theme
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * The fixed half of the keyboard's look: sizes, spacing, shapes, type scale.
+ * The fixed half of the keyboard's look: sizes, spacing, shapes, type scale and type weights.
  *
- * These are decided in code on purpose and are **not** read from the theme yaml. The yaml
- * keeps the variable half — palette (see [ImeColors]), fonts, key layouts — so a theme
- * can recolour the keyboard but cannot make it clumsy.
+ * These are decided in code on purpose and are **not** read from the theme. The theme keeps the
+ * variable half — palette (see [ImeColors]) and key layouts — so it can recolour the keyboard but
+ * cannot make it clumsy. The font itself is built in, see [com.osfans.trime.data.theme.SourceHanSans].
  *
  * Every value and the reason for it is in docs/ime-design-system.md. The defaults are the
  * portrait values; [Landscape] only overrides what a 400dp-tall screen cannot afford.
@@ -71,6 +72,27 @@ data class ImeTokens(
     val keySymbolInsetEnd: Dp = 5.dp,
     /** Hint colour = key text colour at this alpha: findable at a glance, never louder than the letter. */
     val keySymbolAlpha: Float = 0.5f,
+    // type weights
+    // One variable font for everything (see SourceHanSans); a role picks a point on its weight axis.
+    /** Letters, digits and other single characters on keys, the nine-key letter groups too. */
+    val keyTextWeight: FontWeight = FontWeight(500),
+    /** Function-key words (`123`, `换行`, `ZH`): a notch heavier, they are read at a glance and are smaller. */
+    val keyLabelWeight: FontWeight = FontWeight(550),
+    /** The swipe / long-press hint in the corner and the bottom hint. */
+    val keySymbolWeight: FontWeight = FontWeight(400),
+    val candidateWeight: FontWeight = FontWeight(450),
+    /** The highlighted candidate stands out by weight as well as by its block. */
+    val candidateHighlightWeight: FontWeight = FontWeight(500),
+    val candidateCommentWeight: FontWeight = FontWeight(400),
+    val preeditWeight: FontWeight = FontWeight(400),
+    /** Key preview bubble and the cells of the long-press keyboard. */
+    val popupWeight: FontWeight = FontWeight(500),
+    /** Titles in the bar above a panel: symbol categories, clipboard pages, board window titles. */
+    val panelTitleWeight: FontWeight = FontWeight(600),
+    /** Short labels on panel keys and cells: symbol bar keys, edit panel, switches, menus. */
+    val panelLabelWeight: FontWeight = FontWeight(500),
+    /** Running text in panels: clipboard entries, phrases, the clipboard suggestion, empty hints. */
+    val panelBodyWeight: FontWeight = FontWeight(400),
     // press feedback
     /** Character keys: a bubble above the key shows what will be typed, or what the swipe will type. */
     val keyPreviewWidth: Dp = 44.dp,

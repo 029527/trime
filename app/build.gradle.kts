@@ -100,6 +100,20 @@ android {
         includeInBundle = false
     }
 
+    // The app font lives outside src/main/assets on purpose: everything in there is checksummed
+    // and copied to the user data dir on sync, and a 17 MB font has no business being copied.
+    sourceSets {
+        getByName("main") {
+            assets.srcDir("src/main/fontAssets")
+        }
+    }
+
+    // Stored uncompressed so Typeface can map it straight from the APK; a compressed font would
+    // be inflated into memory once per weight.
+    androidResources {
+        noCompress += "ttf"
+    }
+
     packaging {
         resources {
             excludes +=

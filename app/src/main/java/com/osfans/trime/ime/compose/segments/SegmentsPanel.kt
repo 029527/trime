@@ -106,7 +106,7 @@ fun SegmentsPanel(
     val density = LocalDensity.current
     val measurer = rememberTextMeasurer()
     val currentOnSelectionChanged by rememberUpdatedState(onSelectionChanged)
-    val style = TextStyle(fontFamily = fonts.key, fontSize = tokens.keyLabelTextSize)
+    val style = TextStyle(fontFamily = fonts.family, fontWeight = tokens.panelLabelWeight, fontSize = tokens.keyLabelTextSize)
 
     // the width comes from placement, not from constraints: the IME's ConstraintLayout also measures
     // with a wider AT_MOST probe, and BoxWithConstraints would recompose (and relayout) every frame

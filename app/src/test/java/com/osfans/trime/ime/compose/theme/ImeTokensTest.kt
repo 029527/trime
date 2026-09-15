@@ -11,12 +11,23 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 /**
- * Pins the panel sizes merged into [ImeTokens] (popup, symbol panel, panel lists, input bar) to the
- * values of the objects they came from, so the merge changes no pixel.
+ * Pins the type weights and the panel sizes of [ImeTokens] (popup, symbol panel, panel lists, input
+ * bar, edit panel), so a change to any of them is a deliberate one.
  */
 class ImeTokensTest :
     StringSpec({
         fun table(t: ImeTokens) = mapOf<String, Any>(
+            "keyTextWeight" to t.keyTextWeight.weight,
+            "keyLabelWeight" to t.keyLabelWeight.weight,
+            "keySymbolWeight" to t.keySymbolWeight.weight,
+            "candidateWeight" to t.candidateWeight.weight,
+            "candidateHighlightWeight" to t.candidateHighlightWeight.weight,
+            "candidateCommentWeight" to t.candidateCommentWeight.weight,
+            "preeditWeight" to t.preeditWeight.weight,
+            "popupWeight" to t.popupWeight.weight,
+            "panelTitleWeight" to t.panelTitleWeight.weight,
+            "panelLabelWeight" to t.panelLabelWeight.weight,
+            "panelBodyWeight" to t.panelBodyWeight.weight,
             "popupAnchorGap" to t.popupAnchorGap,
             "popupPreviewCornerRadius" to t.popupPreviewCornerRadius,
             "popupShadowElevation" to t.popupShadowElevation,
@@ -85,6 +96,18 @@ class ImeTokensTest :
 
 // field → original value; the same tables passed against the old token objects before the merge
 private val expectedPortrait: Map<String, Any> = mapOf(
+    // type weights on the app font's axis
+    "keyTextWeight" to 500,
+    "keyLabelWeight" to 550,
+    "keySymbolWeight" to 400,
+    "candidateWeight" to 450,
+    "candidateHighlightWeight" to 500,
+    "candidateCommentWeight" to 400,
+    "preeditWeight" to 400,
+    "popupWeight" to 500,
+    "panelTitleWeight" to 600,
+    "panelLabelWeight" to 500,
+    "panelBodyWeight" to 400,
     // key preview bubble and popup keyboard
     "popupAnchorGap" to 2.dp,
     "popupPreviewCornerRadius" to 8.dp,

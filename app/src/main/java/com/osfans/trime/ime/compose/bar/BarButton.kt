@@ -41,11 +41,11 @@ import androidx.compose.ui.unit.sp
 import com.mikepenz.iconics.IconicsDrawable
 import com.mikepenz.iconics.utils.sizeDp
 import com.osfans.trime.data.theme.ColorManager
-import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.KeyActionManager
 import com.osfans.trime.data.theme.model.ToolBar
 import com.osfans.trime.ime.compose.theme.ImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeColors
+import com.osfans.trime.ime.compose.theme.LocalImeFonts
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
 import com.osfans.trime.ime.keyboard.KeyAction
 import com.osfans.trime.ime.keyboard.KeyboardSwitcher
@@ -226,10 +226,11 @@ private fun ConfiguredButton(
                     remember(style, optionEnabled) {
                         if (style.isEmpty() || IMAGE_PATTERN.matches(style)) spec.action.getLabel(KeyboardSwitcher.currentKeyboard) else style
                     }
-                val font = remember { FontFamily(FontManager.getTypeface("toolbar_font")) }
+                val fonts = LocalImeFonts.current
+                val tokens = LocalImeTokens.current
                 BasicText(
                     text = label,
-                    style = TextStyle(fontFamily = font, fontSize = fg.fontSize.sp),
+                    style = TextStyle(fontFamily = fonts.family, fontWeight = tokens.panelLabelWeight, fontSize = fg.fontSize.sp),
                     color = { foreground },
                     maxLines = 1,
                     softWrap = false,

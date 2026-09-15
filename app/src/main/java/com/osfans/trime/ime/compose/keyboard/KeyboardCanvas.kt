@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.mikepenz.iconics.IconicsDrawable
 import com.mikepenz.iconics.utils.sizePx
-import com.osfans.trime.data.theme.FontManager
+import com.osfans.trime.data.theme.SourceHanSans
 import com.osfans.trime.ime.compose.theme.ImeTokens
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
 import com.osfans.trime.ime.keyboard.Key
@@ -56,7 +56,7 @@ import kotlin.math.roundToInt
  * Key backgrounds go through Compose's `drawRoundRect`: it draws with a pooled paint and only
  * inline value classes, so it allocates nothing and costs the same as the platform call. Text and
  * icons stay on the native canvas on purpose:
- * - the key font is a platform [Typeface] with a custom fallback chain built by [FontManager];
+ * - the key font is a platform [Typeface] from [SourceHanSans], one per weight, with the system fallback chain;
  * - `TextMeasurer` would lay out a paragraph per label (and again whenever shift or the ascii mode
  *   changes a label), then draw it through a `MultiParagraph`, where one `drawText` on a
  *   pre-configured [Paint] does the job;
@@ -125,8 +125,9 @@ private class KeyPainter(
 
     init {
         val scale = state.textScale
-        val keyFont = FontManager.getTypeface("key_font")
-        val symbolFont = FontManager.getTypeface("symbol_font")
+        val keyFont = SourceHanSans.typeface(tokens.keyTextWeight)
+        val labelFont = SourceHanSans.typeface(tokens.keyLabelWeight)
+        val symbolFont = SourceHanSans.typeface(tokens.keySymbolWeight)
         with(density) {
             val halfH = tokens.keyHorizontalGap.toPx() / 2
             val halfV = tokens.keyVerticalGap.toPx() / 2
@@ -145,7 +146,7 @@ private class KeyPainter(
             symbolInsetEnd = tokens.keySymbolInsetEnd.toPx() * scale
             letter = TextStyle(textPaint(tokens.keyTextSize, scale, keyFont, Paint.Align.CENTER))
             letterGroup = TextStyle(textPaint(tokens.keyLetterGroupTextSize, scale, keyFont, Paint.Align.CENTER))
-            label = TextStyle(textPaint(tokens.keyLabelTextSize, scale, keyFont, Paint.Align.CENTER))
+            label = TextStyle(textPaint(tokens.keyLabelTextSize, scale, labelFont, Paint.Align.CENTER))
             symbolPaint = textPaint(tokens.keySymbolTextSize, scale, symbolFont, Paint.Align.RIGHT)
             hintPaint = textPaint(tokens.keySymbolTextSize, scale, symbolFont, Paint.Align.CENTER)
             symbolIconSize = symbolPaint.textSize

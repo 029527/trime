@@ -36,6 +36,8 @@ internal class PopupMetrics(
     val keyboardPadding: Int,
     val keyboardCornerRadius: Float,
     val highlightCornerRadius: Float,
+    /** Weight of bubble and cell text on the app font's axis. */
+    val textWeight: Int,
 ) {
     companion object {
         fun of(
@@ -56,6 +58,7 @@ internal class PopupMetrics(
                 keyboardPadding = tokens.popupKeyboardPadding.roundToPx(),
                 keyboardCornerRadius = tokens.popupKeyboardCornerRadius.toPx(),
                 highlightCornerRadius = tokens.popupKeyboardHighlightCornerRadius.toPx(),
+                textWeight = tokens.popupWeight.weight,
             )
         }
     }

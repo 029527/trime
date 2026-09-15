@@ -15,8 +15,9 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import com.osfans.trime.data.theme.ColorManager
-import com.osfans.trime.data.theme.FontManager
+import com.osfans.trime.data.theme.SourceHanSans
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.ime.compose.theme.ImeTokens
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.floatingScale
 import splitties.dimensions.dp
 
@@ -85,7 +86,7 @@ class T9PinyinColumn(
                     gravity = Gravity.CENTER
                     setTextColor(chipTextColor)
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, (theme.generalStyle.keyLongTextSize.takeIf { it > 0 } ?: 16f) * 0.85f * context.floatingScale())
-                    typeface = FontManager.getTypeface("key_font")
+                    typeface = SourceHanSans.typeface(ImeTokens.Portrait.keyLabelWeight)
                     background =
                         GradientDrawable().apply {
                             setColor(chipColor)

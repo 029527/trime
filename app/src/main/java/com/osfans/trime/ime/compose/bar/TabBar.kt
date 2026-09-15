@@ -58,7 +58,7 @@ internal fun TabBar(
             BasicText(
                 text = content.title,
                 modifier = Modifier.padding(start = tokens.barTabSpacing),
-                style = TextStyle(fontFamily = fonts.candidate, fontSize = tokens.candidateTextSize, fontWeight = FontWeight.Bold),
+                style = TextStyle(fontFamily = fonts.family, fontSize = tokens.candidateTextSize, fontWeight = tokens.panelTitleWeight),
                 color = { colors.keyText },
                 maxLines = 1,
                 softWrap = false,

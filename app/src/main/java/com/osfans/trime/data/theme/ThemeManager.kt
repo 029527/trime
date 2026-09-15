@@ -26,7 +26,6 @@ object ThemeManager {
         prepared = true
         val theme = BuiltinTheme.theme
         KeyActionManager.resetCache()
-        FontManager.resetCache(theme)
         ColorManager.switchTheme(theme)
         LiquidData.init(theme)
     }
@@ -40,10 +39,5 @@ object ThemeManager {
     fun init(configuration: Configuration) {
         ensurePrepared()
         ColorManager.init(configuration)
-    }
-
-    /** Font files live in the user data dir and may have been replaced by a sync; drop cached typefaces. */
-    fun reloadFonts() {
-        if (prepared) FontManager.resetCache(BuiltinTheme.theme)
     }
 }

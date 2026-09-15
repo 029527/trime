@@ -81,8 +81,10 @@ class BuiltinThemeTest :
             theme.presetKeys.getValue("edit_panel").command shouldBe "edit_panel"
         }
 
-        test("fonts are file names looked up in the user dir, not bundled") {
-            theme.generalStyle.keyFont shouldBe listOf("MiSans-Medium.ttf")
-            theme.generalStyle.commentFont shouldBe listOf("MiSans-Regular.ttf")
+        test("the style names no font files: the font is built in") {
+            with(theme.generalStyle) {
+                listOf(candidateFont, commentFont, keyFont, labelFont, popupFont, symbolFont, textFont, hanbFont, latinFont)
+                    .flatten() shouldBe emptyList()
+            }
         }
     })

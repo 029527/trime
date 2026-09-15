@@ -80,7 +80,7 @@ private fun SymbolTab(
     val colors = LocalImeColors.current
     val fonts = LocalImeFonts.current
     val tokens = LocalImeTokens.current
-    val style = remember(fonts, tokens) { TextStyle(fontFamily = fonts.candidate, fontSize = tokens.candidateTextSize) }
+    val style = remember(fonts, tokens) { TextStyle(fontFamily = fonts.family, fontWeight = tokens.panelTitleWeight, fontSize = tokens.candidateTextSize) }
     Box(
         modifier = Modifier
             .fillMaxHeight()

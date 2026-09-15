@@ -17,7 +17,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import com.osfans.trime.data.theme.ColorManager
-import com.osfans.trime.data.theme.FontManager
+import com.osfans.trime.data.theme.SourceHanSans
 
 /**
  * The variable half of the keyboard's look, taken from the active colour scheme.
@@ -120,25 +120,16 @@ data class ImeColors(
     }
 }
 
-/** Fonts stay theme-driven: the user's `fonts/` directory decides them. */
+/**
+ * The keyboard's font: the built-in [SourceHanSans] for every role. Roles differ by weight, which
+ * comes from [ImeTokens] (`*Weight`), never by family.
+ */
 @Immutable
 data class ImeFonts(
-    val candidate: FontFamily,
-    val comment: FontFamily,
-    val preedit: FontFamily,
-    val key: FontFamily,
-    val symbol: FontFamily,
-    val popup: FontFamily,
+    val family: FontFamily,
 ) {
     companion object {
-        fun fromFontManager() = ImeFonts(
-            candidate = FontFamily(FontManager.getTypeface("candidate_font")),
-            comment = FontFamily(FontManager.getTypeface("comment_font")),
-            preedit = FontFamily(FontManager.getTypeface("text_font")),
-            key = FontFamily(FontManager.getTypeface("key_font")),
-            symbol = FontFamily(FontManager.getTypeface("symbol_font")),
-            popup = FontFamily(FontManager.getTypeface("popup_font")),
-        )
+        val Default = ImeFonts(SourceHanSans.family)
     }
 }
 
@@ -165,10 +156,9 @@ fun ImeTheme(
             ColorManager.removeOnTintChangedListener(tintListener)
         }
     }
-    val fonts = remember { ImeFonts.fromFontManager() }
     CompositionLocalProvider(
         LocalImeColors provides colors,
-        LocalImeFonts provides fonts,
+        LocalImeFonts provides ImeFonts.Default,
         LocalImeTokens provides tokens,
         content = content,
     )
