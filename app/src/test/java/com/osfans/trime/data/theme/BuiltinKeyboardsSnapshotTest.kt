@@ -36,7 +36,9 @@ private fun render(): String = buildString {
         appendLine("# $id width=${keyboard.width} height=${keyboard.height} ascii=${keyboard.asciiKeyboard} keys=${keyboard.keys.size}")
         keyboard.keys.forEachIndexed { i, key ->
             append("$i w=${key.width} h=${key.height} label=${key.label.quoted()} symbol=${key.labelSymbol.quoted()} hint=${key.hint.quoted()}")
+            if (key.widthLand != 0f) append(" widthLand=${key.widthLand}")
             if (key.hideInLandscape) append(" hideInLandscape")
+            if (key.hideInPortrait) append(" hideInPortrait")
             if (key.popup.isNotEmpty()) append(" popup=${key.popup}")
             key.behaviors.forEach { (behavior, token) -> append(" ${behavior.name}=$token") }
             appendLine()

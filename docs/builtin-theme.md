@@ -38,6 +38,9 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
   - `text("：")`：按键序列经 Rime 发送（可以写 `{Left}` 这种 keysym），同样可以带 `label`。
 - 功能键底色写 `keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK`。
 - `bottomBar` 是竖屏最底下那行，好几个键盘共用，改一处全都生效，见下一节。
+- 只在一个方向出现的键：`hideInLandscape` 横屏不排版，`hideInPortrait` 竖屏不排版（整行都藏掉时这一行也没了）。
+  `widthLand` 是横屏宽度，不写（0）就用 `width`；横屏多出一个键时，由旁边的键写 `widthLand` 让出宽度，
+  这样横竖屏两种排法每行都还是 100，竖屏布局一点不动。
 - 键盘 id 不能随便改：输入方案会按 id 选键盘，`select = "symbols"` 这类预设键也按 id 切换；`t9_land` 靠
   「同名 + `_land`」在横屏自动替换 `t9`。
 
@@ -64,6 +67,21 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
 - 剪贴板和编辑面板用单独的 `ios_clipboard` / `ios_edit`，不直接写 `clipboard_window` / `edit_panel`：那两个预设键的
   `label` 是文字，写在按键上的 `label` 在英文（ascii）状态下会被预设键的文字顶掉，键面就从图标变成「剪贴」「编辑」。
 - 原来的 `ios_globe`（`Control+Shift+1` 轮换方案）已删除：方案多于两个时轮换不如直接选。
+
+### 横屏的麦克风键
+
+横屏没有底行，麦克风键挪进最后一行，用同一个预设键 `ios_mic`（所以听写时同样画成激活样式），外观和同一行的功能键一样：
+
+| 键盘 | 横屏最后一行 | 让出宽度的键 |
+| --- | --- | --- |
+| `default`、`english` | 符号键 12、逗号 10、**麦克风 10**、空格 24、句号 10、中英 12、回车 22 | 空格 34 → 24 |
+| `symbols`、`symbols2`、`symbols_en`、`symbols2_en` | ABC 12、**麦克风 10**、空格 56、回车 22 | 空格 66 → 56 |
+| `number` | ABC 15、**麦克风 10**、0、逗号、回车（各 25） | ABC 25 → 15，数字列不动 |
+| `t9_land` | 左边数字区不变；`!` 9、**麦克风 12**、空格 13、ZH 13、回车 13 | 空格 25 → 13 |
+
+- 前几个键盘的麦克风是共用的 `landscapeMic`（带 `hideInPortrait`），让宽度的键写 `widthLand`；`t9_land` 只在横屏用，直接改宽度。
+- 都放在空格左边：空格和右手边的中英、回车挨在一起，最常按的几个键不被隔开；麦克风一次听写只按一两下，放远一点也不碍事。
+- `t9_land` 的麦克风正好在 PQRS 下面、空格在 TUV 下面，最后一行和上面的列对齐。
 
 ## 改工具栏
 

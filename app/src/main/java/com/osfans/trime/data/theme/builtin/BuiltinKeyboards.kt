@@ -24,7 +24,7 @@ private const val FUNC_KEY_HILITED_BACK = "func_key_hilited_back_color"
 object BuiltinKeyboards {
     /**
      * Last row shared by `default`, `english`, `t9`, `symbols`, `symbols2`, `symbols_en`, `symbols2_en`, `number`;
-     * portrait only. Corners keep the old globe / mic cells, the middle three share the rest evenly.
+     * portrait only (landscape gets [landscapeMic] instead). Corners keep the old globe / mic cells, the middle three share the rest evenly.
      */
     private val bottomBar =
         listOf(
@@ -39,6 +39,14 @@ object BuiltinKeyboards {
             // 右下角：语音
             TextKey(click = key("ios_mic"), width = 12f, keyTextSize = 24f, keyBackColor = "0x00000000", hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInLandscape = true),
         )
+
+    /**
+     * Mic key of the letter / symbol / number keyboards in landscape, where [bottomBar] is hidden.
+     * It sits left of the space key (left of `0` on `number`), and that neighbour gives up the same
+     * width through `widthLand`, so portrait rows stay exactly as they are.
+     */
+    private val landscapeMic =
+        TextKey(click = key("ios_mic"), width = 10f, keyTextSize = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK, hideInPortrait = true)
 
     private val default =
         TextKeyboard(
@@ -85,10 +93,11 @@ object BuiltinKeyboards {
                 TextKey(click = key("n"), labelSymbol = "！", longClick = text("！"), swipeUp = text("！")),
                 TextKey(click = key("m"), labelSymbol = "…", longClick = text("……"), swipeUp = text("……")),
                 TextKey(click = key("ios_backspace"), swipeLeft = key("Escape"), width = 15f, keyTextSize = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                // 第 4 行：ios_symbols ， 空格 。 ios_to_en ios_return
+                // 第 4 行：ios_symbols ， (横屏 ios_mic) 空格 。 ios_to_en ios_return
                 TextKey(click = key("ios_symbols"), labelSymbol = " ", longClick = key("ios_number"), swipeUp = key("liquid_keyboard_switch"), width = 12f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
                 TextKey(click = key(","), label = "，", width = 10f),
-                TextKey(click = key("ios_space"), label = "空格", width = 34f),
+                landscapeMic,
+                TextKey(click = key("ios_space"), label = "空格", width = 34f, widthLand = 24f),
                 TextKey(click = key("."), label = "。", width = 10f),
                 TextKey(click = key("ios_to_en"), labelSymbol = " ", longClick = key("Menu"), width = 12f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
                 TextKey(click = key("ios_return"), width = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
@@ -139,10 +148,11 @@ object BuiltinKeyboards {
                 TextKey(click = key("n"), labelSymbol = "!", longClick = commit("!"), swipeUp = commit("!")),
                 TextKey(click = key("m"), labelSymbol = "#", longClick = commit("#"), swipeUp = commit("#")),
                 TextKey(click = key("ios_backspace"), swipeLeft = key("Escape"), width = 15f, keyTextSize = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                // 第 4 行：ios_symbols_en , ios_space . ios_to_zh ios_return
+                // 第 4 行：ios_symbols_en , (横屏 ios_mic) ios_space . ios_to_zh ios_return
                 TextKey(click = key("ios_symbols_en"), labelSymbol = " ", longClick = key("ios_number"), swipeUp = key("liquid_keyboard_switch"), width = 12f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
                 TextKey(click = commit(","), width = 10f),
-                TextKey(click = key("ios_space"), width = 34f),
+                landscapeMic,
+                TextKey(click = key("ios_space"), width = 34f, widthLand = 24f),
                 TextKey(click = commit("."), width = 10f),
                 TextKey(click = key("ios_to_zh"), labelSymbol = " ", longClick = key("Menu"), width = 12f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
                 TextKey(click = key("ios_return"), width = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
@@ -231,13 +241,14 @@ object BuiltinKeyboards {
                 TextKey(click = key("8"), label = "TUV", width = 13f, keyTextSize = 20f),
                 TextKey(click = key("9"), label = "WXYZ", width = 13f, keyTextSize = 20f),
                 TextKey(click = commit("@"), width = 12f),
-                // 第 4 行：/ 符 0 . ! 空格 ZH ios_return
+                // 第 4 行：/ 符 0 . ! ios_mic 空格 ZH ios_return（麦克风在 PQRS 下面，空格在 TUV 下面）
                 TextKey(click = commit("/"), width = 10f),
                 TextKey(click = key("ios_symbols"), label = "符", width = 10f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
                 TextKey(click = commit("0"), width = 10f),
                 TextKey(click = commit("."), width = 10f),
                 TextKey(click = key("!"), width = 9f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                TextKey(click = key("ios_space"), label = "空格", width = 25f),
+                TextKey(click = key("ios_mic"), width = 12f, keyTextSize = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
+                TextKey(click = key("ios_space"), label = "空格", width = 13f),
                 TextKey(click = key("ios_to_en"), label = "ZH", width = 13f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
                 TextKey(click = key("ios_return"), width = 13f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
             ),
@@ -283,9 +294,10 @@ object BuiltinKeyboards {
                 TextKey(click = key("!"), label = "！", width = 11.66f),
                 TextKey(click = commit("."), width = 11.66f),
                 TextKey(click = key("ios_backspace"), swipeLeft = key("Escape"), width = 15f, keyTextSize = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                // 第 4 行：ios_abc 空格 ios_return
+                // 第 4 行：ios_abc (横屏 ios_mic) 空格 ios_return
                 TextKey(click = key("ios_abc"), width = 12f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                TextKey(click = key("ios_space"), label = "空格", width = 66f),
+                landscapeMic,
+                TextKey(click = key("ios_space"), label = "空格", width = 66f, widthLand = 56f),
                 TextKey(click = key("ios_return"), width = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
             ) + bottomBar,
         )
@@ -329,9 +341,10 @@ object BuiltinKeyboards {
                 TextKey(click = key("!"), label = "！", width = 14f),
                 TextKey(click = key("'"), label = "「」", width = 14f),
                 TextKey(click = key("ios_backspace"), swipeLeft = key("Escape"), width = 15f, keyTextSize = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                // 第 4 行：ios_abc 空格 ios_return
+                // 第 4 行：ios_abc (横屏 ios_mic) 空格 ios_return
                 TextKey(click = key("ios_abc"), width = 12f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                TextKey(click = key("ios_space"), label = "空格", width = 66f),
+                landscapeMic,
+                TextKey(click = key("ios_space"), label = "空格", width = 66f, widthLand = 56f),
                 TextKey(click = key("ios_return"), width = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
             ) + bottomBar,
         )
@@ -374,9 +387,10 @@ object BuiltinKeyboards {
                 TextKey(click = commit("!"), width = 14f),
                 TextKey(click = commit("'"), width = 14f),
                 TextKey(click = key("ios_backspace"), swipeLeft = key("Escape"), width = 15f, keyTextSize = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                // 第 4 行：ios_abc ios_space ios_return
+                // 第 4 行：ios_abc (横屏 ios_mic) ios_space ios_return
                 TextKey(click = key("ios_abc"), width = 12f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                TextKey(click = key("ios_space"), width = 66f),
+                landscapeMic,
+                TextKey(click = key("ios_space"), width = 66f, widthLand = 56f),
                 TextKey(click = key("ios_return"), width = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
             ) + bottomBar,
         )
@@ -419,9 +433,10 @@ object BuiltinKeyboards {
                 TextKey(click = commit("!"), width = 14f),
                 TextKey(click = commit("'"), width = 14f),
                 TextKey(click = key("ios_backspace"), swipeLeft = key("Escape"), width = 15f, keyTextSize = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                // 第 4 行：ios_abc ios_space ios_return
+                // 第 4 行：ios_abc (横屏 ios_mic) ios_space ios_return
                 TextKey(click = key("ios_abc"), width = 12f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
-                TextKey(click = key("ios_space"), width = 66f),
+                landscapeMic,
+                TextKey(click = key("ios_space"), width = 66f, widthLand = 56f),
                 TextKey(click = key("ios_return"), width = 22f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
             ) + bottomBar,
         )
@@ -449,8 +464,9 @@ object BuiltinKeyboards {
                 TextKey(click = key("KP_8"), label = "8"),
                 TextKey(click = key("KP_9"), label = "9"),
                 TextKey(click = commit(".")),
-                // 第 4 行：ios_abc 0 , ios_return
-                TextKey(click = key("ios_abc"), keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
+                // 第 4 行：ios_abc (横屏 ios_mic) 0 , ios_return；横屏由 ios_abc 让宽度，数字列不动
+                TextKey(click = key("ios_abc"), widthLand = 15f, keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),
+                landscapeMic,
                 TextKey(click = key("KP_0"), label = "0"),
                 TextKey(click = commit(",")),
                 TextKey(click = key("ios_return"), keyBackColor = FUNC_KEY_BACK, hlKeyBackColor = FUNC_KEY_HILITED_BACK),

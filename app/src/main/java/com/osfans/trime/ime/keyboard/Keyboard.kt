@@ -133,23 +133,23 @@ class Keyboard(
                 c
             }
 
-            // keys marked hide_in_landscape (e.g. a globe/mic row) disappear in landscape;
-            // a row whose keys are all hidden is not laid out at all
-            val keys =
-                if (context.resources.configuration.isLandscape()) {
-                    selfConfig.keys.filter { !it.hideInLandscape }
-                } else {
-                    selfConfig.keys
-                }
+            // keys marked hideInLandscape (the bottom bar) disappear in landscape, keys marked
+            // hideInPortrait (its landscape mic) in portrait; a row whose keys are all hidden is not laid out at all
+            val landscape = context.resources.configuration.isLandscape()
+            val keys = selfConfig.keys.filter { if (landscape) !it.hideInLandscape else !it.hideInPortrait }
             val keyboardKeyWidth = selfConfig.width
+
+            // widthLand replaces width in landscape; a clickable key without either takes the keyboard's width
+            fun TextKeyboard.TextKey.widthWeight(): Float {
+                val weight = if (landscape && widthLand != 0f) widthLand else width
+                return if (weight == 0f && hasClickAction) keyboardKeyWidth else weight
+            }
 
             val maxColumns = if (selfConfig.columns == -1) Int.MAX_VALUE else selfConfig.columns
 
             // the split layout (gap in the middle) is meant for a full-width landscape keyboard;
             // a floating keyboard is already narrow, never split it
-            val floating =
-                AppPrefs.defaultInstance().keyboard.landscapeFloating.getValue() &&
-                    context.resources.configuration.isLandscape()
+            val floating = AppPrefs.defaultInstance().keyboard.landscapeFloating.getValue() && landscape
             val isSplit = context.isLandscapeMode() && landscapePercent > 0 && !floating
             val splitRatio = if (isSplit) landscapePercent / 100f else 0f
 
@@ -171,8 +171,7 @@ class Keyboard(
             for (key in keys) {
 
                 // determine the width weight of this key
-                val keyWidthWeight =
-                    if (key.width == 0f && key.hasClickAction) keyboardKeyWidth else key.width
+                val keyWidthWeight = key.widthWeight()
 
                 val widthPx = (keyWidthWeight * allowedWidth / MAX_TOTAL_WEIGHT).toInt()
 
@@ -240,8 +239,7 @@ class Keyboard(
             // create Key objects, assign position, size, offsets
             for (textKey in keys) {
 
-                val keyWidthWeight =
-                    if (textKey.width == 0f && textKey.hasClickAction) keyboardKeyWidth else textKey.width
+                val keyWidthWeight = textKey.widthWeight()
 
                 var widthPx = (keyWidthWeight * oneWeightWidthPx).toInt()
 

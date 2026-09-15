@@ -82,6 +82,10 @@ data class TextKeyboard(
         val popup: List<String> = emptyList(),
         /** Drop this key (and its row, if every key in the row is dropped) when the device is in landscape. */
         val hideInLandscape: Boolean = false,
+        /** Drop this key (and its row, if every key in the row is dropped) in portrait; the counterpart of [hideInLandscape]. */
+        val hideInPortrait: Boolean = false,
+        /** Width in landscape, `0` to keep [width]; lets a landscape-only key take its room from a neighbour. */
+        val widthLand: Float = 0f,
         val composing: KeyActionToken? = null,
         val hasMenu: KeyActionToken? = null,
         val paging: KeyActionToken? = null,
