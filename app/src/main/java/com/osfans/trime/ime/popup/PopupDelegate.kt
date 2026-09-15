@@ -1,219 +1,217 @@
 /*
- * SPDX-FileCopyrightText: 2015 - 2025 Rime community
+ * SPDX-FileCopyrightText: 2015 - 2026 Rime community
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 package com.osfans.trime.ime.popup
 
 import android.content.Context
 import android.graphics.Rect
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.util.SparseArray
 import android.view.View
-import android.view.ViewGroup
-import androidx.lifecycle.lifecycleScope
-import com.osfans.trime.data.theme.Theme
-import com.osfans.trime.ime.core.TrimeInputMethodService
+import androidx.compose.ui.unit.Density
+import com.mikepenz.iconics.IconicsDrawable
+import com.mikepenz.iconics.utils.sizePx
+import com.osfans.trime.data.theme.KeyActionManager
+import com.osfans.trime.ime.compose.imeComposeView
+import com.osfans.trime.ime.compose.popup.BubbleSlot
+import com.osfans.trime.ime.compose.popup.PopupGeometry
+import com.osfans.trime.ime.compose.popup.PopupKeyboardLayout
+import com.osfans.trime.ime.compose.popup.PopupKeyboardState
+import com.osfans.trime.ime.compose.popup.PopupLayer
+import com.osfans.trime.ime.compose.popup.PopupLayerState
+import com.osfans.trime.ime.compose.popup.PopupLayerView
+import com.osfans.trime.ime.compose.popup.PopupMetrics
+import com.osfans.trime.ime.compose.popup.PopupTokens
+import com.osfans.trime.ime.compose.theme.ImeTokens
 import com.osfans.trime.ime.dependency.InputDependencyManager
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
+import com.osfans.trime.ime.keyboard.KeyboardSwitcher
+import com.osfans.trime.ime.keyboard.isIconFont
+import com.osfans.trime.ime.keyboard.toIconName
 import org.kodein.di.instance
-import splitties.dimensions.dp
-import splitties.views.dsl.core.add
-import splitties.views.dsl.core.frameLayout
-import splitties.views.dsl.core.lParams
-import java.util.LinkedList
+import kotlin.math.roundToInt
 
+/**
+ * Key preview bubbles and long-press keyboards, driven by [PopupAction]s from the keyboard.
+ *
+ * Positions are worked out here, in pixels, because [PopupAction.ChangeFocusAction] needs its
+ * answer synchronously; [PopupLayer] only draws what [PopupLayerState] says. Action bounds are in
+ * window coordinates and are shifted into the layer's.
+ */
 class PopupDelegate {
     private val context: Context by InputDependencyManager.getInstance().di.instance()
-    private val theme: Theme by InputDependencyManager.getInstance().di.instance()
-    private val service: TrimeInputMethodService by InputDependencyManager.getInstance().di.instance()
 
-    private val showingEntryUi = HashMap<Int, PopupEntryUi>()
-    private val dismissJobs = HashMap<Int, Job>()
-    private val freeEntryUi = LinkedList<PopupEntryUi>()
+    private val handler = Handler(Looper.getMainLooper())
 
-    private val showingContainerUi = HashMap<Int, PopupContainerUi>()
-
-    private val popupBottomMargin by lazy {
-        context.dp(theme.generalStyle.popupBottomMargin)
-    }
-    private val popupWidth by lazy {
-        context.dp(theme.generalStyle.popupWidth)
-    }
-    private val popupHeight by lazy {
-        context.dp(theme.generalStyle.popupHeight)
-    }
-    private val popupKeyHeight by lazy {
-        context.dp(theme.generalStyle.popupKeyHeight)
-    }
-    private val popupRadius by lazy {
-        context.dp(theme.generalStyle.roundCorner)
-    }
-    private val hideThreshold = 100L
-
-    private val rootLocation = intArrayOf(0, 0)
-    private val rootBounds: Rect = Rect()
-
-    val root by lazy {
-        context.frameLayout {
-            // we want (0, 0) at top left
-            layoutDirection = View.LAYOUT_DIRECTION_LTR
-            isClickable = false
-            isFocusable = false
-
-            addOnLayoutChangeListener { v, left, top, right, bottom, _, _, _, _ ->
-                val (x, y) = rootLocation.also { v.getLocationInWindow(it) }
-                val width = right - left
-                val height = bottom - top
-                rootBounds.set(x, y, x + width, y + height)
-            }
-        }
-    }
-
-    private fun showPopup(viewId: Int, content: String, bounds: Rect) {
-        showingEntryUi[viewId]?.apply {
-            dismissJobs[viewId]?.also {
-                dismissJobs.remove(viewId)?.cancel()
-            }
-            lastShowTime = System.currentTimeMillis()
-            setText(content)
-            return
-        }
-        val popup = (
-            freeEntryUi.poll()
-                ?: PopupEntryUi(context, theme, popupKeyHeight, popupRadius)
-            ).apply {
-            lastShowTime = System.currentTimeMillis()
-            setText(content)
-        }
-        placePopup(popup, bounds)
-        showingEntryUi[viewId] = popup
-    }
-
-    private fun placePopup(ui: PopupEntryUi, bounds: Rect) {
-        val v = ui.root
-        if (v.parent == root) return
-        (v.parent as? ViewGroup)?.removeView(v)
-        root.apply {
-            add(
-                v,
-                lParams(popupWidth, popupHeight) {
-                    // align popup bottom with key border bottom
-                    topMargin = bounds.bottom - popupHeight - popupBottomMargin
-                    leftMargin = (bounds.left + bounds.right - popupWidth) / 2
-                },
-            )
-        }
-    }
-
-    private fun updatePopup(viewId: Int, content: String) {
-        showingEntryUi[viewId]?.setText(content)
-    }
-
-    private fun showKeyboard(viewId: Int, keys: List<String>, bounds: Rect) {
-        // clear popup preview text         OR create empty popup preview
-        showingEntryUi[viewId]?.setText("") ?: showPopup(viewId, "", bounds)
-        reallyShowKeyboard(viewId, keys, bounds)
-    }
-
-    private fun reallyShowKeyboard(viewId: Int, keys: List<String>, bounds: Rect) {
-        val labels = keys
-        val keyboardUi = PopupKeyboardUi(
-            context,
-            theme,
-            rootBounds,
-            bounds,
-            { dismissPopup(viewId) },
-            popupRadius,
-            popupWidth,
-            popupKeyHeight,
-            // position popup keyboard higher, because of [^1]
-            popupHeight + popupBottomMargin,
-            keys,
-            labels,
+    private val state by lazy {
+        val landscape = context.isLandscapeMode()
+        PopupLayerState(
+            PopupMetrics.of(
+                Density(context),
+                if (landscape) ImeTokens.Landscape else ImeTokens.Portrait,
+                if (landscape) PopupTokens.Landscape else PopupTokens.Portrait,
+            ),
         )
-        showPopupContainer(viewId, keyboardUi)
+    }
+    private val metrics get() = state.metrics
+
+    /** Bubbles on screen by key; SparseArray, so key indices are not boxed on every press. */
+    private val showingBubbles = SparseArray<BubbleSlot>()
+    private val freeBubbles = ArrayDeque<BubbleSlot>()
+
+    private val rootLocation = IntArray(2)
+
+    /** Overlay covering the whole input view; see [PopupLayerView] for why it ignores touches. */
+    val root: View by lazy {
+        PopupLayerView(context, context.imeComposeView { PopupLayer(state) })
     }
 
-    private fun showPopupContainer(viewId: Int, ui: PopupContainerUi) {
-        root.apply {
-            add(
-                ui.root,
-                lParams {
-                    leftMargin = ui.triggerBounds.left + ui.offsetX - rootBounds.left
-                    topMargin = ui.triggerBounds.top + ui.offsetY - rootBounds.top
-                },
-            )
+    private fun updateRootLocation() = root.getLocationInWindow(rootLocation)
+
+    private fun showPreview(
+        viewId: Int,
+        content: String,
+        bounds: Rect,
+    ) {
+        val slot = showingBubbles[viewId] ?: obtainBubble().also {
+            it.viewId = viewId
+            showingBubbles.put(viewId, it)
         }
-        showingContainerUi[viewId] = ui
+        handler.removeCallbacks(slot.hideTask)
+        updateRootLocation()
+        val m = metrics
+        val centerX = (bounds.left + bounds.right) / 2 - rootLocation[0]
+        slot.x = PopupGeometry.centeredLeft(centerX, m.previewWidth, root.width)
+        slot.y = PopupGeometry.topAbove(bounds.top - rootLocation[1] + m.anchorOffset, m.previewHeight)
+        slot.text = content
+        slot.shownAt = SystemClock.uptimeMillis()
+        slot.visible = true
     }
 
-    private fun changeFocus(viewId: Int, x: Float, y: Float): Boolean = showingContainerUi[viewId]?.changeFocus(x, y) ?: false
+    private fun obtainBubble(): BubbleSlot = freeBubbles.removeFirstOrNull() ?: BubbleSlot().also { slot ->
+        slot.hideTask = Runnable { hideBubble(slot) }
+        state.bubbles.add(slot)
+    }
 
-    private fun triggerFocused(viewId: Int): String? = showingContainerUi[viewId]?.onTrigger()
+    private fun updatePreview(
+        viewId: Int,
+        content: String,
+    ) {
+        showingBubbles[viewId]?.text = content
+    }
 
-    private fun dismissPopup(viewId: Int) {
-        dismissPopupContainer(viewId)
-        showingEntryUi[viewId]?.also {
-            val timeLeft = it.lastShowTime + hideThreshold - System.currentTimeMillis()
-            if (timeLeft <= 0L) {
-                dismissPopupEntry(viewId, it)
-            } else {
-                dismissJobs[viewId] = service.lifecycleScope.launch {
-                    delay(timeLeft)
-                    dismissPopupEntry(viewId, it)
-                    dismissJobs.remove(viewId)
-                }
+    private fun hideBubble(slot: BubbleSlot) {
+        handler.removeCallbacks(slot.hideTask)
+        if (slot.viewId == -1) return
+        if (showingBubbles[slot.viewId] === slot) showingBubbles.remove(slot.viewId)
+        slot.visible = false
+        slot.viewId = -1
+        freeBubbles.addLast(slot)
+    }
+
+    /** A bubble stays up at least [HIDE_THRESHOLD] ms, so a quick tap still shows a stable bubble. */
+    private fun dismissPreview(viewId: Int) {
+        val slot = showingBubbles[viewId] ?: return
+        val timeLeft = slot.shownAt + HIDE_THRESHOLD - SystemClock.uptimeMillis()
+        if (timeLeft <= 0L) {
+            hideBubble(slot)
+        } else {
+            handler.removeCallbacks(slot.hideTask)
+            handler.postDelayed(slot.hideTask, timeLeft)
+        }
+    }
+
+    private fun showKeyboard(
+        viewId: Int,
+        keys: List<String>,
+        bounds: Rect,
+    ) {
+        // the keyboard takes the bubble's place
+        showingBubbles[viewId]?.let { hideBubble(it) }
+        if (keys.isEmpty()) return
+        updateRootLocation()
+        val m = metrics
+        val left = bounds.left - rootLocation[0]
+        val top = bounds.top - rootLocation[1]
+        val layout = PopupKeyboardLayout(
+            keyCount = keys.size,
+            containerWidth = root.width,
+            triggerLeft = left,
+            triggerRight = bounds.right - rootLocation[0],
+            bottom = top + m.anchorOffset,
+            cellWidth = m.cellWidth,
+            cellHeight = m.cellHeight,
+            padding = m.keyboardPadding,
+        )
+        val labels = keys.map(::labelOf)
+        val iconSize = m.cellTextSize.roundToInt()
+        val icons = Array(labels.size) { i ->
+            labels[i].takeIf { it.isIconFont }?.let { IconicsDrawable(context, it.toIconName()).apply { sizePx = iconSize } }
+        }
+        state.keyboard = PopupKeyboardState(viewId, keys, labels, icons, layout, left, top)
+    }
+
+    private fun labelOf(key: String): String = if (key.length == 1 && key[0].code < 128) {
+        key
+    } else {
+        KeyActionManager.getAction(key).getLabel(KeyboardSwitcher.currentKeyboard).let {
+            when {
+                it.isIconFont -> it
+                it.isNotEmpty() -> String(Character.toChars(it.codePointAt(0)))
+                else -> ""
             }
         }
     }
 
-    private fun dismissPopupContainer(viewId: Int) {
-        showingContainerUi[viewId]?.also {
-            showingContainerUi.remove(viewId)
-            root.removeView(it.root)
+    private fun keyboardOf(viewId: Int) = state.keyboard?.takeIf { it.viewId == viewId }
+
+    /** @return whether the keyboard closed because the finger slid away from it. */
+    private fun changeFocus(
+        viewId: Int,
+        x: Float,
+        y: Float,
+    ): Boolean {
+        val keyboard = keyboardOf(viewId) ?: return false
+        when (val index = keyboard.layout.focusAt(keyboard.triggerLeft + x, keyboard.triggerTop + y)) {
+            PopupKeyboardLayout.OUTSIDE -> {
+                state.keyboard = null
+                return true
+            }
+            PopupKeyboardLayout.EMPTY -> {}
+            else -> keyboard.focus = index
         }
+        return false
     }
 
-    private fun dismissPopupEntry(viewId: Int, popup: PopupEntryUi) {
-        showingEntryUi.remove(viewId)
-        root.removeView(popup.root)
-        freeEntryUi.add(popup)
-    }
+    private fun triggerFocused(viewId: Int): String? = keyboardOf(viewId)?.let { it.keys.getOrNull(it.focus) }
 
-    /** Pooled previews carry the old colours; drop them so the next preview is built afresh. */
-    fun onColorTintUpdate() {
-        freeEntryUi.clear()
+    private fun dismiss(viewId: Int) {
+        if (keyboardOf(viewId) != null) state.keyboard = null
+        dismissPreview(viewId)
     }
 
     fun dismissAll() {
-        // avoid modifying collection while iterating
-        dismissJobs.forEach { (_, job) ->
-            job.cancel()
-        }
-        dismissJobs.clear()
-        // too
-        showingContainerUi.forEach { (_, container) ->
-            root.removeView(container.root)
-        }
-        showingContainerUi.clear()
-        // too too
-        showingEntryUi.forEach { (_, entry) ->
-            root.removeView(entry.root)
-            freeEntryUi.add(entry)
-        }
-        showingEntryUi.clear()
+        state.keyboard = null
+        while (showingBubbles.size() > 0) hideBubble(showingBubbles.valueAt(0))
     }
 
     val listener = PopupActionListener { action ->
         with(action) {
             when (this) {
                 is PopupAction.ChangeFocusAction -> outResult = changeFocus(viewId, x, y)
-                is PopupAction.DismissAction -> dismissPopup(viewId)
-                is PopupAction.PreviewAction -> showPopup(viewId, content, bounds)
-                is PopupAction.PreviewUpdateAction -> updatePopup(viewId, content)
+                is PopupAction.DismissAction -> dismiss(viewId)
+                is PopupAction.PreviewAction -> showPreview(viewId, content, bounds)
+                is PopupAction.PreviewUpdateAction -> updatePreview(viewId, content)
                 is PopupAction.ShowKeyboardAction -> showKeyboard(viewId, keys, bounds)
                 is PopupAction.TriggerAction -> outAction = triggerFocused(viewId)
             }
         }
+    }
+
+    companion object {
+        private const val HIDE_THRESHOLD = 100L
     }
 }

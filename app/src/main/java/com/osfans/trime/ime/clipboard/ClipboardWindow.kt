@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015 - 2025 Rime community
+ * SPDX-FileCopyrightText: 2015 - 2026 Rime community
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -7,7 +7,6 @@ package com.osfans.trime.ime.clipboard
 
 import android.app.AlertDialog
 import android.content.Intent
-import android.graphics.Typeface
 import android.view.View
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.Pager
@@ -17,9 +16,12 @@ import com.osfans.trime.data.db.ClipboardHelper
 import com.osfans.trime.data.db.CollectionHelper
 import com.osfans.trime.data.db.DatabaseBean
 import com.osfans.trime.data.prefs.AppPrefs
-import com.osfans.trime.data.theme.ColorManager
-import com.osfans.trime.data.theme.FontManager
-import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.ime.compose.clipboard.ClipboardBar
+import com.osfans.trime.ime.compose.clipboard.ClipboardPage
+import com.osfans.trime.ime.compose.clipboard.ClipboardPages
+import com.osfans.trime.ime.compose.clipboard.ClipboardPanelState
+import com.osfans.trime.ime.compose.clipboard.PanelMenuAction
+import com.osfans.trime.ime.compose.imeComposeView
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.segments.SegmentsWindow
@@ -27,165 +29,97 @@ import com.osfans.trime.ime.window.BoardWindow
 import com.osfans.trime.ime.window.BoardWindowManager
 import com.osfans.trime.ui.main.ClipEditActivity
 import com.osfans.trime.util.AppUtils
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.kodein.di.instance
-import splitties.views.recyclerview.verticalLayoutManager
 
-class ClipboardWindow(private val initialTab: Int = 0) : BoardWindow.BarBoardWindow() {
-
+/** Clipboard history and collection; the tabs go into the bar, the lists cover the keyboard. */
+class ClipboardWindow(
+    initialTab: Int = 0,
+) : BoardWindow.BarBoardWindow() {
     private val service: TrimeInputMethodService by di.instance()
     private val windowManager: BoardWindowManager by di.instance()
-    private val theme: Theme by di.instance()
-
-    private lateinit var clipboardLayout: ClipboardLayout
-    private lateinit var clipboardPagesAdapter: ClipboardPagesAdapter
 
     private val prefs = AppPrefs.defaultInstance().clipboard
     private val clipboardReturnAfterPaste by prefs.clipboardReturnAfterPaste
 
-    private val clipboardBeansPager by lazy {
-        Pager(PagingConfig(pageSize = 16)) { ClipboardHelper.allBeans() }
+    private val panelState = ClipboardPanelState(initialTab)
+
+    private val clipboardBeans = Pager(PagingConfig(pageSize = 16)) { ClipboardHelper.allBeans() }.flow
+    private val collectionBeans = Pager(PagingConfig(pageSize = 16)) { CollectionHelper.allBeans() }.flow
+
+    override fun onCreateView(): View = context.imeComposeView {
+        ClipboardPages(
+            state = panelState,
+            clipboardBeans = clipboardBeans,
+            collectionBeans = collectionBeans,
+            onPaste = ::paste,
+            menuFor = ::menuFor,
+        )
     }
-    private val collectionBeansPager by lazy {
-        Pager(PagingConfig(pageSize = 16)) { CollectionHelper.allBeans() }
+
+    override fun onCreateBarView(): View = context.imeComposeView {
+        ClipboardBar(panelState, onDeleteAll = ::promptDeleteAll)
     }
-    private var clipboardBeansSubmitJob: Job? = null
-    private var collectionBeansSubmitJob: Job? = null
 
-    private val clipboardBeansAdapter by lazy {
-        object : ClipboardAdapter(theme) {
-            override fun onPaste(bean: DatabaseBean) {
-                val text = bean.text ?: return
-                service.commitText(text)
-                if (clipboardReturnAfterPaste) {
-                    windowManager.attachWindow(KeyboardWindow)
-                }
+    private fun paste(bean: DatabaseBean) {
+        val text = bean.text ?: return
+        service.commitText(text)
+        if (clipboardReturnAfterPaste) {
+            windowManager.attachWindow(KeyboardWindow)
+        }
+    }
+
+    private fun menuFor(
+        page: ClipboardPage,
+        bean: DatabaseBean,
+    ): List<PanelMenuAction> = buildList {
+        val text = bean.text
+        add(
+            PanelMenuAction(context.getString(R.string.edit), R.drawable.ic_baseline_edit_24) {
+                val from = if (page == ClipboardPage.Clipboard) ClipEditActivity.FROM_CLIPBOARD else ClipEditActivity.FROM_COLLECTION
+                AppUtils.launchClipEdit(context, bean.id, from)
+            },
+        )
+        add(
+            PanelMenuAction(context.getString(R.string.share), R.drawable.ic_baseline_share_24) {
+                text?.let(::launchTextSharing)
+            },
+        )
+        add(
+            PanelMenuAction(context.getString(R.string.word_segment), R.drawable.ic_baseline_view_comfy_24) {
+                text?.let { windowManager.attachWindow(SegmentsWindow(it)) }
+            },
+        )
+        if (page == ClipboardPage.Clipboard) {
+            add(
+                PanelMenuAction(context.getString(R.string.collect), R.drawable.ic_baseline_star_24) {
+                    CollectionHelper.addNewBean(text ?: "")
+                },
+            )
+            if (bean.pinned) {
+                add(
+                    PanelMenuAction(context.getString(R.string.simple_key_unpin), R.drawable.ic_outline_push_pin_24) {
+                        service.lifecycleScope.launch { ClipboardHelper.unpin(bean.id) }
+                    },
+                )
+            } else {
+                add(
+                    PanelMenuAction(context.getString(R.string.simple_key_pin), R.drawable.ic_baseline_push_pin_24) {
+                        service.lifecycleScope.launch { ClipboardHelper.pin(bean.id) }
+                    },
+                )
             }
-
-            override fun onPin(id: Int) {
-                service.lifecycleScope.launch { ClipboardHelper.pin(id) }
-            }
-
-            override fun onUnpin(id: Int) {
-                service.lifecycleScope.launch { ClipboardHelper.unpin(id) }
-            }
-
-            override fun onEdit(id: Int) {
-                AppUtils.launchClipEdit(context, id, ClipEditActivity.FROM_CLIPBOARD)
-            }
-
-            override fun onShare(bean: DatabaseBean) {
-                val text = bean.text ?: return
-                launchTextSharing(text)
-            }
-
-            override fun onSegment(bean: DatabaseBean) {
-                val text = bean.text ?: return
-                windowManager.attachWindow(SegmentsWindow(text))
-            }
-
-            override fun onCollect(bean: DatabaseBean) {
+        }
+        add(
+            PanelMenuAction(context.getString(R.string.delete), R.drawable.ic_baseline_delete_24) {
                 service.lifecycleScope.launch {
-                    CollectionHelper.addNewBean(bean.text ?: "")
-                }
-            }
-
-            override fun onDelete(id: Int) {
-                service.lifecycleScope.launch { ClipboardHelper.delete(id) }
-            }
-
-            override val enableCollection: Boolean = true
-        }
-    }
-
-    private val collectionBeansAdapter by lazy {
-        object : ClipboardAdapter(theme) {
-            override fun onPaste(bean: DatabaseBean) {
-                val text = bean.text ?: return
-                service.commitText(text)
-                if (clipboardReturnAfterPaste) {
-                    windowManager.attachWindow(KeyboardWindow)
-                }
-            }
-
-            override fun onEdit(id: Int) {
-                AppUtils.launchClipEdit(context, id, ClipEditActivity.FROM_COLLECTION)
-            }
-
-            override fun onShare(bean: DatabaseBean) {
-                val text = bean.text ?: return
-                launchTextSharing(text)
-            }
-
-            override fun onSegment(bean: DatabaseBean) {
-                val text = bean.text ?: return
-                windowManager.attachWindow(SegmentsWindow(text))
-            }
-
-            override fun onDelete(id: Int) {
-                service.lifecycleScope.launch { CollectionHelper.delete(id) }
-            }
-
-            override val enableCollection: Boolean = false
-        }
-    }
-
-    private val clipboardPage by lazy {
-        ClipboardPageUi(context).apply {
-            recyclerView.apply {
-                layoutManager = verticalLayoutManager()
-                adapter = clipboardBeansAdapter
-            }
-        }
-    }
-
-    private val collectionPage by lazy {
-        ClipboardPageUi(context).apply {
-            recyclerView.apply {
-                layoutManager = verticalLayoutManager()
-                adapter = collectionBeansAdapter
-            }
-        }
-    }
-
-    override fun onCreateView() = ClipboardLayout(context, theme).apply {
-        clipboardLayout = this
-        clipboardPagesAdapter = object : ClipboardPagesAdapter() {
-            override fun getItemCount(): Int = 2
-            override fun onCreatePage(position: Int): ClipboardPageUi = when (position) {
-                0 -> clipboardPage
-                else -> collectionPage
-            }
-        }
-        viewPager.apply {
-            adapter = clipboardPagesAdapter
-        }
-        titleUi.apply {
-            tabLayout.onConfigureTab(viewPager) { tabUi, position ->
-                val label = when (position) {
-                    0 -> R.string.clipboard
-                    else -> R.string.collection
-                }
-                tabUi.label.apply {
-                    setText(label)
-                    textSize = theme.generalStyle.candidateTextSize
-                    setTypeface(FontManager.getTypeface("candidate_font"), Typeface.BOLD)
-                    setTextColor(ColorManager.getColor("key_text_color"))
-                }
-            }
-            deleteAllButton.setOnClickListener {
-                val currentItem = viewPager.currentItem
-                when (currentItem) {
-                    0 -> promptDeleteAll {
-                        ClipboardHelper.deleteAll(ClipboardHelper.haveUnpinned())
-                    }
-                    else -> promptDeleteAll {
-                        CollectionHelper.deleteAll(CollectionHelper.haveUnpinned())
+                    when (page) {
+                        ClipboardPage.Clipboard -> ClipboardHelper.delete(bean.id)
+                        ClipboardPage.Collection -> CollectionHelper.delete(bean.id)
                     }
                 }
-            }
-        }
+            },
+        )
     }
 
     private fun launchTextSharing(text: String) {
@@ -199,39 +133,24 @@ class ClipboardWindow(private val initialTab: Int = 0) : BoardWindow.BarBoardWin
         service.startActivity(chooser)
     }
 
-    private fun promptDeleteAll(action: suspend () -> Unit) {
+    private fun promptDeleteAll(page: ClipboardPage) {
         val dialog = AlertDialog.Builder(context)
             .setTitle(R.string.delete_all)
             .setMessage(R.string.ask_to_delete_all)
             .setPositiveButton(R.string.ok) { _, _ ->
                 service.lifecycleScope.launch {
-                    action()
+                    when (page) {
+                        ClipboardPage.Clipboard -> ClipboardHelper.deleteAll(ClipboardHelper.haveUnpinned())
+                        ClipboardPage.Collection -> CollectionHelper.deleteAll(CollectionHelper.haveUnpinned())
+                    }
                 }
             }.setNegativeButton(R.string.cancel, null)
             .create()
         service.showDialog(dialog)
     }
 
-    override fun onAttached() {
-        clipboardLayout.viewPager.setCurrentItem(initialTab, false)
-        clipboardBeansSubmitJob = service.lifecycleScope.launch {
-            clipboardBeansPager.flow.collect {
-                clipboardBeansAdapter.submitData(it)
-            }
-        }
-        collectionBeansSubmitJob = service.lifecycleScope.launch {
-            collectionBeansPager.flow.collect {
-                collectionBeansAdapter.submitData(it)
-            }
-        }
-    }
+    // the lists collect their pagers inside the composition, which ends with the view
+    override fun onAttached() {}
 
-    override fun onDetached() {
-        clipboardBeansAdapter.dismissPopupMenu()
-        collectionBeansAdapter.dismissPopupMenu()
-        clipboardBeansSubmitJob?.cancel()
-        collectionBeansSubmitJob?.cancel()
-    }
-
-    override fun onCreateBarView(): View = clipboardLayout.titleUi.root
+    override fun onDetached() {}
 }

@@ -357,7 +357,7 @@ class AppPrefs(
 
         val speakOnKeyPress = switch(R.string.speak_on_keypress, SPEAK_ON_KEYPRESS, false)
         val speakOnCommit = switch(R.string.speak_on_commit, SPEAK_ON_COMMIT, false)
-        val popupOnKeyPress = switch(R.string.popup_on_key_press, POPUP_ON_KEY_PRESS, false)
+        val popupOnKeyPress = switch(R.string.popup_on_key_press, POPUP_ON_KEY_PRESS, true)
         val expandKeypressArea = switch(R.string.expand_keypress_area_to_edge, EXPAND_KEYPRESS_AREA, false)
         val layoutInDisplayCutout = switch(R.string.layout_in_display_cutout, LAYOUT_IN_DISPLAY_CUTOUT, false)
         val swipeTravel = int(
