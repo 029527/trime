@@ -27,11 +27,13 @@ object DataManager {
 
     private const val DATA_CHECKSUMS_NAME = "checksums.json"
 
+    // 朙月拼音（luna_pinyin）已不再内置进 APK，这里改成自用配置仓库里的方案，只是不再引用已删除的方案。
+    // 没有 Git 同步的全新安装本来就没有这两个方案，列表为空时需要自己放入方案文件再部署。
     private const val SCHEMA_LIST_CUSTOM_PATCH = """
       patch:
         schema_list:
-          - schema: luna_pinyin
-          - schema: luna_pinyin_simp
+          - schema: rime_mint_flypy
+          - schema: t9
     """
 
     private val lock = ReentrantLock()
