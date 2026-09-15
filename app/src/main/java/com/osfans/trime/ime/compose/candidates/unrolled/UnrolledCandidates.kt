@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import com.osfans.trime.core.CandidateProto
 import com.osfans.trime.core.Candidates
 import com.osfans.trime.data.theme.ColorManager
-import com.osfans.trime.ime.compose.bar.BarTokens
 import com.osfans.trime.ime.compose.theme.LocalImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeFonts
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
@@ -201,7 +200,7 @@ fun UnrolledCandidates(
                 with(density) {
                     val padding = tokens.candidateHorizontalPadding.roundToPx() * 2
                     val gap = tokens.candidateCommentGap.roundToPx()
-                    val minWidth = BarTokens.unrolledItemMinWidth.roundToPx()
+                    val minWidth = tokens.barUnrolledItemMinWidth.roundToPx()
                     for (i in widths.size until items.size) {
                         val c = items[i]
                         var w = measurer.measure(c.text, textStyle, maxLines = 1, softWrap = false).size.width

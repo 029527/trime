@@ -57,7 +57,7 @@ internal fun TabBar(
             BarButton(spec = back, onClick = onBack, modifier = Modifier.size(buttonSizeDp.dp))
             BasicText(
                 text = content.title,
-                modifier = Modifier.padding(start = BarTokens.tabSpacing),
+                modifier = Modifier.padding(start = tokens.barTabSpacing),
                 style = TextStyle(fontFamily = fonts.candidate, fontSize = tokens.candidateTextSize, fontWeight = FontWeight.Bold),
                 color = { colors.keyText },
                 maxLines = 1,
@@ -70,7 +70,7 @@ internal fun TabBar(
                     view = view,
                     modifier =
                     if (content.showTitle) {
-                        Modifier.weight(1f).padding(start = BarTokens.tabSpacing).height(buttonSizeDp.dp)
+                        Modifier.weight(1f).padding(start = tokens.barTabSpacing).height(buttonSizeDp.dp)
                     } else {
                         Modifier.fillMaxWidth().height(buttonSizeDp.dp)
                     },

@@ -102,7 +102,7 @@ private fun SymbolGrid(
     val density = LocalDensity.current
     val spec = state.spec
     val items = state.items
-    val cellWidth = spec.cellWidth ?: SymbolPanelTokens.defaultCellWidth
+    val cellWidth = spec.cellWidth ?: tokens.symbolCellMinWidth
     val rowHeight = (spec.cellHeight ?: (tokens.keyRowHeight - tokens.keyVerticalGap)) + tokens.keyVerticalGap
     val paints = remember(tokens, density) { CellPaints(tokens, density) }
     val sizer = remember(items, paints) { CellSizer(items, paints) }
@@ -179,7 +179,7 @@ private class CellPaints(
     val longPaint = paint(with(density) { tokens.keyLabelTextSize.toPx() })
 
     /** Space around long text inside the cell, gaps included, per side. */
-    val longPadding = with(density) { (tokens.keyHorizontalGap / 2 + SymbolPanelTokens.longTextHorizontalPadding).toPx() }
+    val longPadding = with(density) { (tokens.keyHorizontalGap / 2 + tokens.symbolLongTextHorizontalPadding).toPx() }
 
     private val glyphBaseline = centeredBaseline(glyphPaint)
     private val longBaseline = centeredBaseline(longPaint)
@@ -285,7 +285,7 @@ private fun SymbolBar(
     if (keys.isEmpty()) return
     val tokens = LocalImeTokens.current
     if (vertical) {
-        Column(Modifier.width(SymbolPanelTokens.sideBarWidth).fillMaxHeight()) {
+        Column(Modifier.width(tokens.symbolSideBarWidth).fillMaxHeight()) {
             keys.forEach { SymbolBarKeyView(it, onClick, Modifier.weight(1f).fillMaxWidth()) }
         }
     } else {

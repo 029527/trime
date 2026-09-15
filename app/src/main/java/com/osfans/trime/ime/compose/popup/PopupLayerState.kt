@@ -41,22 +41,21 @@ internal class PopupMetrics(
         fun of(
             density: Density,
             tokens: ImeTokens,
-            popup: PopupTokens,
         ) = with(density) {
             PopupMetrics(
                 previewWidth = tokens.keyPreviewWidth.roundToPx(),
                 previewHeight = tokens.keyPreviewHeight.roundToPx(),
                 previewTextSize = tokens.keyPreviewTextSize.toPx(),
-                previewCornerRadius = popup.previewCornerRadius.toPx(),
+                previewCornerRadius = tokens.popupPreviewCornerRadius.toPx(),
                 // the key rectangle includes half the row gap; the body starts below it
-                anchorOffset = (tokens.keyVerticalGap.toPx() / 2).roundToInt() - popup.anchorGap.roundToPx(),
-                shadowElevation = popup.shadowElevation.toPx(),
-                cellWidth = popup.keyboardCellWidth.roundToPx(),
-                cellHeight = popup.keyboardCellHeight.roundToPx(),
-                cellTextSize = popup.keyboardTextSize.toPx(),
-                keyboardPadding = popup.keyboardPadding.roundToPx(),
-                keyboardCornerRadius = popup.keyboardCornerRadius.toPx(),
-                highlightCornerRadius = popup.keyboardHighlightCornerRadius.toPx(),
+                anchorOffset = (tokens.keyVerticalGap.toPx() / 2).roundToInt() - tokens.popupAnchorGap.roundToPx(),
+                shadowElevation = tokens.popupShadowElevation.toPx(),
+                cellWidth = tokens.popupKeyboardCellWidth.roundToPx(),
+                cellHeight = tokens.popupKeyboardCellHeight.roundToPx(),
+                cellTextSize = tokens.popupKeyboardTextSize.toPx(),
+                keyboardPadding = tokens.popupKeyboardPadding.roundToPx(),
+                keyboardCornerRadius = tokens.popupKeyboardCornerRadius.toPx(),
+                highlightCornerRadius = tokens.popupKeyboardHighlightCornerRadius.toPx(),
             )
         }
     }

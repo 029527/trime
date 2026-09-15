@@ -24,7 +24,6 @@ import com.osfans.trime.ime.compose.popup.PopupLayer
 import com.osfans.trime.ime.compose.popup.PopupLayerState
 import com.osfans.trime.ime.compose.popup.PopupLayerView
 import com.osfans.trime.ime.compose.popup.PopupMetrics
-import com.osfans.trime.ime.compose.popup.PopupTokens
 import com.osfans.trime.ime.compose.theme.ImeTokens
 import com.osfans.trime.ime.dependency.InputDependencyManager
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
@@ -52,7 +51,6 @@ class PopupDelegate {
             PopupMetrics.of(
                 Density(context),
                 if (landscape) ImeTokens.Landscape else ImeTokens.Portrait,
-                if (landscape) PopupTokens.Landscape else PopupTokens.Portrait,
             ),
         )
     }

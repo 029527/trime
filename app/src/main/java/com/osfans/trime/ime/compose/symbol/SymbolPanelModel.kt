@@ -20,7 +20,7 @@ data class SymbolPanelSpec(
     /** Fixed keys next to the grid (back, space, backspace...), in display order. */
     val barKeys: List<SymbolBarKey> = emptyList(),
     val barPosition: SymbolBarPosition = SymbolBarPosition.Bottom,
-    /** Narrowest a one-column cell may be; the grid fits as many columns as this allows. Null: [SymbolPanelTokens]. */
+    /** Narrowest a one-column cell may be; the grid fits as many columns as this allows. Null: [com.osfans.trime.ime.compose.theme.ImeTokens.symbolCellMinWidth]. */
     val cellWidth: Dp? = null,
     /** Height of a cell body, gap excluded. Null: the key body height of the keyboard. */
     val cellHeight: Dp? = null,
