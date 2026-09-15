@@ -202,8 +202,15 @@ private class KeyPainter(
         // only a layout with a mic key reads dictation, so the others do not redraw with the voice level
         val dictating = hasVoiceKey && state.voice.keyActive
         val dictationLevel = if (dictating) state.voice.level else 0f
+        // keys under an overlay are left out, so the overlay shows the same keyboard surface instead of painting its own
+        val covered = state.coveredArea
         for (i in 0 until count) {
             val key = keys[i]
+            if (covered != null && key.x >= covered.left && key.y >= covered.top &&
+                key.x + key.width <= covered.right && key.y + key.height <= covered.bottom
+            ) {
+                continue
+            }
             val l = bodies[i * 4]
             val t = bodies[i * 4 + 1]
             val r = bodies[i * 4 + 2]

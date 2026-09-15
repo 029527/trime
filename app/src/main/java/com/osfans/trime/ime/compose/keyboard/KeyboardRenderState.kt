@@ -7,7 +7,11 @@ package com.osfans.trime.ime.compose.keyboard
 
 import android.graphics.drawable.Drawable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.IntRect
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
@@ -64,6 +68,12 @@ class KeyboardRenderState(
     val accentTextColor: Int by colorCached {
         runCatching { ColorManager.getColor("enter_key_action_text_color") }.getOrElse { ColorManager.getColor("key_back_color") }
     }
+
+    /**
+     * Key cells hidden under an overlay drawn on top of the keyboard (the nine-key pinyin column),
+     * in keyboard px; keys wholly inside are not drawn. Read while drawing, so setting it redraws.
+     */
+    var coveredArea: IntRect? by mutableStateOf(null)
 
     private val revision = mutableIntStateOf(0)
 

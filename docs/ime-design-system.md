@@ -357,8 +357,8 @@ View 过渡期：`key_press_offset_*` 在 fork 里解析了但**没有被绘制�
   到按键行为止，**不盖底行**（左下角的方案键照常可点）；横屏 `t9_land` 盖的是九宫格左边那列，不是左侧数字小键盘。
   键盘上没有这样一列（非九宫格布局）就不显示。
 - **样式**：格子就是按键——`keyBack` 底、`keyCornerRadius` 圆角、按下 `highlightedKeyBack` / `highlightedKeyText`；
-  列表四周内缩半个键距，边缘和下面的键身对齐；列表底色是**不透明**的 `keyboardBack`，把被盖住的键遮掉
-  （配色微调默认让底色透 10%，照原样画会透出下面键上的字）。
+  列表四周内缩半个键距，边缘和下面的键身对齐；列表**不铺底色**：拼音列显示时键盘画布不画被盖住的键
+  （`KeyboardRenderState.coveredArea`），露出的就是键盘本身的底，配色微调让底色半透明时也和周围一致。
 - **文字**：`keyTextWeight`（500，和九宫格字母组同级：点拼音是在打字，不是控制）、最大 `keyLabelTextSize`，
   放不下时按步缩小到 `keySymbolTextSize`，`zhuang` 在窄键上也不截断。
 - **滚动**：`LazyColumn`，没有滚动条，关掉了过度滚动效果（`LocalOverscrollFactory provides null`）；

@@ -516,6 +516,9 @@ class KeyboardWindow :
         }
         column.bringToFront()
         column.visibility = View.VISIBLE
+        // the canvas skips the keys under the column, which then needs no opaque fill of its own
+        currentKeyboardView?.renderState?.coveredArea =
+            androidx.compose.ui.unit.IntRect(bounds.left, bounds.top, bounds.right, bounds.bottom)
     }
 
     private fun applyT9Syllable(syllable: String) {
@@ -530,5 +533,6 @@ class KeyboardWindow :
 
     private fun hideT9Column() {
         t9Column?.visibility = View.GONE
+        cachedKeyboards.values.forEach { (_, view) -> view.renderState.coveredArea = null }
     }
 }

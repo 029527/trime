@@ -58,15 +58,14 @@ fun T9PinyinColumn(
     onSyllable: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = LocalImeColors.current
     val tokens = LocalImeTokens.current
     val listState = rememberLazyListState()
     LaunchedEffect(choices.input) { listState.requestScrollToItem(0) }
     CompositionLocalProvider(LocalOverscrollFactory provides null) {
         LazyColumn(
             state = listState,
-            // opaque: the default tint makes the keyboard surface 90% opaque, which let the covered keys show through
-            modifier = modifier.fillMaxSize().background(colors.keyboardBack.copy(alpha = 1f)),
+            // no fill: the keyboard canvas leaves the covered keys out, so the keyboard surface itself shows here
+            modifier = modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = tokens.keyHorizontalGap / 2, vertical = tokens.keyVerticalGap / 2),
             verticalArrangement = Arrangement.spacedBy(tokens.t9ColumnItemSpacing),
         ) {
