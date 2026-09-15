@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015 - 2025 Rime community
+ * SPDX-FileCopyrightText: 2015 - 2026 Rime community
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -8,37 +8,43 @@ package com.osfans.trime.ime.bar
 import android.content.Context
 import android.os.Build
 import android.util.Size
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InlineSuggestion
 import android.view.inputmethod.InlineSuggestionsResponse
-import android.widget.ViewAnimator
+import android.widget.FrameLayout
 import android.widget.inline.InlineContentView
 import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import com.osfans.trime.R
 import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.data.db.ClipboardHelper
 import com.osfans.trime.data.prefs.AppPrefs
-import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.KeyActionManager
 import com.osfans.trime.data.theme.Theme
-import com.osfans.trime.ime.bar.ui.AlwaysUi
-import com.osfans.trime.ime.bar.ui.CandidateUi
-import com.osfans.trime.ime.bar.ui.TabUi
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.candidates.compact.CompactCandidateDelegate
-import com.osfans.trime.ime.candidates.unrolled.window.FlexboxUnrolledCandidateWindow
+import com.osfans.trime.ime.candidates.unrolled.UnrolledCandidateWindow
+import com.osfans.trime.ime.compose.bar.AlwaysMode
+import com.osfans.trime.ime.compose.bar.BarTokens
+import com.osfans.trime.ime.compose.bar.InlineSuggestionViews
+import com.osfans.trime.ime.compose.bar.InputBar
+import com.osfans.trime.ime.compose.bar.InputBarActions
+import com.osfans.trime.ime.compose.bar.InputBarConfig
+import com.osfans.trime.ime.compose.bar.InputBarState
+import com.osfans.trime.ime.compose.bar.TabContent
+import com.osfans.trime.ime.compose.imeComposeView
 import com.osfans.trime.ime.composition.PreeditDelegate
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.dependency.InputDependencyManager
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
-import com.osfans.trime.ime.keyboard.KeyBehavior
+import com.osfans.trime.ime.keyboard.KeyboardPrefs.candidateViewHeight
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.inputBarHeight
 import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.switches.SwitchOptionWindow
@@ -54,12 +60,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.kodein.di.instance
 import splitties.dimensions.dp
-import splitties.views.dsl.core.add
-import splitties.views.dsl.core.lParams
-import splitties.views.dsl.core.matchParent
 import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 
+/**
+ * Owns the bar above the keyboard: decides what it shows through [QuickBarStateMachine] and
+ * [UnrollButtonStateMachine], and carries out what is tapped there. Rendering is the Compose
+ * [InputBar]; this class only writes [InputBarState].
+ */
 class InputBarDelegate : InputBroadcastReceiver {
     private val di = InputDependencyManager.getInstance().di
     private val context: Context by di.instance()
@@ -81,6 +89,8 @@ class InputBarDelegate : InputBroadcastReceiver {
 
     private val clipboardSuggestionTimeout by prefs.clipboard.clipboardSuggestionTimeout
 
+    private val state = InputBarState()
+
     private var clipboardTimeoutJob: Job? = null
 
     private var isClipboardFresh: Boolean = false
@@ -93,7 +103,7 @@ class InputBarDelegate : InputBroadcastReceiver {
             if (it.text.isNullOrEmpty()) {
                 isClipboardFresh = false
             } else {
-                alwaysUi.clipboardUi.text.text = it.text.take(42)
+                state.clipboardText = it.text.take(BarTokens.CLIPBOARD_PREVIEW_LENGTH)
                 isClipboardFresh = true
                 launchClipboardTimeoutJob()
             }
@@ -114,51 +124,12 @@ class InputBarDelegate : InputBroadcastReceiver {
     }
 
     private fun evalAlwaysUiState() {
-        val newState =
+        state.always =
             when {
-                isClipboardFresh -> AlwaysUi.State.Clipboard
-                isInlineSuggestionPresent -> AlwaysUi.State.InlineSuggestion
-                else -> AlwaysUi.State.Toolbar
+                isClipboardFresh -> AlwaysMode.Clipboard
+                isInlineSuggestionPresent -> AlwaysMode.InlineSuggestion
+                else -> AlwaysMode.Toolbar
             }
-        if (newState == alwaysUi.currentState) return
-        alwaysUi.updateState(newState)
-    }
-
-    private val swipeDownHideKeyboardCallback: ((KeyBehavior) -> Unit) = { d ->
-        if (d == KeyBehavior.SWIPE_DOWN) {
-            service.requestHideSelf(0)
-        }
-    }
-
-    private val alwaysUi: AlwaysUi by lazy {
-        AlwaysUi(context, theme) { action ->
-            if (action.isNotEmpty()) {
-                commonKeyboardActionListener.listener.onAction(KeyActionManager.getAction(action))
-            } else {
-                windowManager.attachWindow(SwitchOptionWindow())
-            }
-        }.apply {
-            hideKeyboardButton.apply {
-                setOnClickListener { service.requestHideSelf(0) }
-                onSwipe = swipeDownHideKeyboardCallback
-            }
-            clipboardUi.suggestionView.apply {
-                setOnClickListener {
-                    val content = ClipboardHelper.lastBean?.text
-                    content?.let { service.commitText(it) }
-                    dismissClipboardSuggestion()
-                }
-                setOnLongClickListener {
-                    ClipboardHelper.lastBean?.let {
-                        AppUtils.launchClipEdit(context, it.id, ClipEditActivity.FROM_CLIPBOARD)
-                    }
-                    true
-                }
-            }
-            clipboardUi.dismiss.setOnClickListener {
-                dismissClipboardSuggestion()
-            }
-        }
     }
 
     private fun dismissClipboardSuggestion() {
@@ -168,17 +139,78 @@ class InputBarDelegate : InputBroadcastReceiver {
         evalAlwaysUiState()
     }
 
-    private val candidateUi by lazy {
-        // a floating keyboard keeps its preedit inside the bar instead of above the window
-        CandidateUi(context, theme, candidate.view, leading = preedit.ui.root.takeIf { preedit.embedded }).apply {
-            unrollButton.apply {
-                onSwipe = swipeDownHideKeyboardCallback
+    private val actions =
+        object : InputBarActions {
+            override fun onButton(action: String) {
+                if (action.isNotEmpty()) {
+                    commonKeyboardActionListener.listener.onAction(KeyActionManager.getAction(action))
+                } else {
+                    windowManager.attachWindow(SwitchOptionWindow())
+                }
+            }
+
+            override fun onHideKeyboard() {
+                service.requestHideSelf(0)
+            }
+
+            override fun onUnroll() {
+                when (state.unroll) {
+                    UnrollButtonStateMachine.State.ClickToAttachWindow -> {
+                        // the grid continues after what the bar shows at its start
+                        candidate.scrollToStart()
+                        windowManager.attachWindow(UnrolledCandidateWindow())
+                    }
+                    UnrollButtonStateMachine.State.ClickToDetachWindow -> windowManager.attachWindow(KeyboardWindow)
+                    UnrollButtonStateMachine.State.Hidden -> {}
+                }
+            }
+
+            override fun onCommitClipboard() {
+                ClipboardHelper.lastBean?.text?.let { service.commitText(it) }
+                dismissClipboardSuggestion()
+            }
+
+            override fun onEditClipboard() {
+                ClipboardHelper.lastBean?.let {
+                    AppUtils.launchClipEdit(context, it.id, ClipEditActivity.FROM_CLIPBOARD)
+                }
+            }
+
+            override fun onDismissClipboard() = dismissClipboardSuggestion()
+
+            override fun onBack() {
+                windowManager.attachWindow(KeyboardWindow)
             }
         }
-    }
 
-    private val tabUi by lazy {
-        TabUi(context, theme)
+    /**
+     * The candidate row as the View bar laid it out: the candidates after a start inset and,
+     * on a floating keyboard, the preedit above them. The unroll button beside it is Compose.
+     * Lazy, because [PreeditDelegate.embedded] is only decided once `InputView` starts building.
+     */
+    private val candidateLayer by lazy {
+        FrameLayout(context).apply {
+            isVisible = false
+            val inset = dp(theme.generalStyle.candidatePadding / 2)
+            // a floating keyboard keeps its preedit inside the bar instead of above the window
+            val leading = preedit.ui.root.takeIf { preedit.embedded }
+            if (leading != null) {
+                addView(
+                    leading,
+                    FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.START).apply {
+                        marginStart = inset
+                    },
+                )
+            }
+            addView(
+                candidate.view,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    dp(context.candidateViewHeight(theme)),
+                    if (leading != null) Gravity.BOTTOM else Gravity.CENTER_VERTICAL,
+                ).apply { marginStart = inset },
+            )
+        }
     }
 
     private val barStateMachine =
@@ -188,40 +220,8 @@ class InputBarDelegate : InputBroadcastReceiver {
 
     val unrollButtonStateMachine =
         UnrollButtonStateMachine.new {
-            when (it) {
-                UnrollButtonStateMachine.State.ClickToAttachWindow -> {
-                    setUnrollButtonToAttach()
-                    setUnrollButtonEnabled(true)
-                }
-                UnrollButtonStateMachine.State.ClickToDetachWindow -> {
-                    setUnrollButtonToDetach()
-                    setUnrollButtonEnabled(true)
-                }
-                UnrollButtonStateMachine.State.Hidden -> {
-                    setUnrollButtonEnabled(false)
-                }
-            }
+            state.unroll = it
         }
-
-    private fun setUnrollButtonToAttach() {
-        candidateUi.unrollButton.setOnClickListener {
-            // the grid continues after what the bar shows at its start
-            candidate.scrollToStart()
-            windowManager.attachWindow(FlexboxUnrolledCandidateWindow())
-        }
-        candidateUi.unrollButton.setIcon(R.drawable.ic_baseline_expand_more_24)
-    }
-
-    private fun setUnrollButtonToDetach() {
-        candidateUi.unrollButton.setOnClickListener {
-            windowManager.attachWindow(KeyboardWindow)
-        }
-        candidateUi.unrollButton.setIcon(R.drawable.ic_baseline_expand_less_24)
-    }
-
-    private fun setUnrollButtonEnabled(enabled: Boolean) {
-        candidateUi.unrollButton.visibility = if (enabled) View.VISIBLE else View.INVISIBLE
-    }
 
     /** Called by the candidate bar whenever its list turns empty or non-empty. */
     fun onCandidatesEmptyChanged(isEmpty: Boolean) {
@@ -231,49 +231,35 @@ class InputBarDelegate : InputBroadcastReceiver {
         )
     }
 
-    private fun switchUiByState(state: QuickBarStateMachine.State) {
-        val index = state.ordinal
-        if (view.displayedChild == index) return
-        val new = view.getChildAt(index)
-        if (new != tabUi.root) {
-            tabUi.setBackButtonOnClickListener { }
-            tabUi.setTitle("")
-            tabUi.removeExternal()
-        }
-        view.displayedChild = index
+    private fun switchUiByState(newState: QuickBarStateMachine.State) {
+        // straight on the View, not through recomposition: candidates show in the frame they arrive
+        candidateLayer.isVisible = newState == QuickBarStateMachine.State.Candidate
+        if (newState != QuickBarStateMachine.State.Tab) state.tab = null
+        state.bar = newState
     }
 
-    val view by lazy {
-        ViewAnimator(context).apply {
-            visibility =
-                if (hideQuickBar) {
-                    View.GONE
-                } else {
-                    View.VISIBLE
-                }
-            background = barBackground()
-            add(alwaysUi.root, lParams(matchParent, matchParent))
-            add(candidateUi.root, lParams(matchParent, matchParent))
-            add(tabUi.root, lParams(matchParent, matchParent))
-
-            evalAlwaysUiState()
-            ClipboardHelper.addOnUpdateListener(onClipboardUpdateListener)
-            syncToolbarOptionStates()
-        }
-    }
-
-    private fun barBackground() = ColorManager.getDecorDrawable(
-        "candidate_background",
-        "candidate_border_color",
-        context.dp(theme.generalStyle.candidateBorder),
-        context.dp(theme.generalStyle.candidateBorderRound),
-    )
-
-    override fun onColorTintUpdate() {
-        view.background = barBackground()
-        alwaysUi.refreshColors()
-        candidateUi.unrollButton.refreshColors()
-        tabUi.refreshColors()
+    val view: View by lazy {
+        val config =
+            InputBarConfig(
+                toolBar = theme.toolBar,
+                buttonSizeDp = theme.generalStyle.run { candidateViewHeight + commentHeight },
+                borderPx = context.dp(theme.generalStyle.candidateBorder),
+                borderRadiusPx = context.dp(theme.generalStyle.candidateBorderRound),
+            )
+        val layer = candidateLayer
+        context
+            .imeComposeView {
+                InputBar(state, config, layer, actions)
+            }.apply {
+                visibility = if (hideQuickBar) View.GONE else View.VISIBLE
+                isFocusable = false
+                isFocusableInTouchMode = false
+                isSoundEffectsEnabled = false
+                isHapticFeedbackEnabled = false
+                evalAlwaysUiState()
+                ClipboardHelper.addOnUpdateListener(onClipboardUpdateListener)
+                syncToolbarOptionStates()
+            }
     }
 
     override fun onStartInput(info: EditorInfo) {
@@ -282,11 +268,7 @@ class InputBarDelegate : InputBroadcastReceiver {
 
     override fun onWindowAttached(window: BoardWindow) {
         if (window is BoardWindow.BarBoardWindow) {
-            tabUi.setTitle(window.title)
-            window.onCreateBarView()?.let { tabUi.addExternal(it, window.showTitle) }
-            tabUi.setBackButtonOnClickListener {
-                windowManager.attachWindow(KeyboardWindow)
-            }
+            state.tab = TabContent(window.title, window.showTitle, window.onCreateBarView())
             barStateMachine.push(QuickBarStateMachine.TransitionEvent.BarBoardWindowAttached)
         }
     }
@@ -308,6 +290,8 @@ class InputBarDelegate : InputBroadcastReceiver {
         val suggestions = response.inlineSuggestions
         if (suggestions.isEmpty()) {
             isInlineSuggestionPresent = false
+            state.inline = InlineSuggestionViews()
+            evalAlwaysUiState()
             return true
         }
         var pinned: InlineSuggestion? = null
@@ -324,18 +308,11 @@ class InputBarDelegate : InputBroadcastReceiver {
                 scrollable.add(it)
             }
         }
+        val pinnedSuggestion = pinned
         service.lifecycleScope.launch {
-            alwaysUi.inlineSuggestionsUi.setPinnedView(
-                pinned?.let { inflateInlineContentView(it) },
-            )
-        }
-        service.lifecycleScope.launch {
-            val views = scrollable.map { s ->
-                service.lifecycleScope.async {
-                    inflateInlineContentView(s)
-                }
-            }.awaitAll()
-            alwaysUi.inlineSuggestionsUi.setScrollableViews(views)
+            val pinnedView = pinnedSuggestion?.let { inflateInlineContentView(it) }
+            val views = scrollable.map { s -> service.lifecycleScope.async { inflateInlineContentView(s) } }.awaitAll()
+            state.inline = InlineSuggestionViews(pinnedView, views.filterNotNull())
         }
         isInlineSuggestionPresent = true
         evalAlwaysUiState()
@@ -350,25 +327,28 @@ class InputBarDelegate : InputBroadcastReceiver {
         }
     }
 
-    /**
-     * Seed the toolbar toggle buttons with the current value of their rime
-     * options. Rime access stays here in the delegate: the buttons themselves
-     * are pure views and only react to [updateButtonsStyle].
-     */
+    /** Rime options the theme's toolbar buttons toggle. */
+    private fun toggleOptions(): Set<String> = buildSet {
+        val toolBar = theme.toolBar
+        (listOfNotNull(toolBar.primaryButton) + toolBar.buttons).forEach { button ->
+            KeyActionManager.getAction(button.action).toggle.takeIf { it.isNotEmpty() }?.let { add(it) }
+        }
+    }
+
+    /** Seed the toggle buttons with the current value of their rime options. */
     private fun syncToolbarOptionStates() {
-        val options = alwaysUi.toggleOptions()
+        val options = toggleOptions()
         if (options.isEmpty()) return
+        options.forEach { state.options.putIfAbsent(it, false) }
         rime.launchOnReady { api ->
-            val states = options.associateWith { api.getRuntimeOption(it) }
+            val values = options.associateWith { api.getRuntimeOption(it) }
             ContextCompat.getMainExecutor(context).execute {
-                states.forEach { (option, enabled) ->
-                    alwaysUi.updateButtonsStyle(option, enabled)
-                }
+                state.options.putAll(values)
             }
         }
     }
 
     override fun onRimeOptionUpdated(value: RimeMessage.OptionMessage.Data) {
-        alwaysUi.updateButtonsStyle(value.option, value.value)
+        if (value.option in state.options) state.options[value.option] = value.value
     }
 }
