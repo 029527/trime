@@ -343,4 +343,11 @@
     <string name="voice_vocabulary_exists">文件已经存在，没有覆盖</string>
     <string name="voice_theme_hint">主题里怎么写</string>
     <string name="voice_theme_hint_summary">preset_keys 里把麦克风键写成 {command: voice_input}</string>
+    <string name="edit_select">选择</string>
+    <string name="edit_line_start">行首</string>
+    <string name="edit_line_end">行尾</string>
+    <string name="edit_select_all">全选</string>
+    <string name="edit_cut">剪切</string>
+    <string name="edit_copy">复制</string>
+    <string name="edit_paste">粘贴</string>
 </resources>

@@ -55,6 +55,9 @@ data class ImeColors(
     /** Toggled-on keys (shift lock), `on_key_*` in the theme. */
     val onKeyBack: Color,
     val onKeyText: Color,
+    /** The one accent: the return key when the editor asks to go / search / send, and panel toggles that are on. */
+    val accentBack: Color,
+    val accentText: Color,
     val border: Color,
     // key preview bubble and long-press popup keyboard
     val popupBack: Color,
@@ -93,6 +96,8 @@ data class ImeColors(
                 functionKeyText = color("off_key_text_color"),
                 onKeyBack = color("on_key_back_color"),
                 onKeyText = color("on_key_text_color"),
+                accentBack = color("enter_key_action_back_color"),
+                accentText = color("enter_key_action_text_color"),
                 border = color("border_color"),
                 popupBack = color("popup_back_color"),
                 popupText = color("popup_text_color"),

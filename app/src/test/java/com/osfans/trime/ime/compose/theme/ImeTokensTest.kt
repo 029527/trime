@@ -65,6 +65,13 @@ class ImeTokensTest :
             "barInlinePinnedHorizontalMargin" to t.barInlinePinnedHorizontalMargin,
             "barTabSpacing" to t.barTabSpacing,
             "barUnrolledItemMinWidth" to t.barUnrolledItemMinWidth,
+            "editPanelCommandColumnFraction" to t.editPanelCommandColumnFraction,
+            "editPanelCenterColumnWeight" to t.editPanelCenterColumnWeight,
+            "editPanelArrowIconSize" to t.editPanelArrowIconSize,
+            "editPanelIconSize" to t.editPanelIconSize,
+            "editPanelLabelTextSize" to t.editPanelLabelTextSize,
+            "editPanelIconLabelGap" to t.editPanelIconLabelGap,
+            "editPanelLabelBesideIcon" to t.editPanelLabelBesideIcon,
         )
 
         "portrait values" {
@@ -130,10 +137,22 @@ private val expectedPortrait: Map<String, Any> = mapOf(
     "barInlinePinnedHorizontalMargin" to 10.dp,
     "barTabSpacing" to 8.dp,
     "barUnrolledItemMinWidth" to 40.dp,
+    // edit panel
+    "editPanelCommandColumnFraction" to 0.28f,
+    "editPanelCenterColumnWeight" to 1.4f,
+    "editPanelArrowIconSize" to 26.dp,
+    "editPanelIconSize" to 20.dp,
+    "editPanelLabelTextSize" to 14.sp,
+    "editPanelIconLabelGap" to 2.dp,
+    "editPanelLabelBesideIcon" to false,
 )
 
-// only the popup keyboard's cells shrink in landscape
+// the popup keyboard's cells shrink in landscape; edit panel labels move beside their glyphs
 private val expectedLandscape: Map<String, Any> = expectedPortrait + mapOf(
     "popupKeyboardCellHeight" to 40.dp,
     "popupKeyboardTextSize" to 22.sp,
+    "editPanelArrowIconSize" to 22.dp,
+    "editPanelIconSize" to 18.dp,
+    "editPanelIconLabelGap" to 6.dp,
+    "editPanelLabelBesideIcon" to true,
 )

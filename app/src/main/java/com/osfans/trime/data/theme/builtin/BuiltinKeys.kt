@@ -121,6 +121,7 @@ object BuiltinKeys {
             "copy_all" to PresetKey(label = "全謄", text = "{Control+a}{Control+c}"),
             "cut" to PresetKey(label = "剪下", send = "Control+x"),
             "cut_all" to PresetKey(label = "全挪", text = "{Control+a}{Control+x}"),
+            "edit_panel" to PresetKey(label = "编辑", send = "FUNCTION", command = "edit_panel"),
             "liquid_keyboard_emoji" to PresetKey(label = "🙂", send = "FUNCTION", command = "liquid_keyboard", option = "emoji"),
             "liquid_keyboard_exit" to PresetKey(label = "返回", send = "FUNCTION", command = "liquid_keyboard", option = "-1"),
             "liquid_keyboard_switch" to PresetKey(label = "更多", send = "FUNCTION", command = "liquid_keyboard", option = "更多"),

@@ -8,6 +8,8 @@ package com.osfans.trime.data.theme
 import com.osfans.trime.data.theme.builtin.BuiltinColors
 import com.osfans.trime.data.theme.builtin.BuiltinTheme
 import com.osfans.trime.data.theme.model.KeyActionToken
+import com.osfans.trime.ime.edit.EditCommand
+import com.osfans.trime.ime.edit.EditKey
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -67,6 +69,16 @@ class BuiltinThemeTest :
                 .filter { it.command == "liquid_keyboard" && it.option in listOf("emoji", "yanwenzi") }
                 .map { it.option }
                 .filterNot { it in panels } shouldBe emptyList()
+        }
+
+        test("toolbar buttons and edit panel keys refer to preset keys that exist") {
+            val toolBar = theme.toolBar
+            (listOfNotNull(toolBar.primaryButton) + toolBar.buttons)
+                .map { it.action }
+                .filterNot { it in theme.presetKeys } shouldBe emptyList()
+            (EditKey.entries.map { it.keysym } + EditCommand.entries.map { it.presetKey })
+                .filterNot { it in theme.presetKeys } shouldBe emptyList()
+            theme.presetKeys.getValue("edit_panel").command shouldBe "edit_panel"
         }
 
         test("fonts are file names looked up in the user dir, not bundled") {

@@ -152,6 +152,20 @@ data class ImeTokens(
     val barTabSpacing: Dp = 8.dp,
     /** Narrowest item of the unrolled candidate grid. */
     val barUnrolledItemMinWidth: Dp = 40.dp,
+    // edit panel
+    // Cells are keys: corners, gaps and shades come from the key group; rows share the window height.
+    /** Share of the panel width given to the clipboard command column at the end. */
+    val editPanelCommandColumnFraction: Float = 0.28f,
+    /** Width of the up / select / down column against the left and right arrows at 1 each. */
+    val editPanelCenterColumnWeight: Float = 1.4f,
+    /** The arrows show only a glyph, so it is as large as a key's icon plus a little. */
+    val editPanelArrowIconSize: Dp = 26.dp,
+    /** Glyph of a cell that also has a label. */
+    val editPanelIconSize: Dp = 20.dp,
+    val editPanelLabelTextSize: TextUnit = 14.sp,
+    val editPanelIconLabelGap: Dp = 2.dp,
+    /** Label beside the glyph instead of under it: a landscape row is too short for both stacked. */
+    val editPanelLabelBesideIcon: Boolean = false,
 ) {
     companion object {
         val Portrait = ImeTokens()
@@ -181,6 +195,10 @@ data class ImeTokens(
             keyPreviewTextSize = 26.sp,
             popupKeyboardCellHeight = 40.dp,
             popupKeyboardTextSize = 22.sp,
+            editPanelArrowIconSize = 22.dp,
+            editPanelIconSize = 18.dp,
+            editPanelIconLabelGap = 6.dp,
+            editPanelLabelBesideIcon = true,
         )
     }
 }
