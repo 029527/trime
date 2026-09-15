@@ -551,7 +551,6 @@ class InputView(
     /** Recolour everything that resolved its colours when it was built; see [InputBroadcastReceiver.onColorTintUpdate]. */
     fun onColorTintUpdate() {
         keyboardBackground.imageDrawable = ColorManager.getDrawable("keyboard_background")
-        popup.onColorTintUpdate()
         broadcaster.onColorTintUpdate()
     }
 
@@ -598,7 +597,7 @@ class InputView(
         // implies that InputView should not be attached again after detached.
         updateWindowViewHeightJob.cancel()
         voiceStatusJob.cancel()
-        popup.root.removeAllViews()
+        popup.dismissAll()
         inputDepMgr.stop()
         super.onDetachedFromWindow()
     }
