@@ -7,15 +7,18 @@ package com.osfans.trime.ime.symbol
 
 import android.view.View
 import androidx.core.content.ContextCompat
-import com.google.android.flexbox.FlexDirection
-import com.google.android.flexbox.FlexWrap
-import com.google.android.flexbox.FlexboxLayoutManager
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
-import com.osfans.trime.data.SymbolHistory
+import com.osfans.trime.data.theme.KeyActionManager
 import com.osfans.trime.data.theme.Theme
-import com.osfans.trime.data.theme.model.LiquidKeyboard
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
+import com.osfans.trime.ime.compose.imeComposeView
+import com.osfans.trime.ime.compose.symbol.SymbolAction
+import com.osfans.trime.ime.compose.symbol.SymbolBarKey
+import com.osfans.trime.ime.compose.symbol.SymbolItem
+import com.osfans.trime.ime.compose.symbol.SymbolPanel
+import com.osfans.trime.ime.compose.symbol.SymbolPanelState
+import com.osfans.trime.ime.compose.symbol.SymbolTabs
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.KeyboardWindow
@@ -24,6 +27,10 @@ import com.osfans.trime.ime.window.BoardWindowManager
 import com.osfans.trime.ime.window.ResidentWindow
 import org.kodein.di.instance
 
+/**
+ * The symbol panel ("liquid keyboard"). Content comes from [LiquidSymbolSource]; the grid and the
+ * category tabs in the bar are Compose and follow the colour scheme and tint on their own.
+ */
 class LiquidWindow :
     BoardWindow.BarBoardWindow(),
     ResidentWindow,
@@ -36,86 +43,43 @@ class LiquidWindow :
     private val windowManager: BoardWindowManager by di.instance()
     private val commonKeyboardActionListener: CommonKeyboardActionListener by di.instance()
 
-    private lateinit var liquidLayout: LiquidLayout
-    private val symbolHistory = SymbolHistory(180)
-    var currentDataType: LiquidData.Type = LiquidData.Type.SINGLE
-        private set
+    private val source by lazy { LiquidSymbolSource(theme) }
 
-    private val adapter by lazy {
-        LiquidAdapter(theme) {
-            when (currentDataType) {
-                LiquidData.Type.SYMBOL -> triggerSymbolInput(this.altText)
-                LiquidData.Type.TABS -> {
-                    val realPosition = LiquidData.getTagList()
-                        .indexOfFirst { it.label == this.text }
-                    setDataByIndex(realPosition)
-                }
-                else -> {
-                    service.commitText(this.text)
-                    if (currentDataType != LiquidData.Type.HISTORY) {
-                        symbolHistory.insert(this.text)
-                        symbolHistory.save()
-                    }
-                }
-            }
-        }
-    }
+    private val state by lazy { SymbolPanelState(source) }
 
-    private val mainLayoutManager by lazy {
-        FlexboxLayoutManager(context).apply {
-            flexDirection = FlexDirection.ROW
-            flexWrap = FlexWrap.WRAP
-        }
-    }
+    // the bar asks for this view on every attach, so hand out the same one
+    private val tabsView by lazy { context.imeComposeView { SymbolTabs(state) } }
 
     companion object : ResidentWindow.Key
 
     override val key: ResidentWindow.Key
         get() = LiquidWindow
 
-    override fun onCreateView(): View = LiquidLayout(context, theme, commonKeyboardActionListener).apply {
-        liquidLayout = this
-        tabsUi.apply {
-            setTags(LiquidData.getTagList())
-            setOnTabClickListener { i ->
-                setDataByIndex(i)
-            }
-        }
-        recyclerView.apply {
-            layoutManager = mainLayoutManager
-            this.adapter = this@LiquidWindow.adapter
-        }
+    override fun onCreateView(): View = context.imeComposeView {
+        SymbolPanel(state, onItemClick = ::onItemClick, onBarKeyClick = ::onBarKeyClick)
     }
 
-    override fun onCreateBarView() = liquidLayout.tabsUi.root
-
-    override fun onColorTintUpdate() {
-        // the view is only created on first attach
-        if (::liquidLayout.isInitialized) liquidLayout.refreshColors()
-    }
+    override fun onCreateBarView(): View = tabsView
 
     override fun onAttached() {}
 
     override fun onDetached() {}
 
-    fun setDataByIndex(i: Int) {
-        val tag = LiquidData.getTagList()[i]
-        currentDataType = tag.type
-        liquidLayout.tabsUi.activateTab(i)
-        when (tag.type) {
-            LiquidData.Type.HISTORY -> {
-                symbolHistory.load()
-                submitData(symbolHistory.toOrderedList().map { LiquidKeyboard.KeyItem(it) })
+    fun setDataByIndex(i: Int) = state.select(i)
+
+    private fun onItemClick(item: SymbolItem) {
+        when (val action = item.action) {
+            is SymbolAction.Commit -> {
+                service.commitText(action.text)
+                if (action.remember) source.remember(action.text)
             }
-            else -> {
-                val data = LiquidData.getDataByIndex(i)
-                submitData(data)
-            }
+            is SymbolAction.TypeKeys -> triggerSymbolInput(action.keys)
+            is SymbolAction.OpenCategory -> state.select(action.index)
         }
     }
 
-    private fun submitData(data: List<LiquidKeyboard.KeyItem>) {
-        adapter.submitList(data)
+    private fun onBarKeyClick(key: SymbolBarKey) {
+        commonKeyboardActionListener.listener.onAction(KeyActionManager.getAction(key.action))
     }
 
     private fun triggerSymbolInput(symbol: String) {
