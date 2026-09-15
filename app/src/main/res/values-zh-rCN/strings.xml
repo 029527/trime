@@ -18,8 +18,6 @@
     <string name="license">许可证</string>
     <string name="privacy_policy">隐私策略</string>
     <string name="build_info_format">构建者：%1$s\n构建 Git 哈希：%2$s\n构建时间：%3$s</string>
-    <string name="selected_theme">主题</string>
-    <string name="selected_theme_summary">选取主题</string>
     <string name="normal_mode_color">配色</string>
     <string name="normal_mode_color_summary">选取配色</string>
     <string name="sound_on_keypress">按键声音</string>
@@ -199,7 +197,6 @@
     <string name="no_schema_to_enable">没有方案可启用。请确保您已在用户文件夹中放入了前置文件和方案文件。</string>
     <string name="schemata">方案</string>
     <string name="navbar_background">导航栏背景</string>
-    <string name="no_theme_to_select">当前没有主题可选择。</string>
     <string name="no_color_to_select">当前没有配色方案可选择。</string>
     <string name="no_effect_to_select">当前没有按键音效可选择。</string>
     <string name="setup_channel">设置向导</string>

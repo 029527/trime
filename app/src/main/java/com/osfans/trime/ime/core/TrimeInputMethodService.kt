@@ -210,12 +210,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         }
 
     @Keep
-    private val onThemeChangeListener =
-        ThemeManager.OnThemeChangeListener {
-            replaceInputViews(it)
-        }
-
-    @Keep
     private val onColorChangeListener =
         ColorManager.OnColorChangeListener {
             ContextCompat.getMainExecutor(this).execute {
@@ -295,7 +289,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         lifecycleScope.launch {
             rime.runOnReady {
                 ThemeManager.init(resources.configuration)
-                ThemeManager.addOnChangedListener(onThemeChangeListener)
                 ColorManager.addOnChangedListener(onColorChangeListener)
                 ColorManager.addOnTintChangedListener(onTintChangeListener)
             }
@@ -373,7 +366,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 }
             is RimeMessage.DeployMessage -> {
                 if (it.data == RimeMessage.DeployMessage.State.Success) {
-                    ThemeManager.selectTheme(ThemeManager.prefs.selectedTheme.getValue())
+                    // 同步可能换了 fonts/ 里的字体文件
+                    ThemeManager.reloadFonts()
                 }
             }
             else -> {}
@@ -422,7 +416,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             it.unregisterOnChangeListener(recreateInputViewListener)
         }
         prefs.candidates.unregisterOnChangeListener(recreateCandidatesViewListener)
-        ThemeManager.removeOnChangedListener(onThemeChangeListener)
         ColorManager.removeOnChangedListener(onColorChangeListener)
         ColorManager.removeOnTintChangedListener(onTintChangeListener)
         super.onDestroy()

@@ -19,8 +19,6 @@
     <string name="license">License</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="build_info_format">Builder: %1$s\nBuild Git Hash: %2$s\nBuild Time: %3$s</string>
-    <string name="selected_theme">Themes</string>
-    <string name="selected_theme_summary">Select desired theme</string>
     <string name="normal_mode_color">Colors</string>
     <string name="normal_mode_color_summary">Select desired color</string>
     <string name="reset">Reset</string>
@@ -201,7 +199,6 @@
     <string name="no_schema_to_enable">No schema to enable. Make sure you have prelude and schema files in the user directory.</string>
     <string name="schemata">Schemata</string>
     <string name="navbar_background">Navigation bar background</string>
-    <string name="no_theme_to_select">Currently there is no theme to select.</string>
     <string name="no_color_to_select">Currently there is no color scheme to select.</string>
     <string name="no_effect_to_select">Currently there is no key sound effect to select.</string>
     <string name="setup_channel">Setup Wizard</string>

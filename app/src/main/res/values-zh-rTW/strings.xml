@@ -19,8 +19,6 @@
     <string name="license">許可證</string>
     <string name="privacy_policy">隱私權政策</string>
     <string name="build_info_format">建構者：%1$s\n建構 Git 雜湊值：%2$s\n建構時間：%3$s</string>
-    <string name="selected_theme">主題</string>
-    <string name="selected_theme_summary">選取想要的主題</string>
     <string name="normal_mode_color">配色</string>
     <string name="normal_mode_color_summary">選取想要的配色</string>
     <string name="reset">回廠</string>
@@ -198,7 +196,6 @@
     <string name="no_schema_to_enable">沒有方案可啟用。請確保您已在使用者資料夾中放入了前置檔案和方案檔案。</string>
     <string name="schemata">方案</string>
     <string name="navbar_background">導航欄背景</string>
-    <string name="no_theme_to_select">當前沒有主題可選擇。</string>
     <string name="no_color_to_select">當前沒有配色方案可選擇。</string>
     <string name="no_effect_to_select">當前沒有按鍵音效可選擇。</string>
     <string name="setup_channel">設定精靈</string>
