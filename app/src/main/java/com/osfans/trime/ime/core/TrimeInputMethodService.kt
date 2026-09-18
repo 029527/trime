@@ -321,14 +321,17 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                             RimeKeyMapping.RimeKey_Return -> handleReturnKey()
                             else -> {
                                 val keyCode = it.value.keyCode
-                                // 可打印字符直接以文本上屏：远控客户端之类没有真正编辑框的应用
-                                // 只处理 commitText，按键事件会被丢掉。非可编辑的 View 收到
-                                // commitText 时系统会自动转成按键事件，所以对其他应用也没有影响。
+                                // 可打印字符以文本上屏，而不是按键事件；
                                 // Enter / 退格 / 方向键以及 Ctrl、Alt、Meta 组合键仍走按键事件。
                                 val isPrintable = it.value.value in 0x20..0x7e
                                 val hasCommandModifier = it.modifiers.ctrl || it.modifiers.alt || it.modifiers.meta
                                 if (isPrintable && !hasCommandModifier) {
-                                    commitText(Character.toString(it.value.value))
+                                    val text = Character.toString(it.value.value)
+                                    if (isNullInputType()) {
+                                        sendCharactersKeyEvent(text)
+                                    } else {
+                                        commitText(text)
+                                    }
                                 } else if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {
                                     // recognized keyCode
                                     sendDownUpKeyEvent(
@@ -837,6 +840,25 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             clearComposition()
         }
         InputFeedbackManager.finishInput()
+    }
+
+    private fun isNullInputType(): Boolean = currentInputEditorInfo?.let { it.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL } ?: false
+
+    /**
+     * 没有可编辑控件的窗口 (inputType 为 TYPE_NULL，远控客户端、游戏等) 给输入法的是系统的
+     * 兜底 InputConnection。它收到 commitText 时，单个 ASCII 字符会被转回 KEYCODE_x 的按下 / 抬起
+     * 事件，只有转不成键码的文本 (比如汉字) 才以 ACTION_MULTIPLE 事件原样送到应用；见
+     * BaseInputConnection.sendCurrentText。远控客户端这类应用只处理后者，表现为汉字能输、
+     * 数字和英文没反应。这里直接按后者的形式发送，让 ASCII 和汉字走同一条路。
+     */
+    private fun sendCharactersKeyEvent(text: String): Boolean {
+        val ic = currentInputConnection ?: return false
+        val sent = ic.sendKeyEvent(KeyEvent(SystemClock.uptimeMillis(), text, KeyCharacterMap.VIRTUAL_KEYBOARD, 0))
+        if (sent) {
+            lastCommittedText = text
+            InputFeedbackManager.textCommitSpeak(text)
+        }
+        return sent
     }
 
     fun commitText(text: String) {
