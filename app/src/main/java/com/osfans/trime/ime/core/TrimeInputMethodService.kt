@@ -321,7 +321,15 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                             RimeKeyMapping.RimeKey_Return -> handleReturnKey()
                             else -> {
                                 val keyCode = it.value.keyCode
-                                if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {
+                                // 可打印字符直接以文本上屏：远控客户端之类没有真正编辑框的应用
+                                // 只处理 commitText，按键事件会被丢掉。非可编辑的 View 收到
+                                // commitText 时系统会自动转成按键事件，所以对其他应用也没有影响。
+                                // Enter / 退格 / 方向键以及 Ctrl、Alt、Meta 组合键仍走按键事件。
+                                val isPrintable = it.value.value in 0x20..0x7e
+                                val hasCommandModifier = it.modifiers.ctrl || it.modifiers.alt || it.modifiers.meta
+                                if (isPrintable && !hasCommandModifier) {
+                                    commitText(Character.toString(it.value.value))
+                                } else if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {
                                     // recognized keyCode
                                     sendDownUpKeyEvent(
                                         keyCode,
