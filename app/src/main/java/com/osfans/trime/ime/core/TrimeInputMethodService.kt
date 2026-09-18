@@ -328,12 +328,15 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                                 if (isPrintable && !hasCommandModifier) {
                                     val text = Character.toString(it.value.value)
                                     if (isNullInputType()) {
+                                        Timber.d("virtual key ${it.value} -> characters KeyEvent")
                                         sendCharactersKeyEvent(text)
                                     } else {
+                                        Timber.d("virtual key ${it.value} -> commitText")
                                         commitText(text)
                                     }
                                 } else if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {
                                     // recognized keyCode
+                                    Timber.d("virtual key ${it.value} -> keyCode $keyCode down/up")
                                     sendDownUpKeyEvent(
                                         keyCode,
                                         it.modifiers.metaState or meta(
@@ -761,8 +764,11 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         // dictation's composing span, and onFinishInput is not called for it
         voiceInput.interrupt()
         composingText = ""
-        Timber.d("onStartInput: restarting=$restarting")
         val isNullType = attribute.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL
+        Timber.d(
+            "onStartInput: restarting=$restarting package=${attribute.packageName} " +
+                "inputType=0x${attribute.inputType.toString(16)} imeOptions=0x${attribute.imeOptions.toString(16)} nullType=$isNullType",
+        )
         postRimeJob {
             if (restarting) {
                 // when input restarts in the same editor, clear previous composition
