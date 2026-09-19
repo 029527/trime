@@ -449,4 +449,19 @@
     <string name="voice_punctuation_remove_all">Remove all punctuation</string>
     <string name="voice_punctuation_sample">今天天气不错。要不要出去走走？好啊，我查一下 Qwen3.5 的资料。</string>
     <string name="voice_punctuation_example">Example: %1$s</string>
+    <!-- In-app Update -->
+    <string name="check_update">Check for updates</string>
+    <string name="checking_update">Checking for updates…</string>
+    <string name="update_already_latest">Current version is up to date</string>
+    <string name="update_dialog_title">New version available: %1$s</string>
+    <string name="update_dialog_confirm">Update now</string>
+    <string name="update_dialog_cancel">Cancel</string>
+    <string name="update_downloading">Downloading: %1$d%%</string>
+    <string name="update_download_progress">%1$s / %2$s</string>
+    <string name="update_download_failed">Download failed: %1$s</string>
+    <string name="update_retry">Retry</string>
+    <string name="update_check_failed">Check for updates failed: %1$s</string>
+    <string name="update_install_permission_denied">Please allow installing unknown apps in settings</string>
+    <string name="update_channel_with_latency">Channel: %1$s (%2$d ms)</string>
+    <string name="update_channel_format">Channel: %1$s</string>
 </resources>
