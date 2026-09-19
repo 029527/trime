@@ -162,6 +162,11 @@ class VoiceInputManager(
     val isActive: Boolean
         get() = state is DictationState.Listening || state is DictationState.Finishing || state is DictationState.Correcting
 
+    /** 是否当前会话为长按模式（按住说话，松手结束，期间不流式向客户端发送输入事件）。 */
+    @Volatile
+    var isHoldMode: Boolean = false
+        private set
+
     // MARK: - 入口
 
     /**
@@ -173,7 +178,27 @@ class VoiceInputManager(
             is DictationState.Listening -> dispatch(DictationEvent.Stop(StopReason.USER))
             is DictationState.Finishing -> Unit
             is DictationState.Correcting -> dispatch(DictationEvent.Interrupt)
-            else -> start()
+            else -> start(isHold = false)
+        }
+    }
+
+    /**
+     * 长按按键开始语音输入：
+     * 按住期间不连续流式向客户端发送输入事件，只有松手结束（[stopHold]）后才发送一次上屏。
+     */
+    fun startHold() = onMain {
+        when (state) {
+            DictationState.Idle, is DictationState.Failed -> start(isHold = true)
+            else -> Unit
+        }
+    }
+
+    /**
+     * 长按按键松开：结束录音，等待定稿并一次性发送输入事件上屏。
+     */
+    fun stopHold() = onMain {
+        if (isHoldMode && state is DictationState.Listening) {
+            dispatch(DictationEvent.Stop(StopReason.USER))
         }
     }
 
@@ -234,14 +259,13 @@ class VoiceInputManager(
 
     // MARK: - 状态机
 
-    private fun start() {
-        // 开始前就报错时胶囊也要贴着光标：先要一次光标位置
+    private fun start(isHold: Boolean = false) {
         indicator.clearCaret()
-        service.requestVoiceCursorOnce()
         if (!prefs.enabled.getValue()) {
             dispatch(DictationEvent.Failure("语音输入没打开，去「设置 → 语音输入」开启"))
             return
         }
+        isHoldMode = isHold
         // 先取词库：热词要跟着这一次的识别请求发出去
         vocabulary = VoiceVocabularyStore.load()
         punctuation = PunctuationOptions(
@@ -292,18 +316,40 @@ class VoiceInputManager(
             }
             DictationEffect.EndSession -> endSession()
             is DictationEffect.BeginCorrection -> beginCorrection(effect.text)
-            is DictationEffect.SetComposing -> service.currentInputConnection?.setComposingText(effect.text, 1)
+            is DictationEffect.SetComposing -> {
+                // 长按模式下，不向客户端发送流式的待定文字事件
+                if (!isHoldMode) {
+                    service.currentInputConnection?.setComposingText(effect.text, 1)
+                }
+            }
             is DictationEffect.Commit -> {
                 service.currentInputConnection?.run {
                     beginBatchEdit()
-                    if (effect.text.isNotEmpty()) setComposingText(effect.text, 1)
-                    finishComposingText()
+                    if (effect.text.isNotEmpty()) {
+                        if (isHoldMode) {
+                            commitText(effect.text, 1)
+                        } else {
+                            setComposingText(effect.text, 1)
+                            finishComposingText()
+                        }
+                    }
                     endBatchEdit()
                 }
                 rememberTail()
             }
             DictationEffect.FinishComposing -> {
-                service.currentInputConnection?.finishComposingText()
+                if (isHoldMode) {
+                    val text = joiner.display(pendingRaw)
+                    if (text.isNotEmpty()) {
+                        service.currentInputConnection?.run {
+                            beginBatchEdit()
+                            commitText(text, 1)
+                            endBatchEdit()
+                        }
+                    }
+                } else {
+                    service.currentInputConnection?.finishComposingText()
+                }
                 rememberTail()
             }
             DictationEffect.ScheduleErrorDismiss -> {
@@ -346,7 +392,6 @@ class VoiceInputManager(
         pendingRaw = ""
         handler.removeCallbacks(dismissError)
         indicator.clearCaret()
-        service.setVoiceCursorMonitor(true)
         handler.postDelayed(maxDurationReached, prefs.maxDuration.getValue().coerceIn(10, 300) * 1000L)
 
         sessionJob =
@@ -412,11 +457,11 @@ class VoiceInputManager(
             }
             is VoiceRecognitionEvent.Final -> {
                 val text = pipeline.process(segmenter.final(event.text), isFinal = true)
-                if (correctionPlan == null) {
+                if (correctionPlan == null && !isHoldMode) {
                     pendingRaw = ""
                     dispatch(DictationEvent.Final(joiner.commit(text)))
                 } else {
-                    // 要纠错：这一句先不上屏，跟后面的字一起留作待定文字
+                    // 要纠错，或者长按模式：这一句先不上屏，跟后面的字一起留作待定文字
                     heldText += text
                     pendingRaw = heldText
                     dispatch(DictationEvent.Partial(joiner.display(heldText)))
@@ -494,6 +539,7 @@ class VoiceInputManager(
         // 先让编号过期，被取消的协程里再冒出来的事件就都丢了
         sessionId++
         stopAudio = true
+        isHoldMode = false
         sessionJob?.cancel()
         sessionJob = null
         // 取消纠错会连带取消 HTTP 请求
@@ -501,8 +547,6 @@ class VoiceInputManager(
         correctionJob = null
         handler.removeCallbacks(finalizeTimeout)
         handler.removeCallbacks(maxDurationReached)
-        service.setVoiceCursorMonitor(false)
-        // the caret stays: the pill fades out, or shows an error, where it was
     }
 
     // MARK: - 杂项

@@ -95,4 +95,34 @@ class TranscriptCorrectionTest :
             val outcome = pipeline.correct("我用Claude写代码", FakeTranscriptCorrector(FakeTranscriptCorrector.Outcome.FAILURE, delayMs = 1))
             outcome shouldBe CorrectionOutcome.Failed("我用Claude写代码", "模拟纠错失败，已保留原文")
         }
+
+        test("纯数字判定：阿拉伯数字、中文数字、包含标点") {
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("123456") shouldBe true
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("138 0000 0000") shouldBe true
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("10086。") shouldBe true
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("3.14159") shouldBe true
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("1,000,000") shouldBe true
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("一二三四五六") shouldBe true
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("一百二十万零五百") shouldBe true
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("零点五") shouldBe true
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("98%") shouldBe true
+
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("我有3个苹果") shouldBe false
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("第12条") shouldBe false
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("iphone16") shouldBe false
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("") shouldBe false
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.isNumericOnly("...") shouldBe false
+        }
+
+        test("纯数字跳过纠错：作为输入法默认行为") {
+            // 纯数字即使超过字数阈值也不走纠错
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.shouldCorrect("13800000000", threshold = 4) shouldBe false
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.shouldCorrect("123456。", threshold = 4) shouldBe false
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.shouldCorrect("一二三四五六", threshold = 4) shouldBe false
+
+            // 非纯数字超过字数阈值正常纠错
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.shouldCorrect("我有3个苹果", threshold = 4) shouldBe true
+            // 非纯数字低于字数阈值不纠错
+            com.osfans.trime.voice.llm.LlmCorrectionConfig.shouldCorrect("好的", threshold = 4) shouldBe false
+        }
     })

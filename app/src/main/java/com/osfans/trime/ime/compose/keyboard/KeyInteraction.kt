@@ -42,13 +42,17 @@ class KeyInteraction(
 
     private val deletedTextBuffer = ArrayDeque<String>()
 
+    private fun isVoiceKey(key: Key): Boolean =
+        key.click?.command == CommonKeyboardActionListener.VOICE_INPUT_COMMAND ||
+            key.getAction(KeyBehavior.LONG_CLICK)?.command == CommonKeyboardActionListener.VOICE_INPUT_COMMAND
+
     private val caps =
         keyboard.keys.map { key ->
             KeyCaps(
                 repeatable = key.click?.isRepeatable ?: false,
                 slideCursor = key.click?.isSlideCursor ?: false,
                 slideDelete = key.click?.isSlideDelete ?: false,
-                hasLongPress = key.hasAction(KeyBehavior.LONG_CLICK),
+                hasLongPress = key.hasAction(KeyBehavior.LONG_CLICK) || isVoiceKey(key),
                 hasDouble = key.hasAction(KeyBehavior.DOUBLE_CLICK),
                 hasLazyDouble = key.hasAction(KeyBehavior.LAZY_DOUBLE_CLICK),
                 hasPopup = key.popup.isNotEmpty(),
@@ -79,7 +83,7 @@ class KeyInteraction(
         setPressedState(k, true)
         keyboardActionListener.onPress(k.getCode(KeyBehavior.CLICK))
         // touching any key but the mic ends dictation first, keeping what was recognised
-        if (k.click?.command != CommonKeyboardActionListener.VOICE_INPUT_COMMAND) service.voiceInput.interrupt()
+        if (!isVoiceKey(k)) service.voiceInput.interrupt()
         showPopupPreview(k)
     }
 
@@ -91,6 +95,13 @@ class KeyInteraction(
         val k = keyboard.keys[key]
         Timber.d("Key release: label=${k.getLabel()}, behavior=$behavior, fromLongPress=$fromLongPress")
         if (fromLongPress) {
+            if (isVoiceKey(k) && service.voiceInput.isHoldMode) {
+                service.voiceInput.stopHold()
+                setPressedState(k, false)
+                dismissPopupPreview(k)
+                if (keyboard.firstPressedKeyIndex == key) keyboard.firstPressedKeyIndex = -1
+                return
+            }
             if (caps[key].hasPopup) {
                 val triggerAction = PopupAction.TriggerAction(key)
                 popup.listener.onPopupAction(triggerAction)
@@ -161,6 +172,11 @@ class KeyInteraction(
 
     override fun onLongPress(key: Int) {
         val k = keyboard.keys[key]
+        if (isVoiceKey(k)) {
+            dismissPopupPreview(k)
+            service.voiceInput.startHold()
+            return
+        }
         if (k.popup.isNotEmpty()) {
             dismissPopupPreview(k)
             popup.listener.onPopupAction(PopupAction.ShowKeyboardAction(key, k.popup, host.keyBoundsInWindow(k)))
@@ -186,6 +202,9 @@ class KeyInteraction(
 
     override fun onCancel(key: Int) {
         val k = keyboard.keys[key]
+        if (isVoiceKey(k) && service.voiceInput.isHoldMode) {
+            service.voiceInput.stopHold()
+        }
         deletedTextBuffer.clear()
         setPressedState(k, false)
         dismissPopupPreview(k)

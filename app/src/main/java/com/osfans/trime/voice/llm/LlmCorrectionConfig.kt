@@ -88,8 +88,43 @@ class LlmCorrectionConfig(
             text: String,
             threshold: Int,
         ): Boolean {
+            if (isNumericOnly(text)) return false
             val length = text.codePoints().filter { !Character.isWhitespace(it) }.count()
             return length > 0 && length >= threshold
+        }
+
+        private val CHINESE_DIGITS = setOf(
+            '零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十',
+            '百', '千', '万', '亿', '兆', '两', '点',
+            '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖', '拾',
+            '佰', '仟', '萬', '億', '兩', '點',
+        )
+
+        private val NUMERIC_PUNCTUATION = setOf(
+            '。', '，', '、', '：', '；', '！', '？', '·', '—', '～',
+            '.', ',', '-', '/', ':', '%', '+', '~', '?', '!',
+        )
+
+        /**
+         * 口述内容是否为纯数字（包括阿拉伯数字、中文数字及常见标点符号）。
+         * 纯数字不发起大模型纠错，直接上屏，省去大模型延迟和费用。
+         */
+        fun isNumericOnly(text: String): Boolean {
+            var digitCount = 0
+            for (cp in text.codePoints()) {
+                if (Character.isWhitespace(cp)) continue
+                val chars = Character.toChars(cp)
+                if (chars.size == 1) {
+                    val c = chars[0]
+                    if (c in NUMERIC_PUNCTUATION) continue
+                    if (c in '0'..'9' || c in '０'..'９' || c in CHINESE_DIGITS) {
+                        digitCount++
+                        continue
+                    }
+                }
+                return false
+            }
+            return digitCount > 0
         }
     }
 }

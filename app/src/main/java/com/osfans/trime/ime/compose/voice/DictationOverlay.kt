@@ -18,11 +18,13 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -185,84 +187,53 @@ private class LastShown {
     var message = ""
 }
 
+/**
+ * 候选词栏内嵌语音气泡：替代输入候选词栏左侧省略号位置，整个 UI 收敛在客户端自身渲染的 UI 内部。
+ */
+@Composable
+fun InlineDictationPill(
+    indicator: DictationIndicator,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalImeColors.current
+    val fonts = LocalImeFonts.current
+    val tokens = LocalImeTokens.current
+    val shape = RoundedCornerShape(percent = 50)
+    Box(
+        modifier = modifier
+            .background(colors.accentBack.copy(alpha = 1f), shape)
+            .height(tokens.voicePillHeight)
+            .padding(horizontal = tokens.voicePillHorizontalPadding)
+            .clickable(
+                interactionSource = null,
+                indication = null,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        DictationPill(
+            phase = indicator.phase,
+            message = indicator.message,
+            indicator = indicator,
+            colors = colors,
+            fonts = fonts,
+            tokens = tokens,
+            modifier = Modifier,
+        )
+    }
+}
+
 @Composable
 private fun DictationLayer(
     indicator: DictationIndicator,
     frame: DictationOverlayFrame,
 ) {
-    val colors = LocalImeColors.current
-    val fonts = LocalImeFonts.current
-    val tokens = LocalImeTokens.current
-    val phase = indicator.phase
-    val visible = phase != DictationIndicator.Phase.HIDDEN
-    val last = remember { LastShown() }
-    if (visible) {
-        last.phase = phase
-        last.message = indicator.message
-    }
-    val appear = animateFloatAsState(
-        targetValue = if (visible) 1f else 0f,
-        animationSpec = tween(if (visible) APPEAR_MS else DISAPPEAR_MS),
-        label = "dictation-pill",
-    )
-    var origin by remember { mutableStateOf(IntOffset.Zero) }
-    Box(
-        Modifier
-            .fillMaxSize()
-            .onGloballyPositioned {
-                val p = it.positionOnScreen()
-                origin = IntOffset(p.x.roundToInt(), p.y.roundToInt())
-            },
-    ) {
-        if (visible || appear.value > 0f) {
-            val shape = RoundedCornerShape(percent = 50)
-            DictationPill(
-                phase = last.phase,
-                message = last.message,
-                indicator = indicator,
-                colors = colors,
-                fonts = fonts,
-                tokens = tokens,
-                modifier =
-                Modifier
-                    .layout { measurable, constraints ->
-                        val margin = tokens.voicePillScreenMargin.roundToPx()
-                        val pill = measurable.measure(Constraints(maxWidth = (constraints.maxWidth - 2 * margin).coerceAtLeast(0)))
-                        val caret = indicator.caretValid
-                        val position =
-                            DictationPillPlacement.place(
-                                caretX = if (caret) indicator.caretX - origin.x else Float.NaN,
-                                caretTop = if (caret) indicator.caretTop - origin.y else Float.NaN,
-                                caretBottom = if (caret) indicator.caretBottom - origin.y else Float.NaN,
-                                pillWidth = pill.width,
-                                pillHeight = pill.height,
-                                areaWidth = constraints.maxWidth,
-                                keyboardLeft = frame.keyboardLeft,
-                                keyboardTop = frame.keyboardTop,
-                                caretGap = tokens.voicePillCaretGap.roundToPx(),
-                                margin = margin,
-                            )
-                        layout(constraints.maxWidth, constraints.maxHeight) { pill.place(position) }
-                    }.graphicsLayer {
-                        val a = appear.value
-                        alpha = a
-                        scaleX = START_SCALE + (1 - START_SCALE) * a
-                        scaleY = scaleX
-                        shadowElevation = tokens.voicePillShadowElevation.toPx()
-                        this.shape = shape
-                        clip = false
-                    }
-                    // opaque: the pill floats over the app's content
-                    .background(colors.accentBack.copy(alpha = 1f), shape)
-                    .heightIn(min = tokens.voicePillHeight)
-                    .padding(horizontal = tokens.voicePillHorizontalPadding),
-            )
-        }
-    }
+    // 语音输入气泡已内嵌在候选词栏（InputBar）左侧省略号位置，不再在输入窗口外部上方悬浮绘制
 }
 
 @Composable
-private fun DictationPill(
+internal fun DictationPill(
     phase: DictationIndicator.Phase,
     message: String,
     indicator: DictationIndicator,

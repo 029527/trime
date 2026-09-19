@@ -185,6 +185,10 @@ class InputBarDelegate : InputBroadcastReceiver {
             override fun onBack() {
                 windowManager.attachWindow(KeyboardWindow)
             }
+
+            override fun onVoiceIndicatorClick() {
+                service.voiceInput.toggle()
+            }
         }
 
     /**
@@ -251,9 +255,10 @@ class InputBarDelegate : InputBroadcastReceiver {
                 borderRadiusPx = context.dp(theme.generalStyle.candidateBorderRound),
             )
         val layer = candidateLayer
+        val voiceIndicator = service.voiceInput.indicator
         context
             .imeComposeView {
-                InputBar(state, config, layer, actions)
+                InputBar(state, config, layer, actions, voiceIndicator)
             }.apply {
                 visibility = if (hideQuickBar) View.GONE else View.VISIBLE
                 isFocusable = false

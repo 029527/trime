@@ -35,6 +35,9 @@ import com.osfans.trime.ime.bar.QuickBarStateMachine
 import com.osfans.trime.ime.bar.UnrollButtonStateMachine
 import com.osfans.trime.ime.compose.theme.LocalImeColors
 import com.osfans.trime.ime.compose.theme.LocalImeTokens
+import com.osfans.trime.ime.compose.voice.DictationIndicator
+import com.osfans.trime.ime.compose.voice.InlineDictationPill
+import androidx.compose.foundation.layout.padding
 import kotlin.math.roundToInt
 
 /** What the always-on part of the bar shows between its two end buttons. */
@@ -76,6 +79,8 @@ internal interface InputBarActions {
     fun onDismissClipboard()
 
     fun onBack()
+
+    fun onVoiceIndicatorClick() {}
 }
 
 /** Fixed facts of one bar, taken from the theme when the keyboard is built. */
@@ -107,6 +112,7 @@ internal fun InputBar(
     config: InputBarConfig,
     candidateLayer: View,
     actions: InputBarActions,
+    voiceIndicator: DictationIndicator? = null,
 ) {
     val colors = LocalImeColors.current
     val tokens = LocalImeTokens.current
@@ -153,7 +159,7 @@ internal fun InputBar(
             }
         }
         when (bar) {
-            QuickBarStateMachine.State.Always -> AlwaysBar(state, config, actions)
+            QuickBarStateMachine.State.Always -> AlwaysBar(state, config, actions, voiceIndicator)
             QuickBarStateMachine.State.Tab ->
                 state.tab?.let { tab ->
                     val first = config.toolBar.buttons.firstOrNull()
@@ -180,20 +186,30 @@ private fun AlwaysBar(
     state: InputBarState,
     config: InputBarConfig,
     actions: InputBarActions,
+    voiceIndicator: DictationIndicator? = null,
 ) {
     val toolBar = config.toolBar
     val primary = toolBar.primaryButton
     val first = toolBar.buttons.firstOrNull()
     val mode = state.always
     Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-        // the primary button borrows the first button's size while a suggestion shows, as the View bar did
-        val leftSize = (if (mode == AlwaysMode.Toolbar) primary else first).sizeDp(config.buttonSizeDp)
-        ToolbarButton(
-            spec = remember(primary) { primary?.let { BarButtonSpec.Configured(it) } ?: BarButtonSpec.Icon(R.drawable.ic_baseline_more_horiz_24) },
-            state = state,
-            actions = actions,
-            modifier = Modifier.barButtonSize(leftSize),
-        )
+        val isVoiceActive = voiceIndicator != null && voiceIndicator.phase != DictationIndicator.Phase.HIDDEN
+        if (isVoiceActive) {
+            InlineDictationPill(
+                indicator = voiceIndicator,
+                onClick = actions::onVoiceIndicatorClick,
+                modifier = Modifier.padding(start = 4.dp, end = 4.dp),
+            )
+        } else {
+            // the primary button borrows the first button's size while a suggestion shows, as the View bar did
+            val leftSize = (if (mode == AlwaysMode.Toolbar) primary else first).sizeDp(config.buttonSizeDp)
+            ToolbarButton(
+                spec = remember(primary) { primary?.let { BarButtonSpec.Configured(it) } ?: BarButtonSpec.Icon(R.drawable.ic_baseline_more_horiz_24) },
+                state = state,
+                actions = actions,
+                modifier = Modifier.barButtonSize(leftSize),
+            )
+        }
         Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
             when (mode) {
                 AlwaysMode.Toolbar -> ButtonsRow(state, config, actions)
