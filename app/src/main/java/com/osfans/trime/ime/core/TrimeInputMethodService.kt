@@ -323,16 +323,15 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                                 val keyCode = it.value.keyCode
                                 // 可打印字符以文本上屏，而不是按键事件；
                                 // Enter / 退格 / 方向键以及 Ctrl、Alt、Meta 组合键仍走按键事件。
-                                val isPrintable = it.value.value in 0x20..0x7e
+                                val printableText = keysymToPrintableText(it.value.value)
                                 val hasCommandModifier = it.modifiers.ctrl || it.modifiers.alt || it.modifiers.meta
-                                if (isPrintable && !hasCommandModifier) {
-                                    val text = Character.toString(it.value.value)
+                                if (printableText != null && !hasCommandModifier) {
                                     if (isNullInputType()) {
                                         Timber.d("virtual key ${it.value} -> characters KeyEvent")
-                                        sendCharactersKeyEvent(text)
+                                        sendCharactersKeyEvent(printableText)
                                     } else {
                                         Timber.d("virtual key ${it.value} -> commitText")
-                                        commitText(text)
+                                        commitText(printableText)
                                     }
                                 } else if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {
                                     // recognized keyCode
@@ -868,6 +867,10 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     fun commitText(text: String) {
+        if (isNullInputType()) {
+            sendCharactersKeyEvent(text)
+            return
+        }
         val ic = currentInputConnection ?: return
 
         // when composing text equals commit content, finish composing text as-is
@@ -1279,5 +1282,21 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         }
         dialog.show()
         showingDialog = dialog
+    }
+
+    companion object {
+        fun keysymToPrintableText(keysym: Int): String? =
+            when (keysym) {
+                in 0x20..0x7e -> Character.toString(keysym)
+                in 0xffb0..0xffb9 -> (keysym - 0xffb0).toString()
+                0xffae -> "." // KP_Decimal
+                0xffaf -> "/" // KP_Divide
+                0xffaa -> "*" // KP_Multiply
+                0xffad -> "-" // KP_Subtract
+                0xffab -> "+" // KP_Add
+                0xffbd -> "=" // KP_Equal
+                0xff80 -> " " // KP_Space
+                else -> null
+            }
     }
 }
