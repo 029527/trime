@@ -8,7 +8,6 @@ package com.osfans.trime.ui.main
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -64,23 +63,10 @@ import java.util.Locale
 import kotlin.math.log10
 import kotlin.math.pow
 
-private val DASH_G_PATTERN = Regex("^(.*-g)([0-9a-f]+)(.*)$")
-private val COMMON_PATTERN = Regex("^([^-]*)(-.*)$")
-
-/**
- * Both librime and OpenCC report a `git describe`-like version; the About page links
- * to the exact commit, so the hash has to be dug out of it again.
- */
-private fun commitOfVersionName(versionName: String): String {
-    val dashG = DASH_G_PATTERN.find(versionName)?.groupValues?.get(2)
-    val common = COMMON_PATTERN.find(versionName)?.groupValues?.get(1)
-    return dashG ?: common ?: versionName
-}
-
 @Composable
 fun AboutScreen(
     onNavigateUp: () -> Unit,
-    onOpenLicenses: () -> Unit,
+    onOpenLicenses: () -> Unit = {},
 ) {
     val context = LocalContext.current
     // `LocalClipboardManager` is deprecated; the replacement writes asynchronously.
@@ -153,7 +139,7 @@ fun AboutScreen(
     ) { padding ->
         LazyColumn(contentPadding = padding) {
             item("header") { AppHeader() }
-            item("version") {
+            item("main_card") {
                 PreferenceCard {
                     PreferenceRow(
                         title = stringResource(R.string.current_version),
@@ -205,20 +191,11 @@ fun AboutScreen(
                         },
                     )
                     PreferenceRow(
-                        title = stringResource(R.string.librime_version),
-                        summary = BuildConfig.LIBRIME_VERSION,
+                        title = stringResource(R.string.source_code),
+                        summary = BuildConfig.BUILD_GIT_REPO.removePrefix("https://"),
+                        icon = R.drawable.ic_baseline_link_24,
                         horizontalPadding = CardPadding,
-                        onClick = {
-                            open("${Const.LIBRIME_URL}/commit/${commitOfVersionName(BuildConfig.LIBRIME_VERSION)}")
-                        },
-                    )
-                    PreferenceRow(
-                        title = stringResource(R.string.opencc_version),
-                        summary = BuildConfig.OPENCC_VERSION,
-                        horizontalPadding = CardPadding,
-                        onClick = {
-                            open("${Const.OPENCC_URL}/commit/${commitOfVersionName(BuildConfig.OPENCC_VERSION)}")
-                        },
+                        onClick = { open(BuildConfig.BUILD_GIT_REPO) },
                     )
                     PreferenceRow(
                         title = stringResource(R.string.build_info),
@@ -234,55 +211,6 @@ fun AboutScreen(
                             }
                         },
                     )
-                }
-            }
-            item("links") {
-                CardSpacer()
-                PreferenceCard {
-                    PreferenceRow(
-                        title = stringResource(R.string.source_code),
-                        summary = stringResource(R.string.git_repo),
-                        icon = R.drawable.ic_baseline_link_24,
-                        horizontalPadding = CardPadding,
-                        onClick = { open(BuildConfig.BUILD_GIT_REPO) },
-                    )
-                    PreferenceRow(
-                        title = stringResource(R.string.privacy_policy),
-                        icon = R.drawable.ic_baseline_lock_24,
-                        horizontalPadding = CardPadding,
-                        onClick = { open(Const.PRIVACY_POLICY_URL) },
-                    )
-                    PreferenceRow(
-                        title = stringResource(R.string.license),
-                        summary = Const.LICENSE_SPDX_ID,
-                        icon = R.drawable.ic_baseline_book_24,
-                        horizontalPadding = CardPadding,
-                        onClick = { open(Const.LICENSE_URL) },
-                    )
-                    PreferenceRow(
-                        title = stringResource(R.string.open_source_licenses),
-                        summary = stringResource(R.string.licenses_of_third_party_libraries),
-                        icon = R.drawable.ic_baseline_list_alt_24,
-                        horizontalPadding = CardPadding,
-                        onClick = onOpenLicenses,
-                    )
-                }
-            }
-            item("community") {
-                CardSpacer()
-                PreferenceCard {
-                    CommunityRow(R.string.qq_group_1, Const.QQ_GROUP_1_NUM, R.drawable.ic_baseline_star_24) {
-                        open(Const.QQ_GROUP_1_URL)
-                    }
-                    CommunityRow(R.string.qq_group_2, Const.QQ_GROUP_2_NUM, R.drawable.ic_baseline_star_24) {
-                        open(Const.QQ_GROUP_2_URL)
-                    }
-                    CommunityRow(R.string.rime_qq_group, Const.RIME_QQ_GROUP_NUM, R.drawable.ic_baseline_star_24) {
-                        open(Const.RIME_QQ_GROUP_URL)
-                    }
-                    CommunityRow(R.string.telegram, Const.TELEGRAM_NAME, R.drawable.ic_baseline_share_24) {
-                        open(Const.TELEGRAM_URL)
-                    }
                 }
                 Spacer(Modifier.height(24.dp))
             }
@@ -428,27 +356,6 @@ private fun formatFileSize(bytes: Long): String {
 }
 
 private val CardPadding = 20.dp
-
-@Composable
-private fun CardSpacer() {
-    Spacer(Modifier.height(16.dp))
-}
-
-@Composable
-private fun CommunityRow(
-    title: Int,
-    summary: String,
-    @DrawableRes icon: Int,
-    onClick: () -> Unit,
-) {
-    PreferenceRow(
-        title = stringResource(title),
-        summary = summary,
-        icon = icon,
-        horizontalPadding = CardPadding,
-        onClick = onClick,
-    )
-}
 
 /** App icon, name and version, drawn above the cards. */
 @Composable
