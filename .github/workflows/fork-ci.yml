@@ -93,6 +93,28 @@ jobs:
           gh release view custom-latest --json assets --jq '.assets[].name' 2>/dev/null \
             | xargs -r -I{} gh release delete-asset custom-latest "{}" -y || true
 
+      - name: Generate version.json
+        if: ${{ github.ref == 'refs/heads/custom' }}
+        run: |
+          APK_FILE=$(ls app/build/outputs/apk/release/*.apk | head -n 1)
+          APK_NAME=$(basename "$APK_FILE")
+          APK_SIZE=$(stat -c%s "$APK_FILE" 2>/dev/null || stat -f%z "$APK_FILE" 2>/dev/null || wc -c < "$APK_FILE")
+          VERSION_NAME=$(git describe --tags --long --always --exclude=nightly --exclude=custom-latest)
+          cat <<EOF > app/build/outputs/apk/release/version.json
+          {
+            "tag_name": "custom-latest",
+            "name": "Custom build ($VERSION_NAME)",
+            "body": "自动构建自 custom 分支 ${{ github.sha }}。只含 arm64-v8a。",
+            "assets": [
+              {
+                "name": "$APK_NAME",
+                "browser_download_url": "https://github.com/029527/trime/releases/download/custom-latest/$APK_NAME",
+                "size": $APK_SIZE
+              }
+            ]
+          }
+          EOF
+
       - name: Update custom-latest pre-release
         if: ${{ github.ref == 'refs/heads/custom' }}
         uses: softprops/action-gh-release@v2
@@ -101,4 +123,6 @@ jobs:
           name: "Custom build (${{ github.sha }})"
           prerelease: true
           body: "自动构建自 custom 分支 ${{ github.sha }}。只含 arm64-v8a。"
-          files: app/build/outputs/apk/release/*.apk
+          files: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/release/version.json

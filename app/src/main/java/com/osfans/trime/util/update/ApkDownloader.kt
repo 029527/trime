@@ -9,7 +9,7 @@ import android.content.Context
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -46,8 +46,8 @@ class ApkDownloader(
         fileName: String,
         fallbackUrls: List<String> = emptyList(),
         fallbackUrl: String? = null,
-    ): Flow<DownloadState> = flow {
-        emit(DownloadState.Downloading(0L, -1L, 0f))
+    ): Flow<DownloadState> = channelFlow {
+        send(DownloadState.Downloading(0L, -1L, 0f))
 
         val cacheDir = context.externalCacheDir ?: context.cacheDir
         val updatesDir = File(cacheDir, "updates").apply { mkdirs() }
@@ -73,7 +73,7 @@ class ApkDownloader(
             try {
                 Timber.d("Downloading APK from $url to ${tempFile.absolutePath}")
                 downloadFile(url, tempFile) { bytesRead, totalBytes, progress ->
-                    emit(DownloadState.Downloading(bytesRead, totalBytes, progress))
+                    send(DownloadState.Downloading(bytesRead, totalBytes, progress))
                 }
 
                 if (tempFile.exists() && tempFile.length() > 0) {
@@ -102,9 +102,9 @@ class ApkDownloader(
         }
 
         if (downloadedFile != null && downloadedFile.exists()) {
-            emit(DownloadState.Success(downloadedFile))
+            send(DownloadState.Success(downloadedFile))
         } else {
-            emit(DownloadState.Error(
+            send(DownloadState.Error(
                 message = lastError?.localizedMessage ?: "Failed to download APK",
                 cause = lastError,
             ))
@@ -115,7 +115,7 @@ class ApkDownloader(
         url: String,
         destination: File,
         onProgress: suspend (bytesRead: Long, totalBytes: Long, progress: Float) -> Unit,
-    ) = withContext(Dispatchers.IO) {
+    ) {
         val request = Request.Builder()
             .url(url)
             .header("User-Agent", "Trime-App-UpdateDownloader")

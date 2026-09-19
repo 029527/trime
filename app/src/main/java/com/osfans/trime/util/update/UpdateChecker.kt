@@ -49,17 +49,22 @@ class UpdateChecker(
         val bestChannel = channelResult.channel
         Timber.i("Selected update channel: ${bestChannel.name}, latency: ${channelResult.latencyMs}ms")
 
+        val rawVersionJsonUrl = "https://github.com/$targetRepo/releases/download/custom-latest/version.json"
         val releasesUrl = "https://api.github.com/repos/$targetRepo/releases"
         
-        // 尝试拉取 Releases 列表
+        // 尝试拉取发布信息：优先尝试镜像的 version.json（静态资源，国内代理 100% 畅通不报 403），同时兼容直连原生 Releases API
         val urlsToTry = buildList {
+            if (bestChannel.proxyPrefix.isNotBlank()) {
+                add("${bestChannel.proxyPrefix.trimEnd('/')}/$rawVersionJsonUrl")
+            }
+            add(releasesUrl)
+            add(rawVersionJsonUrl)
+            UpdateChannelSelector.DEFAULT_CHANNELS
+                .filter { it != bestChannel && it.proxyPrefix.isNotBlank() }
+                .forEach { add("${it.proxyPrefix.trimEnd('/')}/$rawVersionJsonUrl") }
             if (bestChannel.proxyPrefix.isNotBlank()) {
                 add("${bestChannel.proxyPrefix.trimEnd('/')}/$releasesUrl")
             }
-            add(releasesUrl)
-            UpdateChannelSelector.DEFAULT_CHANNELS
-                .filter { it != bestChannel && it.proxyPrefix.isNotBlank() }
-                .forEach { add("${it.proxyPrefix.trimEnd('/')}/$releasesUrl") }
         }.distinct()
 
         var lastException: Throwable? = null
