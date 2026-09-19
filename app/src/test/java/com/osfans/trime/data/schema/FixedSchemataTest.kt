@@ -51,4 +51,16 @@ class FixedSchemataTest :
             FixedSchemata.isDoublePinyin("t9") shouldBe false
             FixedSchemata.isDoublePinyin("english") shouldBe false
         }
+
+        "根据启用集合判断方案启用状态" {
+            val enabled = setOf(FixedSchemata.ID_ENGLISH, FixedSchemata.ID_DOUBLE_PINYIN)
+            FixedSchemata.isEnglishEnabled(enabled) shouldBe true
+            FixedSchemata.isDoublePinyinEnabled(enabled) shouldBe true
+            FixedSchemata.isT9Enabled(enabled) shouldBe false
+
+            val onlyT9 = setOf(FixedSchemata.ID_T9)
+            FixedSchemata.isEnglishEnabled(onlyT9) shouldBe false
+            FixedSchemata.isDoublePinyinEnabled(onlyT9) shouldBe false
+            FixedSchemata.isT9Enabled(onlyT9) shouldBe true
+        }
     })

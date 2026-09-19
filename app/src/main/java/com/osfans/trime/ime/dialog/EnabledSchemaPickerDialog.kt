@@ -35,13 +35,18 @@ object EnabledSchemaPickerDialog {
         onSelectSchema: ((schemaId: String) -> Unit)? = null,
         extensions: (AlertDialog.Builder.() -> AlertDialog.Builder)? = null,
     ): AlertDialog {
+        val enabledIds = FixedSchemata.getEnabledSchemaIds()
         val enabledRimeSchemata = rime.selectedSchemata().toList()
-        val hasT9 = enabledRimeSchemata.any { FixedSchemata.isT9(it.id) }
-        val hasDoublePinyin = enabledRimeSchemata.any { FixedSchemata.isDoublePinyin(it.id) } || enabledRimeSchemata.isEmpty()
+        val hasT9 = enabledRimeSchemata.any { FixedSchemata.isT9(it.id) } && FixedSchemata.isT9Enabled(enabledIds)
+        val hasDoublePinyin = (enabledRimeSchemata.any { FixedSchemata.isDoublePinyin(it.id) } || enabledRimeSchemata.isEmpty()) &&
+            FixedSchemata.isDoublePinyinEnabled(enabledIds)
+        val hasEnglish = FixedSchemata.isEnglishEnabled(enabledIds)
 
-        // 构造固定方案列表（对齐 iOS：English、双拼、九宫格）
+        // 构造固定方案列表（仅包含已启用的方案）
         val items = mutableListOf<SchemaItem>()
-        items.add(SchemaItem(FixedSchemata.ID_ENGLISH, FixedSchemata.NAME_ENGLISH))
+        if (hasEnglish) {
+            items.add(SchemaItem(FixedSchemata.ID_ENGLISH, FixedSchemata.NAME_ENGLISH))
+        }
         if (hasDoublePinyin) {
             val dpId = enabledRimeSchemata.firstOrNull { FixedSchemata.isDoublePinyin(it.id) }?.id ?: FixedSchemata.ID_DOUBLE_PINYIN
             items.add(SchemaItem(dpId, FixedSchemata.NAME_DOUBLE_PINYIN))

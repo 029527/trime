@@ -125,21 +125,36 @@ class CommonKeyboardActionListener {
     }
 
     private fun cycleNextSchema() {
+        val enabledIds = FixedSchemata.getEnabledSchemaIds()
         val status = rime.run { statusCached }
         val isAscii = status.isAsciiMode || keyboardWindow.currentKeyboard?.asciiMode == true
         val currentSchemaId = status.schemaId
-        val enabledRime = rime.run { runCatching { selectedSchemata().toList() }.getOrDefault(emptyList()) }
-        val hasT9 = enabledRime.any { FixedSchemata.isT9(it.id) }
+
+        val hasEnglish = FixedSchemata.isEnglishEnabled(enabledIds)
+        val hasT9 = FixedSchemata.isT9Enabled(enabledIds)
+        val hasDoublePinyin = FixedSchemata.isDoublePinyinEnabled(enabledIds)
 
         val nextTarget = when {
             isAscii -> {
-                FixedSchemata.ID_DOUBLE_PINYIN
+                when {
+                    hasDoublePinyin -> FixedSchemata.ID_DOUBLE_PINYIN
+                    hasT9 -> FixedSchemata.ID_T9
+                    else -> FixedSchemata.ID_ENGLISH
+                }
             }
             FixedSchemata.isT9(currentSchemaId) || FixedSchemata.isT9(keyboardWindow.currentKeyboardId) -> {
-                FixedSchemata.ID_ENGLISH
+                when {
+                    hasEnglish -> FixedSchemata.ID_ENGLISH
+                    hasDoublePinyin -> FixedSchemata.ID_DOUBLE_PINYIN
+                    else -> FixedSchemata.ID_T9
+                }
             }
             else -> {
-                if (hasT9) FixedSchemata.ID_T9 else FixedSchemata.ID_ENGLISH
+                when {
+                    hasT9 -> FixedSchemata.ID_T9
+                    hasEnglish -> FixedSchemata.ID_ENGLISH
+                    else -> FixedSchemata.ID_DOUBLE_PINYIN
+                }
             }
         }
         switchToFixedSchema(nextTarget)
