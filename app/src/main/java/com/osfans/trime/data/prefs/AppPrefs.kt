@@ -10,6 +10,7 @@ import android.content.SharedPreferences
 import androidx.annotation.Keep
 import com.osfans.trime.R
 import com.osfans.trime.core.Rime
+import com.osfans.trime.data.schema.FixedSchemata
 import com.osfans.trime.data.sync.DataStorageMode
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesLayout
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
@@ -193,7 +194,7 @@ class AppPrefs(
             LANDSCAPE_SCHEMA,
             "",
             { listOf("") + enabledSchemaList().map { it.id } },
-            { ctx -> listOf(ctx.getString(R.string.landscape_schema_same_as_portrait)) + enabledSchemaList().map { it.name.ifEmpty { it.id } } },
+            { ctx -> listOf(ctx.getString(R.string.landscape_schema_same_as_portrait)) + enabledSchemaList().map { FixedSchemata.getDisplayName(it.id, it.name) } },
         )
 
         private fun enabledSchemaList() = runCatching { Rime.getSelectedRimeSchemaList().toList() }.getOrDefault(emptyList())

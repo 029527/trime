@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.osfans.trime.R
 import com.osfans.trime.core.SchemaItem
+import com.osfans.trime.data.schema.FixedSchemata
 import com.osfans.trime.ui.compose.TopBarIconButton
 import com.osfans.trime.ui.main.settings.list.AddFloatingActionButton
 import com.osfans.trime.ui.main.settings.list.ListEmptyHint
@@ -126,7 +127,7 @@ fun SchemaListScreen(
             else -> LazyColumn(contentPadding = padding.plusBottom(88.dp)) {
                 items(entries, key = { it.id }) { item ->
                     ListEntryRow(
-                        title = item.name.ifEmpty { item.id },
+                        title = FixedSchemata.getDisplayName(item.id, item.name),
                         selected = if (selecting) item.id in liveSelection else null,
                         onClick = {
                             if (selecting) {
@@ -186,7 +187,7 @@ private fun SchemaPickerDialog(
                         Checkbox(checked = item.id in checked, onCheckedChange = null)
                         Spacer(Modifier.width(16.dp))
                         Text(
-                            text = item.name.ifEmpty { item.id },
+                            text = FixedSchemata.getDisplayName(item.id, item.name),
                             style = MaterialTheme.typography.bodyLarge,
                         )
                     }

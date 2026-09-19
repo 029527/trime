@@ -19,6 +19,7 @@ import com.osfans.trime.R
 import com.osfans.trime.TrimeApplication
 import com.osfans.trime.core.SchemaItem
 import com.osfans.trime.daemon.RimeDaemon
+import com.osfans.trime.data.schema.FixedSchemata
 import com.osfans.trime.data.sync.RimeDataSync
 import com.osfans.trime.ui.compose.ComposeFragment
 import com.osfans.trime.util.NaiveDustman
@@ -64,8 +65,22 @@ class SchemaListFragment : ComposeFragment() {
         val all = rime.runOnReady { availableSchemata().toList() }
         val enabled = rime.runOnReady { enabledSchemata().map { it.id } }
         entries.clear()
-        entries.addAll(all.filter { enabled.contains(it.id) })
-        available = all
+
+        val doublePinyinId = all.firstOrNull { FixedSchemata.isDoublePinyin(it.id) }?.id
+            ?: enabled.firstOrNull { FixedSchemata.isDoublePinyin(it) }
+            ?: FixedSchemata.ID_DOUBLE_PINYIN
+        val t9Id = all.firstOrNull { FixedSchemata.isT9(it.id) }?.id
+            ?: enabled.firstOrNull { FixedSchemata.isT9(it) }
+            ?: FixedSchemata.ID_T9
+
+        val fixedList = listOf(
+            SchemaItem(FixedSchemata.ID_ENGLISH, FixedSchemata.NAME_ENGLISH),
+            SchemaItem(doublePinyinId, FixedSchemata.NAME_DOUBLE_PINYIN),
+            SchemaItem(t9Id, FixedSchemata.NAME_T9),
+        )
+
+        entries.addAll(fixedList)
+        available = fixedList
         resetDustman()
         loading = false
     }
@@ -76,7 +91,7 @@ class SchemaListFragment : ComposeFragment() {
         items.forEach { dustman.addOrUpdate(it.toString(), it) }
         showUndoSnackBar(
             if (items.size == 1) {
-                getString(R.string.added_x, items.first().name)
+                getString(R.string.added_x, FixedSchemata.getDisplayName(items.first().id, items.first().name))
             } else {
                 getString(R.string.added_n_items, items.size)
             },
@@ -94,7 +109,7 @@ class SchemaListFragment : ComposeFragment() {
         removed.forEach { (_, item) -> dustman.remove(item.toString()) }
         showUndoSnackBar(
             if (removed.size == 1) {
-                getString(R.string.removed_x, removed.first().second.name)
+                getString(R.string.removed_x, FixedSchemata.getDisplayName(removed.first().second.id, removed.first().second.name))
             } else {
                 getString(R.string.removed_n_items, removed.size)
             },
@@ -136,7 +151,10 @@ class SchemaListFragment : ComposeFragment() {
 
     private fun persistSchemaList() {
         if (loading || !dustman.dirty) return
-        val schemaIds = entries.map { it.id }.toTypedArray()
+        val schemaIds = entries
+            .map { it.id }
+            .filter { !FixedSchemata.isEnglish(it) }
+            .toTypedArray()
         resetDustman()
         Timber.i("Persisting schema list: ${schemaIds.joinToString()}")
         TrimeApplication.getInstance().coroutineScope.launch {

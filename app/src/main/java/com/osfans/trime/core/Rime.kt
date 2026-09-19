@@ -10,6 +10,7 @@ import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.data.hotwords.HotWordManager
 import com.osfans.trime.data.opencc.OpenCCDictManager
 import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.data.schema.FixedSchemata
 import com.osfans.trime.data.sync.ExternalSyncFallback
 import com.osfans.trime.data.sync.GitConfigSync
 import com.osfans.trime.data.sync.RimeDataSync
@@ -341,12 +342,8 @@ class Rime :
         return handled
     }
 
-    private fun asciiTipsText(status: StatusProto): String = when {
-        status.isAsciiMode -> "En"
-        status.schemaName.isNotEmpty() && !status.schemaName.startsWith('.') ->
-            status.schemaName.take(2)
-        else -> ""
-    }
+    private fun asciiTipsText(status: StatusProto): String =
+        FixedSchemata.getShortName(status.schemaId, status.isAsciiMode)
 
     private fun emitResponse(commit: CommitProto? = null) {
         val response = getRimeResponse(pagingMode)

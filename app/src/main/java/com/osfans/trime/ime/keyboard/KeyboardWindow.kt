@@ -100,12 +100,13 @@ class KeyboardWindow :
         get() = KeyboardWindow
 
     private val presetKeyboardIds = theme.presetKeyboards.keys.toList()
-    private var currentKeyboardId = ""
+    var currentKeyboardId = ""
+        private set
     private var lastKeyboardId = ""
     private var lastLockKeyboardId = ""
     private var tempAsciiMode: Boolean? = null
     private val cachedKeyboards = mutableMapOf<String, Pair<Keyboard, ComposeKeyboardView>>()
-    private val currentKeyboard: Keyboard? get() = cachedKeyboards[currentKeyboardId]?.first
+    val currentKeyboard: Keyboard? get() = cachedKeyboards[currentKeyboardId]?.first
     private val currentKeyboardView: ComposeKeyboardView? get() = cachedKeyboards[currentKeyboardId]?.second
 
     private val keyboardActionListener = commonKeyboardActionListener.listener

@@ -18,6 +18,7 @@ import com.osfans.trime.core.RimeKeyEvent
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.data.schema.FixedSchemata
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.KeyActionManager
 import com.osfans.trime.data.theme.ThemeManager
@@ -72,12 +73,76 @@ class CommonKeyboardActionListener {
 
     private fun showEnabledSchemaPicker() {
         showDialog { api ->
-            EnabledSchemaPickerDialog.build(api, service.lifecycleScope, context) {
+            val isAscii = api.statusCached.isAsciiMode || keyboardWindow.currentKeyboard?.asciiMode == true
+            EnabledSchemaPickerDialog.build(
+                rime = api,
+                scope = service.lifecycleScope,
+                context = context,
+                isAsciiMode = isAscii,
+                activeKeyboardId = keyboardWindow.currentKeyboardId,
+                onSelectSchema = { targetId ->
+                    switchToFixedSchema(targetId)
+                },
+            ) {
                 setNegativeButton(R.string.enable_schemata) { _, _ ->
                     AppUtils.launchMainToSchemaList(context)
                 }
             }
         }
+    }
+
+    fun switchToFixedSchema(targetId: String) {
+        when {
+            FixedSchemata.isEnglish(targetId) -> {
+                service.postRimeJob {
+                    setRuntimeOption("ascii_mode", true)
+                }
+                keyboardWindow.switchKeyboard("english")
+            }
+            FixedSchemata.isT9(targetId) -> {
+                service.postRimeJob {
+                    setRuntimeOption("ascii_mode", false)
+                    val current = selectedSchemaId()
+                    if (!FixedSchemata.isT9(current)) {
+                        selectSchema(FixedSchemata.ID_T9)
+                    }
+                }
+                keyboardWindow.switchKeyboard("t9")
+            }
+            else -> {
+                service.postRimeJob {
+                    setRuntimeOption("ascii_mode", false)
+                    val current = selectedSchemaId()
+                    if (!FixedSchemata.isDoublePinyin(current)) {
+                        val target = enabledSchemata().firstOrNull { FixedSchemata.isDoublePinyin(it.id) }?.id
+                            ?: FixedSchemata.ID_DOUBLE_PINYIN
+                        selectSchema(target)
+                    }
+                }
+                keyboardWindow.switchKeyboard("default")
+            }
+        }
+    }
+
+    private fun cycleNextSchema() {
+        val status = rime.run { statusCached }
+        val isAscii = status.isAsciiMode || keyboardWindow.currentKeyboard?.asciiMode == true
+        val currentSchemaId = status.schemaId
+        val enabledRime = rime.run { runCatching { selectedSchemata().toList() }.getOrDefault(emptyList()) }
+        val hasT9 = enabledRime.any { FixedSchemata.isT9(it.id) }
+
+        val nextTarget = when {
+            isAscii -> {
+                FixedSchemata.ID_DOUBLE_PINYIN
+            }
+            FixedSchemata.isT9(currentSchemaId) || FixedSchemata.isT9(keyboardWindow.currentKeyboardId) -> {
+                FixedSchemata.ID_ENGLISH
+            }
+            else -> {
+                if (hasT9) FixedSchemata.ID_T9 else FixedSchemata.ID_ENGLISH
+            }
+        }
+        switchToFixedSchema(nextTarget)
     }
 
     private fun expandActiveText(input: String): String = if (input.matches(PLACEHOLDER_PATTERN)) {
@@ -119,7 +184,13 @@ class CommonKeyboardActionListener {
                 if (shouldHandle) {
                     when (action.code) {
                         KeyEvent.KEYCODE_SWITCH_CHARSET -> handleSwitchCharset(action)
-                        KeyEvent.KEYCODE_EISU -> keyboardWindow.switchKeyboard(action.select)
+                        KeyEvent.KEYCODE_EISU -> {
+                            if (action.select == ".ascii_toggle") {
+                                cycleNextSchema()
+                            } else {
+                                keyboardWindow.switchKeyboard(action.select)
+                            }
+                        }
                         KeyEvent.KEYCODE_LANGUAGE_SWITCH -> handleLanguageSwitch(action)
                         KeyEvent.KEYCODE_FUNCTION -> handleFunctionCommand(action)
                         KeyEvent.KEYCODE_SETTINGS -> handleSettings(action)

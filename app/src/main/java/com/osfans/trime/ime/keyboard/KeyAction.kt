@@ -7,6 +7,7 @@ package com.osfans.trime.ime.keyboard
 import android.view.KeyEvent
 import com.osfans.trime.daemon.RimeDaemon
 import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.data.schema.FixedSchemata
 import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.data.theme.model.KeyActionToken
 import com.osfans.trime.util.virtualKeyCharacterMap
@@ -73,10 +74,7 @@ class KeyAction(
 
     // 获取空格键的schemaName，处理初始化时可能为空的情况
     private fun getSpaceKeySchemaName(): String = rime.run {
-        statusCached.schemaName.ifEmpty {
-            // 如果schemaName为空，尝试使用schemaId作为显示名称
-            schemaCached.schemaId.takeIf { it.isNotEmpty() && it != ".default" } ?: ""
-        }
+        FixedSchemata.getShortName(statusCached.schemaId, statusCached.isAsciiMode)
     }
 
     private fun adjustCase(

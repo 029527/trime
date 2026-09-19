@@ -29,7 +29,9 @@ import com.osfans.trime.ime.compose.clipboard.PanelMenuAction
 import com.osfans.trime.ime.compose.imeComposeView
 import com.osfans.trime.ime.compose.switches.SwitchOptionGrid
 import com.osfans.trime.ime.core.TrimeInputMethodService
+import com.osfans.trime.data.schema.FixedSchemata
 import com.osfans.trime.ime.dialog.EnabledSchemaPickerDialog
+import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.window.BoardWindow
 import com.osfans.trime.util.AppUtils
 import kotlinx.coroutines.launch
@@ -95,7 +97,43 @@ class SwitchOptionWindow :
         when (entry) {
             is SwitchOptionEntry.Static -> when (entry.type) {
                 SwitchOptionEntry.Static.Type.SchemaList -> showDialog { r ->
-                    EnabledSchemaPickerDialog.build(r, service.lifecycleScope, context) {
+                    val keyboardWindow: KeyboardWindow by di.instance()
+                    val isAscii = r.statusCached.isAsciiMode || keyboardWindow.currentKeyboard?.asciiMode == true
+                    EnabledSchemaPickerDialog.build(
+                        rime = r,
+                        scope = service.lifecycleScope,
+                        context = context,
+                        isAsciiMode = isAscii,
+                        activeKeyboardId = keyboardWindow.currentKeyboardId,
+                        onSelectSchema = { targetId ->
+                            when {
+                                FixedSchemata.isEnglish(targetId) -> {
+                                    service.postRimeJob { setRuntimeOption("ascii_mode", true) }
+                                    keyboardWindow.switchKeyboard("english")
+                                }
+                                FixedSchemata.isT9(targetId) -> {
+                                    service.postRimeJob {
+                                        setRuntimeOption("ascii_mode", false)
+                                        if (!FixedSchemata.isT9(selectedSchemaId())) {
+                                            selectSchema(FixedSchemata.ID_T9)
+                                        }
+                                    }
+                                    keyboardWindow.switchKeyboard("t9")
+                                }
+                                else -> {
+                                    service.postRimeJob {
+                                        setRuntimeOption("ascii_mode", false)
+                                        if (!FixedSchemata.isDoublePinyin(selectedSchemaId())) {
+                                            val target = enabledSchemata().firstOrNull { FixedSchemata.isDoublePinyin(it.id) }?.id
+                                                ?: FixedSchemata.ID_DOUBLE_PINYIN
+                                            selectSchema(target)
+                                        }
+                                    }
+                                    keyboardWindow.switchKeyboard("default")
+                                }
+                            }
+                        },
+                    ) {
                         setNegativeButton(R.string.enable_schemata) { _, _ ->
                             AppUtils.launchMainToSchemaList(context)
                         }

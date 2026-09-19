@@ -66,11 +66,8 @@ TextKey(click = key("q"), longClick = key("1"), swipeUp = key("1")),
   五个图标的间距是 24 / 20 / 20 / 24%，看起来均匀，每个触摸区都比 44dp 大。
 - 剪贴板和编辑面板用单独的 `ios_clipboard` / `ios_edit`，不直接写 `clipboard_window` / `edit_panel`：那两个预设键的
   `label` 是文字，写在按键上的 `label` 在英文（ascii）状态下会被预设键的文字顶掉，键面就从图标变成「剪贴」「编辑」。
-- 原来的 `ios_globe`（`Control+Shift+1` 轮换方案）已删除：方案多于两个时轮换不如直接选。
-- 键盘里原来的 `ZH` / `EN` 键（`ios_to_en` / `ios_to_zh`）已删除，中英切换只走左下角；竖屏把宽度并给空格。
-- `.ascii_toggle` 是 `KeyboardWindow.evalKeyboard` 里的伪键盘名：当前键盘是英文（`ascii_mode: true`）就回到当前方案的键盘
-  （双拼 `default`，九宫格 `t9` / 横屏 `t9_land`），否则去当前键盘的 `ascii_keyboard`；符号层没写 `ascii_keyboard`，借最近一个锁定键盘的。
-  所以竖屏默认方案下就是「双拼混输 ⇄ 英文全键」，长按选了九宫格后点一下是「九宫格 ⇄ 英文全键」。
+- 方案固定为 `English`、`简体中文-拼音-双拼` 和 `简体中文-拼音-九宫格`（不再保留原配置的第三方名称）。
+- 左下角 `ios_schema`：点一下在启用的方案间轮转切换（双拼 ⇄ 九宫格 ⇄ English，对齐 iOS 键盘体验）；长按弹出方案选单直接单选切换，自动勾选当前激活项。
 - 长按不再弹系统输入法选择器；方案选单里还留着「其他输入法」按钮，要换别的输入法从那里进。
 
 ### 横屏的麦克风键
