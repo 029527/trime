@@ -76,48 +76,62 @@ private fun KeyPreviewBubble(
     val text = colors.popupText.toArgb()
     val headW = metrics.previewWidth.toFloat()
     val headH = metrics.previewHeight.toFloat()
-    val funnelH = metrics.tailHeight.toFloat()
-    val totalH = headH + funnelH
-    val r = metrics.previewCornerRadius
+    val keyH = slot.keyHeight.toFloat()
+    val totalH = headH + keyH
+    val headR = metrics.previewCornerRadius
+    val keyR = metrics.keyCornerRadius
 
-    val baseL = (slot.keyLeft - slot.x).toFloat().coerceIn(0f, headW)
-    val baseR = (slot.keyLeft - slot.x + slot.keyWidth).toFloat().coerceIn(0f, headW)
+    val handleL = (slot.keyLeft - slot.x).toFloat().coerceIn(0f, headW)
+    val handleR = (slot.keyLeft - slot.x + slot.keyWidth).toFloat().coerceIn(0f, headW)
+    val handleBottom = totalH
+    // 颈部反圆角过渡段：从按键顶边上方一段距离平滑过渡到按键顶边下方几像素
+    val neckTop = maxOf(headR, headH - metrics.tailHeight.toFloat())
+    val neckBottom = headH + 4f
 
-    // 创建契合漏斗外轮廓的 Shape，供系统 RenderNode 投射出逼真的漏斗形立体阴影
-    val bubbleShape = remember(headW, headH, funnelH, totalH, r, baseL, baseR) {
+    // 契合整把锅铲外轮廓的 Shape，供系统 RenderNode 投射出逼真的立体阴影
+    val spatulaShape = remember(headW, headH, totalH, headR, keyR, handleL, handleR, neckTop, neckBottom) {
         GenericShape { _, _ ->
-            // 1. 头部左上圆角起点
-            moveTo(0f, r)
-            quadraticTo(0f, 0f, r, 0f)
-            // 2. 头部顶边
-            lineTo(headW - r, 0f)
-            // 3. 头部右上圆角
-            quadraticTo(headW, 0f, headW, r)
-            // 4. 头部右侧边缘，走到头部与漏斗交接处
-            lineTo(headW, headH)
-            // 5. 漏斗右侧：从 (headW, headH) 平滑内收过渡到底部按键右侧 (baseR, totalH)
-            if (baseR < headW) {
+            val transitionH = maxOf(1f, neckBottom - neckTop)
+            // 1. 铲面左上圆角起点
+            moveTo(0f, headR)
+            quadraticTo(0f, 0f, headR, 0f)
+            // 2. 铲面顶边
+            lineTo(headW - headR, 0f)
+            // 3. 铲面右上圆角
+            quadraticTo(headW, 0f, headW, headR)
+            // 4. 铲面右侧直边
+            lineTo(headW, neckTop)
+            // 5. 右侧反圆角内凹过渡（铲面收缩到铲柄）
+            if (handleR < headW) {
                 cubicTo(
-                    headW, headH + funnelH * 0.45f,
-                    baseR, totalH - funnelH * 0.25f,
-                    baseR, totalH,
+                    headW, neckTop + transitionH * 0.45f,
+                    handleR, neckBottom - transitionH * 0.45f,
+                    handleR, neckBottom,
                 )
             } else {
-                lineTo(baseR, totalH)
+                lineTo(handleR, neckBottom)
             }
-            // 6. 漏斗底部：水平横线，与用户按键顶边宽度精确贴合、挨着无缝隙
-            lineTo(baseL, totalH)
-            // 7. 漏斗左侧：从底部按键左侧 (baseL, totalH) 平滑展开到头部左侧 (0, headH)
-            if (baseL > 0f) {
+            // 6. 铲柄右侧直边（覆盖按键右侧）
+            lineTo(handleR, handleBottom - keyR)
+            // 7. 铲柄右下圆角（与按键原生圆角一致）
+            quadraticTo(handleR, handleBottom, handleR - keyR, handleBottom)
+            // 8. 铲柄底边（与按键原生底边一致，和相邻键完全齐平）
+            lineTo(handleL + keyR, handleBottom)
+            // 9. 铲柄左下圆角（与按键原生圆角一致）
+            quadraticTo(handleL, handleBottom, handleL, handleBottom - keyR)
+            // 10. 铲柄左侧直边（覆盖按键左侧）
+            lineTo(handleL, neckBottom)
+            // 11. 左侧反圆角内凹过渡（铲柄展开到铲面）
+            if (handleL > 0f) {
                 cubicTo(
-                    baseL, totalH - funnelH * 0.25f,
-                    0f, headH + funnelH * 0.45f,
-                    0f, headH,
+                    handleL, neckBottom - transitionH * 0.45f,
+                    0f, neckTop + transitionH * 0.45f,
+                    0f, neckTop,
                 )
             } else {
-                lineTo(0f, headH)
+                lineTo(0f, neckTop)
             }
-            // 8. 闭合回到左上角
+            // 12. 闭合回到铲面左上角
             close()
         }
     }
@@ -129,41 +143,47 @@ private fun KeyPreviewBubble(
             .graphicsLayer {
                 alpha = if (slot.visible) 1f else 0f
                 shadowElevation = metrics.shadowElevation
-                shape = bubbleShape
+                shape = spatulaShape
                 clip = false
             }.drawBehind {
+                val transitionH = maxOf(1f, neckBottom - neckTop)
                 val path = Path().apply {
-                    moveTo(0f, r)
-                    quadraticTo(0f, 0f, r, 0f)
-                    lineTo(headW - r, 0f)
-                    quadraticTo(headW, 0f, headW, r)
-                    lineTo(headW, headH)
-                    if (baseR < headW) {
+                    moveTo(0f, headR)
+                    quadraticTo(0f, 0f, headR, 0f)
+                    lineTo(headW - headR, 0f)
+                    quadraticTo(headW, 0f, headW, headR)
+                    lineTo(headW, neckTop)
+                    if (handleR < headW) {
                         cubicTo(
-                            headW, headH + funnelH * 0.45f,
-                            baseR, totalH - funnelH * 0.25f,
-                            baseR, totalH,
+                            headW, neckTop + transitionH * 0.45f,
+                            handleR, neckBottom - transitionH * 0.45f,
+                            handleR, neckBottom,
                         )
                     } else {
-                        lineTo(baseR, totalH)
+                        lineTo(handleR, neckBottom)
                     }
-                    lineTo(baseL, totalH)
-                    if (baseL > 0f) {
+                    lineTo(handleR, handleBottom - keyR)
+                    quadraticTo(handleR, handleBottom, handleR - keyR, handleBottom)
+                    lineTo(handleL + keyR, handleBottom)
+                    quadraticTo(handleL, handleBottom, handleL, handleBottom - keyR)
+                    lineTo(handleL, neckBottom)
+                    if (handleL > 0f) {
                         cubicTo(
-                            baseL, totalH - funnelH * 0.25f,
-                            0f, headH + funnelH * 0.45f,
-                            0f, headH,
+                            handleL, neckBottom - transitionH * 0.45f,
+                            0f, neckTop + transitionH * 0.45f,
+                            0f, neckTop,
                         )
                     } else {
-                        lineTo(0f, headH)
+                        lineTo(0f, neckTop)
                     }
                     close()
                 }
                 drawPath(path, back)
-                // 字母居中绘制在漏斗上方的头部展示区域
+                // 字母居中绘制在铲面上半部的展示区域（避开颈部过渡段）
+                val letterCenterY = (neckTop) / 2f
                 painter.drawText(
                     nativeCanvas, slot.text, painter.preview, text,
-                    headW / 2, headH / 2, headW,
+                    headW / 2f, letterCenterY, headW,
                 )
             },
     )

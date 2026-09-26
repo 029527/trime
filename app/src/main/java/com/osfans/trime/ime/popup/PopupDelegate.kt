@@ -89,15 +89,16 @@ class PopupDelegate {
         val keyVisualWidth = maxOf(0, keyVisualRight - keyVisualLeft)
         val keyVisualHeight = maxOf(0, bounds.bottom - bounds.top - m.keyVerticalGap)
 
-        val totalHeight = m.previewHeight + m.tailHeight
+        val totalHeight = m.previewHeight + keyVisualHeight
         val centerX = (keyVisualLeft + keyVisualRight) / 2
         slot.x = PopupGeometry.centeredLeft(centerX, m.previewWidth, root.width)
-        // 关键：底边对齐按键的真实顶边，完全贴合无间隔 (+1px 重叠消除任何浮点渲染缝隙)
-        slot.y = maxOf(0, keyVisualTop - totalHeight + 1)
+        // 关键：锅铲顶部在 keyVisualTop - previewHeight，底部精准覆盖到按键底边！
+        slot.y = maxOf(0, keyVisualTop - m.previewHeight)
         slot.text = content
         slot.keyWidth = keyVisualWidth
         slot.keyHeight = keyVisualHeight
         slot.keyLeft = keyVisualLeft
+        slot.keyTop = keyVisualTop
         slot.shownAt = SystemClock.uptimeMillis()
         slot.visible = true
     }

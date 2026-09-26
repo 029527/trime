@@ -228,14 +228,17 @@ private class KeyPainter(
 
             scope.drawBackground(canvas, i, key, isEnter, l, t, r, b)
 
+            // 按下时隐藏原键位的字母与角标（由锅铲气泡呈现）
+            val hidePressedContent = key.isPressed && typesCharacter[i] && !isEnter
+
             val textColor = (if (isEnter) state.actionKeyTextColor else null) ?: key.getTextColor()
-            if (text.isNotEmpty()) scope.drawLabel(canvas, i, text, textColor, (l + r) / 2, (t + b) / 2)
+            if (!hidePressedContent && text.isNotEmpty()) scope.drawLabel(canvas, i, text, textColor, (l + r) / 2, (t + b) / 2)
 
             val secondary = symbolColor(textColor)
             val symbol = key.symbolLabel
-            if (!hideSymbol && symbol.isNotBlank()) scope.drawSymbol(canvas, i, symbol, secondary, r - symbolInsetEnd, t + symbolInsetTop)
+            if (!hidePressedContent && !hideSymbol && symbol.isNotBlank()) scope.drawSymbol(canvas, i, symbol, secondary, r - symbolInsetEnd, t + symbolInsetTop)
             val hint = key.hint
-            if (!hideHint && hint.isNotBlank()) drawHint(canvas, hint, secondary, (l + r) / 2, b - symbolInsetTop)
+            if (!hidePressedContent && !hideHint && hint.isNotBlank()) drawHint(canvas, hint, secondary, (l + r) / 2, b - symbolInsetTop)
         }
     }
 

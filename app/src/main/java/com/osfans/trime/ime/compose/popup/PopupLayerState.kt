@@ -44,6 +44,7 @@ internal class PopupMetrics(
     val tailCornerRadius: Float,
     val keyHorizontalGap: Int,
     val keyVerticalGap: Int,
+    val keyCornerRadius: Float,
 ) {
     companion object {
         fun of(
@@ -69,6 +70,7 @@ internal class PopupMetrics(
                 tailCornerRadius = tokens.popupTailCornerRadius.toPx(),
                 keyHorizontalGap = tokens.keyHorizontalGap.roundToPx(),
                 keyVerticalGap = tokens.keyVerticalGap.roundToPx(),
+                keyCornerRadius = tokens.keyCornerRadius.toPx(),
             )
         }
     }
@@ -92,6 +94,8 @@ internal class BubbleSlot {
     var keyHeight by mutableIntStateOf(0)
     /** Left edge of the pressed key body relative to the popup layer, for the tail. */
     var keyLeft by mutableIntStateOf(0)
+    /** Top edge of the pressed key body relative to the popup layer. */
+    var keyTop by mutableIntStateOf(0)
 
     /** Key the bubble belongs to while showing. */
     var viewId = -1
