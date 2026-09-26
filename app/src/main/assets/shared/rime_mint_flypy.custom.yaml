@@ -1,0 +1,101 @@
+# 薄荷拼音-小鹤混输：手机端（Trime）个性化补丁
+# 与 macOS 上 ~/Library/Rime/rime_mint_flypy.custom.yaml 保持一致，另加几项手机端调整。
+#
+# 手机端不用简繁转换、不用笔画反查：fork 版 Trime 的 APK 不再内置 opencc 简繁表（s2t.json）
+# 和 stroke 方案，所以下面把 dependencies、switches 和 engine 的三张表整张重写，去掉相关项。
+# 整张重写后不要再用 @before / @after 往这几张表里插：librime 按 key 的字典序应用补丁，
+# 插入和整张替换混用会插错位置或重复插入。要加翻译器 / 滤镜，直接改下面的列表。
+# 上游 rime_mint_flypy.schema.yaml 更新时，照新 schema 重抄列表，再删掉 stroke、transcription 相关项。
+patch:
+  # 依赖去掉 stroke：APK 不再内置笔画方案，留着部署会报缺依赖
+  schema/dependencies:
+    - radical_pinyin # 参考 https://github.com/mirtlecn/rime-radical-pinyin
+    - melt_eng # 英文方案
+
+  # 开关照 schema 原样抄，只删了 transcription（简繁）一项。简繁不用，别从上游抄回来
+  switches:
+    - name: ascii_mode
+      reset: 0
+      states: [ 中文, 英文 ]
+    - name: emoji_suggestion
+      states: [ "😣️","😁️"]
+      reset: 1
+    - name: full_shape
+      states: [ 半角, 全角 ]
+      reset: 0
+    - name: tone_display                  #开启后在输入编码的位置实时转换为带声调全拼，不开启则采用系统配置，影响的是preedit_format,归属：super_preedit.lua
+      states: [ 声杳, 声起 ]
+      reset: 0
+    - name: ascii_punct
+      states: [ "。，" , "．，" ]
+      reset: 0
+
+  # 分段器照 schema 抄，删了 affix_segmentor@stroke（笔画反查不用）
+  engine/segmentors:
+    - ascii_segmentor                                    # 標識西文段落
+    - matcher                                            # 標識符合特定規則的段落，如網址、反查等
+    - affix_segmentor@radical_reverse_lookup
+    - abc_segmentor                                      # 標識常規的文字段落
+    - punct_segmentor                                    # 標識句讀段落
+    - fallback_segmentor                                 # 標識其他未標識段落
+
+  # 翻译器照 schema 抄，删了 reverse_lookup_translator@stroke（笔画反查不用）
+  # 头部两个是原来用 @before 0 / @before 1 插进来的自定义短语翻译器，顺序：用户热词、仓库热词、词库
+  #   custom_phrase_user  手机上在 Trime「热词」页面手动加的词（custom_phrase_user.txt，fork 版 Trime 部署前生成）
+  #   custom_phrase       仓库 hotwords.txt 生成的热词（custom_phrase.txt）
+  engine/translators:
+    - table_translator@custom_phrase_user
+    - table_translator@custom_phrase
+    - punct_translator                                   # ※ 轉換標點符號
+    - script_translator
+    - lua_translator@*shijian                            # 时间、日期、星期、月份、问候、节气、节日，N模式
+    - lua_translator@*number_translator                  # 金额大小写
+    - lua_translator@*chineseLunarCalendar_translator    # 农历
+    - lua_translator@*mint_calculator_translator         # 计算器（lua 动态表达式）
+    - table_translator@melt_eng                          # 英文输入（作为子翻译器，优先级需要比原生的低）
+    - table_translator@cn_en                             # 中英混合词汇
+    - reverse_lookup_translator@radical_reverse_lookup
+    - lua_translator@*force_gc                           # 暴力GC，尝试解决小狼毫长期使用的卡顿
+    # - reverse_lookup_translator # 反查模块，多标签情况下去除
+    # - echo_translator      # ※ 没有候选词，返回字符
+
+  # 滤镜照 schema 抄，删了 simplifier@transcription_cc（简繁不用，APK 也不再内置 s2t.json，别抄回来）
+  # english_boost_filter 原来用 @before 6 插在 uniquifier 之前，这里按原位置并进来
+  engine/filters:
+    - lua_filter@*corrector_filter            # 错音错字提示
+    - lua_filter@*super_preedit               # 为候选项添加声调
+    - lua_filter@*autocap_filter              # 英文自动大写
+    - simplifier@emoji_suggestion
+    - lua_filter@*reduce_english_filter       # 降低部分英语单词在候选项的位置
+    - lua_filter@*english_boost_filter        # 中文拼不出整词（首选是临时拼的句子）时让覆盖整段输入的英文候选优先（手机端新增）
+    - uniquifier                              # 去重
+
+  # 笔画反查已去掉，Ui 开头的输入不再识别成反查段（空串即关闭该规则）
+  recognizer/patterns/stroke: ""
+
+  # 快捷键：schema 自带三条，去掉两条切简繁的（Control+Shift+1 / exclam），只留 emoji。
+  # 部署时这张表会追加到 default.yaml 的 key_binder/bindings 之后（schema 里是 import_preset: default）
+  key_binder/bindings:
+    - {accept: "Control+Shift+E", toggle: emoji_suggestion, when: always}   # Emoji 快捷键
+
+  # 手动热词翻译器（词条在 custom_phrase_user.txt，官方版 Trime 下该文件为空，无副作用）
+  custom_phrase_user:
+    dictionary: ""
+    user_dict: custom_phrase_user
+    db_class: stabledb
+    enable_completion: false
+    enable_sentence: false
+    initial_quality: 11
+
+  # custom_phrase 翻译器配置（词条在 custom_phrase.txt）
+  custom_phrase:
+    dictionary: ""
+    user_dict: custom_phrase
+    db_class: stabledb
+    enable_completion: false
+    enable_sentence: false
+    initial_quality: 10
+
+  # ---- 手机端调整 ----
+  # 候选栏一页多放几个，减少翻页；iOS 风格主题下候选栏可横向滚动
+  menu/page_size: 8

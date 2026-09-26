@@ -77,17 +77,11 @@ private val HomeGroups = listOf(
 @Composable
 fun MainScreen(
     onNavigate: (NavigationRoute) -> Unit,
-    onDeploy: () -> Unit,
     onTestInput: () -> Unit,
 ) {
     TrimeScreen(
         title = stringResource(R.string.trime_app_name),
         actions = {
-            TopBarIconButton(
-                icon = R.drawable.ic_baseline_refresh_reversed_24,
-                contentDescription = stringResource(R.string.deploy),
-                onClick = onDeploy,
-            )
             TopBarIconButton(
                 icon = R.drawable.ic_baseline_keyboard_24,
                 contentDescription = stringResource(R.string.test_input),

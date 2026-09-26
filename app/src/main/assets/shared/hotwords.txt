@@ -1,0 +1,99 @@
+# 热词表：一行一个词，可选用 Tab 跟一个权重（默认 1，越大越靠前）。
+# 由 tools/gen_hotwords.py 生成两份 Rime 自定义短语：
+#   custom_phrase.txt     26 键小鹤双拼用，编码 = 词里的字母（小写，去掉非字母）
+#   hotwords_t9.dict.yaml 九宫格用，编码 = 字母按 2~9 映射成数字（做成词典，见 tools/gen_hotwords.py）
+# 自定义短语的优先级高于词库，会排在中文候选前面，所以只放真正常用、拼出来不会误伤中文的词。
+# 改完运行 python3 tools/gen_hotwords.py，然后 git push。
+# 临时想加个词也可以直接在手机 Trime 的「热词」页面加（fork 版），不用改这里。
+
+# 日常
+OK	5
+ok	4
+Hi	2
+hello
+yes
+no
+cool
+nice
+bye
+email
+app	3
+bug	3
+demo
+todo
+TODO
+vlog
+DIY
+
+# 设备与系统
+iPhone	3
+iPad
+Mac	2
+macOS	2
+iOS	2
+Android
+Windows
+Linux
+WiFi	3
+USB
+HDMI
+CPU
+GPU
+OTA
+Chrome
+Safari
+
+# 工作
+PPT	2
+PDF	2
+Excel
+Word
+Keynote
+API	2
+SDK
+URL	2
+JSON
+YAML
+HTTP
+HTTPS
+VPN
+ID	2
+IP
+KPI
+OKR
+MVP
+SaaS
+CEO
+HR
+PM
+UI
+UX
+QA
+
+# 开发
+GitHub	3
+Git	2
+PR	2
+Rime
+Trime
+Python
+Java
+Kotlin
+Swift
+Rust
+Docker
+Node
+npm
+Vim
+VSCode
+
+# AI
+AI	3
+GPT
+ChatGPT
+Claude
+DeepSeek
+
+# 社交
+QQ	2
+NBA

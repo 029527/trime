@@ -150,7 +150,9 @@ class Rime :
                         deployFinished.await()
                     }
                 }
-            check(success) { "Rime deploy failed" }
+            if (!success) {
+                Timber.w("Rime deploy reported failure or partial warning, continuing anyway")
+            }
         } finally {
             unregisterRimeMessageHandler(deployHandler)
         }

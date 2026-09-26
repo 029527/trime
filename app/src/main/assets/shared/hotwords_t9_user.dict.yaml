@@ -1,0 +1,16 @@
+# Rime dictionary
+# encoding: utf-8
+# 占位文件：手机上 fork 版 Trime 会在每次部署前用「热词」页面里的词重写它（编码是字母按 2~9 映射成的数字）。
+# 末尾那条编码为 0 的词条是占位：空词典编译不过，而 t9 方案的键盘上没有 0 键，永远打不出来。
+---
+name: hotwords_t9_user
+version: "1"
+sort: by_weight
+use_preset_vocabulary: false
+columns:
+  - text
+  - code
+  - weight
+...
+
+占位	0	0

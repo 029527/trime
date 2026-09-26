@@ -1,0 +1,11 @@
+---
+name: melt_eng         # 注意name和文件名一致
+version: "2024.02.11"
+sort: by_weight
+use_preset_vocabulary: false  # 手机端 APK 不再内置 essay.txt（里面本来也没有英文词），关掉免得部署时去找
+# 此处为 输入法所用到的词库，既补充拓展词库的地方
+import_tables:
+  - dicts/rime_ice.en_ext   # 雾凇拼音-英文扩展
+  - dicts/rime_ice.en       # 雾凇拼音-英文Base
+ # - easy_en # Easy-en基础
+...

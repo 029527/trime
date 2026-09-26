@@ -19,19 +19,6 @@ class MainFragment : ComposeFragment() {
     override fun Content() {
         MainScreen(
             onNavigate = ::navigate,
-            onDeploy = {
-                val ctx = requireContext()
-                mainViewModel.rime.launchOnReady {
-                    runCatching {
-                        it.deploy()
-                    }.onSuccess {
-                        ctx.toast(R.string.deploy_finish)
-                    }.onFailure { e ->
-                        Timber.e(e, "Deploy failed")
-                        ctx.toast(getString(R.string.hot_word_deploy_failed, e.message ?: e.javaClass.simpleName))
-                    }
-                }
-            },
             onTestInput = { mainViewModel.requestTestInput() },
         )
     }

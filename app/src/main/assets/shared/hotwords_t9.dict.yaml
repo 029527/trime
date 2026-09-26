@@ -1,0 +1,94 @@
+# Rime dictionary
+# encoding: utf-8
+# 由 tools/gen_hotwords.py 从 hotwords.txt 生成，不要手改。九宫格热词：编码是字母按 2~9 映射成的数字。
+---
+name: hotwords_t9
+version: "1"
+sort: by_weight
+use_preset_vocabulary: false
+columns:
+  - text
+  - code
+  - weight
+...
+
+OK	65	5
+ok	65	4
+Hi	44	2
+hello	43556	1
+yes	937	1
+no	66	1
+cool	2665	1
+nice	6423	1
+bye	293	1
+email	36245	1
+app	277	3
+bug	284	3
+demo	3366	1
+todo	8636	1
+TODO	8636	1
+vlog	8564	1
+DIY	349	1
+iPhone	474663	3
+iPad	4723	1
+Mac	622	2
+macOS	62267	2
+iOS	467	2
+Android	2637643	1
+Windows	9463697	1
+Linux	54689	1
+WiFi	9434	3
+USB	872	1
+HDMI	4364	1
+CPU	278	1
+GPU	478	1
+OTA	682	1
+Chrome	247663	1
+Safari	723274	1
+PPT	778	2
+PDF	733	2
+Excel	39235	1
+Word	9673	1
+Keynote	5396683	1
+API	274	2
+SDK	735	1
+URL	875	2
+JSON	5766	1
+YAML	9265	1
+HTTP	4887	1
+HTTPS	48877	1
+VPN	876	1
+ID	43	2
+IP	47	1
+KPI	574	1
+OKR	657	1
+MVP	687	1
+SaaS	7227	1
+CEO	236	1
+HR	47	1
+PM	76	1
+UI	84	1
+UX	89	1
+QA	72	1
+GitHub	448482	3
+Git	448	2
+PR	77	2
+Rime	7463	1
+Trime	87463	1
+Python	798466	1
+Java	5282	1
+Kotlin	568546	1
+Swift	79438	1
+Rust	7878	1
+Docker	362537	1
+Node	6633	1
+npm	676	1
+Vim	846	1
+VSCode	872633	1
+AI	24	3
+GPT	478	1
+ChatGPT	2428478	1
+Claude	252833	1
+DeepSeek	33377335	1
+QQ	77	2
+NBA	622	1

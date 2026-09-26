@@ -108,9 +108,26 @@ object DataManager {
 
         val custom = userDataDir.resolve(DEFAULT_CUSTOM_FILE_NAME)
         if (!custom.exists()) {
-            if (custom.createNewFile()) {
+            val sharedCustom = sharedDataDir.resolve(DEFAULT_CUSTOM_FILE_NAME)
+            if (sharedCustom.exists()) {
+                sharedCustom.copyTo(custom, overwrite = true)
+            } else if (custom.createNewFile()) {
                 custom.writeText(SCHEMA_LIST_CUSTOM_PATCH.trimIndent())
             }
+        }
+
+        // 确保 rime.lua、lua 脚本与自定义短语在 userDataDir 可用（供 librime-lua 开箱即用）
+        listOf("rime.lua", "custom_phrase.txt", "custom_phrase_user.txt").forEach { name ->
+            val userFile = userDataDir.resolve(name)
+            val sharedFile = sharedDataDir.resolve(name)
+            if (!userFile.exists() && sharedFile.exists()) {
+                sharedFile.copyTo(userFile, overwrite = true)
+            }
+        }
+        val userLuaDir = userDataDir.resolve("lua")
+        val sharedLuaDir = sharedDataDir.resolve("lua")
+        if (!userLuaDir.exists() && sharedLuaDir.isDirectory) {
+            sharedLuaDir.copyRecursively(userLuaDir, overwrite = true)
         }
 
         Timber.d("Synced!")

@@ -1,0 +1,30 @@
+# Rime schema
+# encoding: utf-8
+# 只为了让部署器编译 hotwords_t9 词典和 prism，供 t9 方案作次级翻译器；不会出现在方案列表里。
+schema:
+  schema_id: hotwords_t9
+  name: 九宫格热词
+  version: "1"
+  description: |
+    hotwords.txt 生成的九宫格热词词典（数字编码），由 t9 方案挂载。
+
+engine:
+  processors:
+    - speller
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - abc_segmentor
+    - fallback_segmentor
+  translators:
+    - table_translator
+
+speller:
+  alphabet: "0123456789abcdefghijklmnopqrstuvwxyz"
+
+translator:
+  dictionary: hotwords_t9
+  prism: hotwords_t9
+  enable_completion: false
+  enable_sentence: false
