@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -75,63 +76,91 @@ private fun KeyPreviewBubble(
     val text = colors.popupText.toArgb()
     val headW = metrics.previewWidth.toFloat()
     val headH = metrics.previewHeight.toFloat()
-    val tailH = metrics.tailHeight.toFloat()
-    val totalH = headH + tailH
+    val funnelH = metrics.tailHeight.toFloat()
+    val totalH = headH + funnelH
     val r = metrics.previewCornerRadius
-    val tr = metrics.tailCornerRadius
+
+    val baseL = (slot.keyLeft - slot.x).toFloat().coerceIn(0f, headW)
+    val baseR = (slot.keyLeft - slot.x + slot.keyWidth).toFloat().coerceIn(0f, headW)
+
+    // 创建契合漏斗外轮廓的 Shape，供系统 RenderNode 投射出逼真的漏斗形立体阴影
+    val bubbleShape = remember(headW, headH, funnelH, totalH, r, baseL, baseR) {
+        GenericShape { _, _ ->
+            // 1. 头部左上圆角起点
+            moveTo(0f, r)
+            quadraticTo(0f, 0f, r, 0f)
+            // 2. 头部顶边
+            lineTo(headW - r, 0f)
+            // 3. 头部右上圆角
+            quadraticTo(headW, 0f, headW, r)
+            // 4. 头部右侧边缘，走到头部与漏斗交接处
+            lineTo(headW, headH)
+            // 5. 漏斗右侧：从 (headW, headH) 平滑内收过渡到底部按键右侧 (baseR, totalH)
+            if (baseR < headW) {
+                cubicTo(
+                    headW, headH + funnelH * 0.45f,
+                    baseR, totalH - funnelH * 0.25f,
+                    baseR, totalH,
+                )
+            } else {
+                lineTo(baseR, totalH)
+            }
+            // 6. 漏斗底部：水平横线，与用户按键顶边宽度精确贴合、挨着无缝隙
+            lineTo(baseL, totalH)
+            // 7. 漏斗左侧：从底部按键左侧 (baseL, totalH) 平滑展开到头部左侧 (0, headH)
+            if (baseL > 0f) {
+                cubicTo(
+                    baseL, totalH - funnelH * 0.25f,
+                    0f, headH + funnelH * 0.45f,
+                    0f, headH,
+                )
+            } else {
+                lineTo(0f, headH)
+            }
+            // 8. 闭合回到左上角
+            close()
+        }
+    }
+
     Spacer(
         Modifier
             .offset { IntOffset(slot.x, slot.y) }
-            .sizeInPx(metrics.previewWidth, metrics.previewHeight + metrics.tailHeight)
+            .sizeInPx(metrics.previewWidth, (totalH).roundToInt())
             .graphicsLayer {
                 alpha = if (slot.visible) 1f else 0f
                 shadowElevation = metrics.shadowElevation
+                shape = bubbleShape
                 clip = false
             }.drawBehind {
-                // Key body bounds relative to this composable's origin
-                val keyL = (slot.keyLeft - slot.x).toFloat()
-                val keyR = keyL + slot.keyWidth
-                // Tail bottom edges clamped to head bounds
-                val tl = keyL.coerceAtLeast(0f)
-                val tr2 = keyR.coerceAtMost(headW)
-                // Effective curve radius for the tail junction, limited by available space
-                val trL = tr.coerceAtMost(tl).coerceAtMost(tailH)
-                val trR = tr.coerceAtMost(headW - tr2).coerceAtMost(tailH)
                 val path = Path().apply {
-                    // === Head: rounded rectangle ===
                     moveTo(0f, r)
                     quadraticTo(0f, 0f, r, 0f)
                     lineTo(headW - r, 0f)
                     quadraticTo(headW, 0f, headW, r)
-                    lineTo(headW, headH - r)
-                    // === Right side: head → tail transition ===
-                    if (tr2 < headW) {
-                        // tail is narrower than head on the right side
-                        quadraticTo(headW, headH, headW - r.coerceAtMost(headW - tr2 - trR), headH)
-                        lineTo(tr2 + trR, headH)
-                        quadraticTo(tr2, headH, tr2, headH + trR)
+                    lineTo(headW, headH)
+                    if (baseR < headW) {
+                        cubicTo(
+                            headW, headH + funnelH * 0.45f,
+                            baseR, totalH - funnelH * 0.25f,
+                            baseR, totalH,
+                        )
                     } else {
-                        // tail is as wide as head: straight corner
-                        quadraticTo(headW, headH, headW, headH)
+                        lineTo(baseR, totalH)
                     }
-                    lineTo(tr2, totalH)
-                    // === Bottom of tail ===
-                    lineTo(tl, totalH)
-                    // === Left side: tail → head transition ===
-                    if (tl > 0f) {
-                        lineTo(tl, headH + trL)
-                        quadraticTo(tl, headH, tl - trL, headH)
-                        lineTo(r.coerceAtMost(tl - trL), headH)
-                        quadraticTo(0f, headH, 0f, headH - r)
+                    lineTo(baseL, totalH)
+                    if (baseL > 0f) {
+                        cubicTo(
+                            baseL, totalH - funnelH * 0.25f,
+                            0f, headH + funnelH * 0.45f,
+                            0f, headH,
+                        )
                     } else {
-                        // tail is as wide as head: straight corner
                         lineTo(0f, headH)
-                        lineTo(0f, headH - r)
                     }
                     close()
                 }
                 drawPath(path, back)
-                // Letter centered in the head portion only
+                // 字母居中绘制在漏斗上方的头部展示区域
                 painter.drawText(
                     nativeCanvas, slot.text, painter.preview, text,
                     headW / 2, headH / 2, headW,

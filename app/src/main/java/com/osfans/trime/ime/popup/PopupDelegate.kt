@@ -81,13 +81,23 @@ class PopupDelegate {
         handler.removeCallbacks(slot.hideTask)
         updateRootLocation()
         val m = metrics
-        val centerX = (bounds.left + bounds.right) / 2 - rootLocation[0]
+        val halfH = m.keyHorizontalGap / 2
+        val halfV = m.keyVerticalGap / 2
+        val keyVisualLeft = bounds.left - rootLocation[0] + halfH
+        val keyVisualRight = bounds.right - rootLocation[0] - halfH
+        val keyVisualTop = bounds.top - rootLocation[1] + halfV
+        val keyVisualWidth = maxOf(0, keyVisualRight - keyVisualLeft)
+        val keyVisualHeight = maxOf(0, bounds.bottom - bounds.top - m.keyVerticalGap)
+
+        val totalHeight = m.previewHeight + m.tailHeight
+        val centerX = (keyVisualLeft + keyVisualRight) / 2
         slot.x = PopupGeometry.centeredLeft(centerX, m.previewWidth, root.width)
-        slot.y = PopupGeometry.topAbove(bounds.top - rootLocation[1] + m.anchorOffset, m.previewHeight + m.tailHeight)
+        // 关键：底边对齐按键的真实顶边，完全贴合无间隔 (+1px 重叠消除任何浮点渲染缝隙)
+        slot.y = maxOf(0, keyVisualTop - totalHeight + 1)
         slot.text = content
-        slot.keyWidth = bounds.width()
-        slot.keyHeight = bounds.height()
-        slot.keyLeft = bounds.left - rootLocation[0]
+        slot.keyWidth = keyVisualWidth
+        slot.keyHeight = keyVisualHeight
+        slot.keyLeft = keyVisualLeft
         slot.shownAt = SystemClock.uptimeMillis()
         slot.visible = true
     }

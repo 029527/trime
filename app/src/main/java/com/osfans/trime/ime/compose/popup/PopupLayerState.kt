@@ -42,6 +42,8 @@ internal class PopupMetrics(
     val tailHeight: Int,
     /** Corner radius where the tail meets the bubble head, for a smooth curve. */
     val tailCornerRadius: Float,
+    val keyHorizontalGap: Int,
+    val keyVerticalGap: Int,
 ) {
     companion object {
         fun of(
@@ -65,6 +67,8 @@ internal class PopupMetrics(
                 textWeight = tokens.popupWeight.weight,
                 tailHeight = tokens.popupTailHeight.roundToPx(),
                 tailCornerRadius = tokens.popupTailCornerRadius.toPx(),
+                keyHorizontalGap = tokens.keyHorizontalGap.roundToPx(),
+                keyVerticalGap = tokens.keyVerticalGap.roundToPx(),
             )
         }
     }

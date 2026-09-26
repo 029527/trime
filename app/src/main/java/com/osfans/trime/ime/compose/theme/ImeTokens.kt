@@ -101,9 +101,9 @@ data class ImeTokens(
     val panelBodyWeight: FontWeight = FontWeight(400),
     // press feedback
     /** Character keys: a bubble above the key shows what will be typed, or what the swipe will type. */
-    val keyPreviewWidth: Dp = 44.dp,
-    val keyPreviewHeight: Dp = 56.dp,
-    val keyPreviewTextSize: TextUnit = 30.sp,
+    val keyPreviewWidth: Dp = 56.dp,
+    val keyPreviewHeight: Dp = 52.dp,
+    val keyPreviewTextSize: TextUnit = 32.sp,
     /**
      * Function keys get no bubble. While held they take their own pressed tone (a state layer), not
      * the letter-key shade: panels that draw function keys themselves read this.
@@ -116,9 +116,9 @@ data class ImeTokens(
     /** Space between the top of the key body and the bottom of the bubble / popup keyboard. */
     val popupAnchorGap: Dp = 2.dp,
     /** Rounder than a key: the bubble is taller and floats over the app. */
-    val popupPreviewCornerRadius: Dp = 14.dp,
+    val popupPreviewCornerRadius: Dp = 10.dp,
     /** Just enough to lift the bubble off same-coloured keys. */
-    val popupShadowElevation: Dp = 3.dp,
+    val popupShadowElevation: Dp = 4.dp,
     /** Cells of the long-press keyboard are as wide as the bubble, so a held key reads the same. */
     val popupKeyboardCellWidth: Dp = 44.dp,
     val popupKeyboardCellHeight: Dp = 48.dp,
@@ -127,8 +127,8 @@ data class ImeTokens(
     val popupKeyboardCornerRadius: Dp = 16.dp,
     /** Focused cell's block, in the accent colour; as round as a key. */
     val popupKeyboardHighlightCornerRadius: Dp = 10.dp,
-    /** Height of the iOS-style tail that connects the bubble head to the pressed key body. */
-    val popupTailHeight: Dp = 14.dp,
+    /** Height of the iOS-style funnel tail that connects the bubble head to the pressed key body. */
+    val popupTailHeight: Dp = 16.dp,
     /** Corner radius where the tail meets the bubble head, for a smooth curve. */
     val popupTailCornerRadius: Dp = 6.dp,
     // symbol panel
