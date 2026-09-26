@@ -127,6 +127,10 @@ data class ImeTokens(
     val popupKeyboardCornerRadius: Dp = 16.dp,
     /** Focused cell's block, in the accent colour; as round as a key. */
     val popupKeyboardHighlightCornerRadius: Dp = 10.dp,
+    /** Height of the iOS-style tail that connects the bubble head to the pressed key body. */
+    val popupTailHeight: Dp = 14.dp,
+    /** Corner radius where the tail meets the bubble head, for a smooth curve. */
+    val popupTailCornerRadius: Dp = 6.dp,
     // symbol panel
     // Corners, gaps, and type sizes come from the key group, so a cell looks like a key.
     /** Narrowest single cell when the source gives none; wide enough for one 22sp emoji plus gaps. */

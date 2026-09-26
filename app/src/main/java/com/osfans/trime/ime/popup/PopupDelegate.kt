@@ -83,8 +83,11 @@ class PopupDelegate {
         val m = metrics
         val centerX = (bounds.left + bounds.right) / 2 - rootLocation[0]
         slot.x = PopupGeometry.centeredLeft(centerX, m.previewWidth, root.width)
-        slot.y = PopupGeometry.topAbove(bounds.top - rootLocation[1] + m.anchorOffset, m.previewHeight)
+        slot.y = PopupGeometry.topAbove(bounds.top - rootLocation[1] + m.anchorOffset, m.previewHeight + m.tailHeight)
         slot.text = content
+        slot.keyWidth = bounds.width()
+        slot.keyHeight = bounds.height()
+        slot.keyLeft = bounds.left - rootLocation[0]
         slot.shownAt = SystemClock.uptimeMillis()
         slot.visible = true
     }

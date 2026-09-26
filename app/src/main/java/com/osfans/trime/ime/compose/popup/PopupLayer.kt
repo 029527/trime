@@ -32,6 +32,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
@@ -70,21 +71,71 @@ private fun KeyPreviewBubble(
     colors: ImeColors,
     painter: PopupPainter,
 ) {
-    val shape = remember(metrics) { RoundedCornerShape(metrics.previewCornerRadius) }
     val back = colors.popupBack.copy(alpha = 1f)
     val text = colors.popupText.toArgb()
+    val headW = metrics.previewWidth.toFloat()
+    val headH = metrics.previewHeight.toFloat()
+    val tailH = metrics.tailHeight.toFloat()
+    val totalH = headH + tailH
+    val r = metrics.previewCornerRadius
+    val tr = metrics.tailCornerRadius
     Spacer(
         Modifier
             .offset { IntOffset(slot.x, slot.y) }
-            .sizeInPx(metrics.previewWidth, metrics.previewHeight)
+            .sizeInPx(metrics.previewWidth, metrics.previewHeight + metrics.tailHeight)
             .graphicsLayer {
                 alpha = if (slot.visible) 1f else 0f
                 shadowElevation = metrics.shadowElevation
-                this.shape = shape
                 clip = false
             }.drawBehind {
-                drawRoundRect(back, cornerRadius = CornerRadius(metrics.previewCornerRadius))
-                painter.drawText(nativeCanvas, slot.text, painter.preview, text, size.width / 2, size.height / 2, size.width)
+                // Key body bounds relative to this composable's origin
+                val keyL = (slot.keyLeft - slot.x).toFloat()
+                val keyR = keyL + slot.keyWidth
+                // Tail bottom edges clamped to head bounds
+                val tl = keyL.coerceAtLeast(0f)
+                val tr2 = keyR.coerceAtMost(headW)
+                // Effective curve radius for the tail junction, limited by available space
+                val trL = tr.coerceAtMost(tl).coerceAtMost(tailH)
+                val trR = tr.coerceAtMost(headW - tr2).coerceAtMost(tailH)
+                val path = Path().apply {
+                    // === Head: rounded rectangle ===
+                    moveTo(0f, r)
+                    quadraticTo(0f, 0f, r, 0f)
+                    lineTo(headW - r, 0f)
+                    quadraticTo(headW, 0f, headW, r)
+                    lineTo(headW, headH - r)
+                    // === Right side: head → tail transition ===
+                    if (tr2 < headW) {
+                        // tail is narrower than head on the right side
+                        quadraticTo(headW, headH, headW - r.coerceAtMost(headW - tr2 - trR), headH)
+                        lineTo(tr2 + trR, headH)
+                        quadraticTo(tr2, headH, tr2, headH + trR)
+                    } else {
+                        // tail is as wide as head: straight corner
+                        quadraticTo(headW, headH, headW, headH)
+                    }
+                    lineTo(tr2, totalH)
+                    // === Bottom of tail ===
+                    lineTo(tl, totalH)
+                    // === Left side: tail → head transition ===
+                    if (tl > 0f) {
+                        lineTo(tl, headH + trL)
+                        quadraticTo(tl, headH, tl - trL, headH)
+                        lineTo(r.coerceAtMost(tl - trL), headH)
+                        quadraticTo(0f, headH, 0f, headH - r)
+                    } else {
+                        // tail is as wide as head: straight corner
+                        lineTo(0f, headH)
+                        lineTo(0f, headH - r)
+                    }
+                    close()
+                }
+                drawPath(path, back)
+                // Letter centered in the head portion only
+                painter.drawText(
+                    nativeCanvas, slot.text, painter.preview, text,
+                    headW / 2, headH / 2, headW,
+                )
             },
     )
 }

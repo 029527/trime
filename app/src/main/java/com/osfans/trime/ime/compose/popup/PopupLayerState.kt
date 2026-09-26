@@ -38,6 +38,10 @@ internal class PopupMetrics(
     val highlightCornerRadius: Float,
     /** Weight of bubble and cell text on the app font's axis. */
     val textWeight: Int,
+    /** Height of the iOS-style tail that connects the bubble head to the key body. */
+    val tailHeight: Int,
+    /** Corner radius where the tail meets the bubble head, for a smooth curve. */
+    val tailCornerRadius: Float,
 ) {
     companion object {
         fun of(
@@ -59,6 +63,8 @@ internal class PopupMetrics(
                 keyboardCornerRadius = tokens.popupKeyboardCornerRadius.toPx(),
                 highlightCornerRadius = tokens.popupKeyboardHighlightCornerRadius.toPx(),
                 textWeight = tokens.popupWeight.weight,
+                tailHeight = tokens.popupTailHeight.roundToPx(),
+                tailCornerRadius = tokens.popupTailCornerRadius.toPx(),
             )
         }
     }
@@ -75,6 +81,13 @@ internal class BubbleSlot {
     var y by mutableIntStateOf(0)
     var text by mutableStateOf("")
     var visible by mutableStateOf(false)
+
+    /** Width of the pressed key body in pixels, for the bubble tail. */
+    var keyWidth by mutableIntStateOf(0)
+    /** Height of the pressed key body in pixels, for the bubble tail. */
+    var keyHeight by mutableIntStateOf(0)
+    /** Left edge of the pressed key body relative to the popup layer, for the tail. */
+    var keyLeft by mutableIntStateOf(0)
 
     /** Key the bubble belongs to while showing. */
     var viewId = -1
